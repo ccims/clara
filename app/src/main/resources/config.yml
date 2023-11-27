@@ -1,0 +1,17 @@
+aggregation:
+  platforms:
+    kubernetes:
+      namespaces:
+        - "default"
+        - "test"
+      aggregators:
+        pod:
+        service:
+        dns:
+
+export:
+  exporters:
+    graphViz:
+      outputType: svg
+      outputFile: generated/architecture.svg
+    gropius:
