@@ -86,13 +86,15 @@ class KubernetesDnsLogAnalyzerTest : FreeSpec({
                 [INFO] 10.244.0.19:33688 - 20187 "A IN kubernetes.default.svc.cluster.local.svc.cluster.local. udp 72 false 512" NXDOMAIN qr,aa,rd 165 0.000111301s
                 [INFO] 10.244.0.19:51793 - 49441 "A IN kubernetes.default.svc.cluster.local.cluster.local. udp 68 false 512" NXDOMAIN qr,aa,rd 161 0.000095201s
                 [INFO] 10.244.0.19:50096 - 17198 "A IN kubernetes.default.svc.cluster.local. udp 54 false 512" NOERROR qr,aa,rd 106 0.000119501s
+                [INFO] 10.244.0.22:12456 - 17198 "A IN kubernetes.default.svc.cluster.local. udp 54 false 512" NOERROR
             """.trimIndent(),
             expected = setOf(
-                DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("10-244-0-18.default.pod.cluster.local.")),
-                DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("kubernetes.default.svc.cluster.local.")),
                 DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("google.com.")),
                 DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("1-1-1-1.default.pod.cluster.local.")),
                 DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("1-1-1-100.default.pod.cluster.local.")),
+                DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("10-244-0-18.default.pod.cluster.local.")),
+                DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("kubernetes.default.svc.cluster.local.")),
+                DnsQuery(sourceIpAddress = IpAddress("10.244.0.22 FAIL"), targetDomain = Domain("kubernetes.default.svc.cluster.local.")),
             )
         ),
     )
