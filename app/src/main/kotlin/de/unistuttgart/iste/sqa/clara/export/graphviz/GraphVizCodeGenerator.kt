@@ -41,7 +41,7 @@ object GraphVizCodeGenerator {
     }
 }
 
-fun Graph.addSubGraphFromNamespace(index: Int, namespace: Namespace, components: List<Component>) {
+private fun Graph.addSubGraphFromNamespace(index: Int, namespace: Namespace, components: List<Component>) {
     this.subGraph("cluster_$index") {
         label = namespace.value
 
@@ -51,21 +51,21 @@ fun Graph.addSubGraphFromNamespace(index: Int, namespace: Namespace, components:
     }
 }
 
-fun Graph.addEdgeFromCommunication(communications: Communication) {
+private fun Graph.addEdgeFromCommunication(communications: Communication) {
     this.edge(
         from = communications.source.component.id(),
         to = communications.target.component.id()
     )
 }
 
-fun Graph.addNodeFromComponent(component: Component) = this.node(component.toNode())
+private fun Graph.addNodeFromComponent(component: Component) = this.node(component.toNode())
 
-fun SubGraph.addNodeFromComponent(component: Component) = this.node(component.toNode())
+private fun SubGraph.addNodeFromComponent(component: Component) = this.node(component.toNode())
 
-fun Component.toNode() = Node(id = this.id(), label = this.label(), attributes = this.attributes())
+private fun Component.toNode() = Node(id = this.id(), label = this.label(), attributes = this.attributes())
 
 @OptIn(ExperimentalStdlibApi::class)
-fun Component.id(): String {
+private fun Component.id(): String {
     return when (this) {
         is Component.External -> "ext_${this.hashCode().toHexString()}"
         is Component.Internal.Pod -> "pod_${this.hashCode().toHexString()}"
@@ -73,7 +73,7 @@ fun Component.id(): String {
     }
 }
 
-fun Component.label(): String {
+private fun Component.label(): String {
     return when (this) {
         is Component.External -> this.domain.value
         is Component.Internal.Pod -> "${this.name}\\n(${this.ipAddress})"
@@ -81,7 +81,7 @@ fun Component.label(): String {
     }
 }
 
-fun Component.attributes(): Map<String, String> {
+private fun Component.attributes(): Map<String, String> {
     return when (this) {
         is Component.External -> mapOf("shape" to "oval")
         is Component.Internal.Pod -> mapOf("shape" to "rectangle")

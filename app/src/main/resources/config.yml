@@ -1,9 +1,9 @@
 aggregation:
   platforms:
     kubernetes:
+      includeKubeNamespaces: true
       namespaces:
-        - "default"
-        - "test"
+        - "*"
       aggregators:
         pod:
         service:

@@ -3,12 +3,12 @@ package de.unistuttgart.iste.sqa.clara.export.graphviz.dsl
 class Graph(
     private val name: String,
     private val isDirected: Boolean = false,
-    private val indentationLevel: Int = 2,
 ) {
 
     private val nodes = mutableListOf<Node>()
     private val edges = mutableListOf<Edge>()
     private val subGraphs = mutableListOf<SubGraph>()
+    private val indentationLevel: Int = 2
 
     var label = ""
 
@@ -41,6 +41,8 @@ class Graph(
             append(graphType)
             appendInQuotes(name)
             appendLine(" {")
+            append(indentation)
+            appendLine("""graph [pad="1.0", nodesep="0.75", ranksep="1.0"]""") // TODO: make this generic
 
             if (label.isNotBlank()) {
                 append(indentation)
