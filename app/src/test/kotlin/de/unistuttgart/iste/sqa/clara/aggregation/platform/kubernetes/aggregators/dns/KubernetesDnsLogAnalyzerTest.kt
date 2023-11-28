@@ -94,7 +94,7 @@ class KubernetesDnsLogAnalyzerTest : FreeSpec({
                 DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("1-1-1-100.default.pod.cluster.local.")),
                 DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("10-244-0-18.default.pod.cluster.local.")),
                 DnsQuery(sourceIpAddress = IpAddress("10.244.0.19"), targetDomain = Domain("kubernetes.default.svc.cluster.local.")),
-                DnsQuery(sourceIpAddress = IpAddress("10.244.0.22 FAIL"), targetDomain = Domain("kubernetes.default.svc.cluster.local.")),
+                DnsQuery(sourceIpAddress = IpAddress("10.244.0.22"), targetDomain = Domain("kubernetes.default.svc.cluster.local.")),
             )
         ),
     )
