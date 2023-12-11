@@ -1,9 +1,8 @@
 # DNS
 
 To analyze the communication of components via DNS queries, the DNS server must be configured to log said queries.
-An example config map is provided, note the `log` option is set.
 
-```yml
+```yaml hl_lines="9" title="An exampple congfig map with the 'log' option enabled"
 apiVersion: v1
 kind: ConfigMap
 metadata:

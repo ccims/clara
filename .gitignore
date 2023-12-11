@@ -6,3 +6,7 @@ build
 
 # Ignore files generated / exported by the application
 generated
+
+# Documentation with MkDocs
+docs/venv
+docs/site
