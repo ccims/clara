@@ -62,7 +62,7 @@ class GraphVizExporter(private val config: GraphViz) : Exporter {
         val exportProcess = ProcessBuilder("dot", "-T${config.outputType}", "-o", config.outputFile).startChecked()
 
         return exportProcess
-            .writeOutput(1.minutes) {
+            .writeOutput(timeout = 1.minutes) {
                 write(code)
                 write(System.lineSeparator())
                 flush()

@@ -16,5 +16,5 @@ interface KubernetesClient {
 
     fun getServicesFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<Component.Internal.Service>>
 
-    fun getDnsLogs(): Either<KubernetesClientError, String>
+    fun getDnsLogs(): Either<KubernetesClientError,  List<String>>
 }

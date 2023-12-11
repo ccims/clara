@@ -31,7 +31,9 @@ class KubernetesDnsAggregator(
         val knownServices = kubernetesClient.getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
             .getOrElse { return Either.Left(AggregationFailure(it.description)) }
 
-        val dnsQueries = KubernetesDnsLogAnalyzer.parseLogs(dnsLogs)
+        log.trace { "Got these DNS logs:\n" + dnsLogs.joinToString("\n") }
+
+        val dnsQueries = dnsLogs.map { KubernetesDnsLogAnalyzer.parseLogs(it) }.flatten().toSet()
         val queryAnalyzer = KubernetesDnsQueryAnalyzer(knownPods, knownServices)
 
         return Either.Right(queryAnalyzer.analyze(dnsQueries))

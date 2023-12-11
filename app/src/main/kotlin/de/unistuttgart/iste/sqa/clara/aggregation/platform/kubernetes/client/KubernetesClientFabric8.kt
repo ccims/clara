@@ -8,7 +8,6 @@ import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
-import kotlin.jvm.optionals.getOrNull
 
 class KubernetesClientFabric8 : KubernetesClient {
 
@@ -101,18 +100,16 @@ class KubernetesClientFabric8 : KubernetesClient {
         }
     }
 
-    override fun getDnsLogs(): Either<KubernetesClientError, String> {
+    override fun getDnsLogs(): Either<KubernetesClientError, List<String>> {
         return try {
             client
                 .pods()
                 .inNamespace("kube-system")
                 .withLabel("k8s-app=kube-dns")
                 .resources()
-                .findFirst()
-                .getOrNull()
-                ?.log
-                ?.right()
-                ?: Either.Left(KubernetesClientError("Cannot find the Kubernetes DNS server!"))
+                .toList()
+                .map { it.log }
+                .right()
         } catch (ex: KubernetesClientException) {
             Either.Left(KubernetesClientError("Cannot get Kubernetes DNS logs: ${ex.message}"))
         }
