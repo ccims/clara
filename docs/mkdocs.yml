@@ -4,6 +4,26 @@ repo_url: https://github.com/SteveBinary/clara
 repo_name: SteveBinary/clara
 
 docs_dir: content
+edit_uri: tree/main/docs/content
+
+nav:
+  - Home: index.md
+  - Concept:
+    - concept/index.md
+  - Configuration:
+    - configuration/index.md
+  - Aggregation:
+      - aggregation/index.md
+      - Platforms:
+          - Kubernetes:
+              - DNS:
+                - aggregation/platforms/kubernetes/dns/index.md
+  - Export:
+    - export/index.md
+    - SVG:
+      - export/svg/index.md
+    - Gropius:
+      - export/gropius/index.md
 
 theme:
   name: material
