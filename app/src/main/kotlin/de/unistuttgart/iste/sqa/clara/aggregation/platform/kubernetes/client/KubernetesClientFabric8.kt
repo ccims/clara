@@ -34,6 +34,7 @@ class KubernetesClientFabric8 : KubernetesClient {
                 .list()
                 .items
                 .filterNot { it.metadata.namespace.startsWith("kube-") && !includeKubeNamespaces }
+                .filter { it.status.phase == "Running" }
                 .map(::fromFabric8Pod)
                 .right()
         } catch (ex: KubernetesClientException) {
@@ -54,6 +55,7 @@ class KubernetesClientFabric8 : KubernetesClient {
                             .inNamespace(namespace.value)
                             .list()
                             .items
+                            .filter { it.status.phase == "Running" }
                             .map(::fromFabric8Pod)
                     }
                     .right()
