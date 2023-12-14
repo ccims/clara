@@ -32,6 +32,8 @@ dependencies {
     implementation(libs.bundles.grpc)
     implementation(libs.opentelemetry.api)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.bundles.grpc)
+    implementation(libs.opentelemetry.api)
 
     testImplementation(libs.bundles.kotest)
 }
