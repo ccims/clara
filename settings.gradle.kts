@@ -71,6 +71,12 @@ fun VersionCatalogBuilder.declaredLibraries() {
 
     library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
 
+    library("grpc.kotlin.stub", "io.grpc", "grpc-kotlin-stub").versionRef(grpcKotlinVersion)
+    library("grpc.protobuf", "io.grpc", "grpc-protobuf").versionRef(protoBufVersion)
+    library("protobuf.kotlin", "com.google.protobuf", "protobuf-kotlin").versionRef(protoBufVersionKotlin)
+
+    library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
+
     bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))
     bundle("kotest", listOf("kotest.runner.junit5", "kotest.assertions.core", "kotest.framework.datatest", "kotest.property"))
