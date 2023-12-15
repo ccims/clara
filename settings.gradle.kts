@@ -77,6 +77,8 @@ fun VersionCatalogBuilder.declaredLibraries() {
 
     library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
 
+    library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
+
     bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))
     bundle("kotest", listOf("kotest.runner.junit5", "kotest.assertions.core", "kotest.framework.datatest", "kotest.property"))
