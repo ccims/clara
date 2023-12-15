@@ -8,8 +8,11 @@ import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class KubernetesClientFabric8 : KubernetesClient {
+
+    private val log = KotlinLogging.logger {}
 
     private val client = KubernetesClientBuilder().build()
 
@@ -115,6 +118,12 @@ class KubernetesClientFabric8 : KubernetesClient {
         } catch (ex: KubernetesClientException) {
             Either.Left(KubernetesClientError("Cannot get Kubernetes DNS logs: ${ex.message}"))
         }
+    }
+
+    override fun close() {
+        log.debug { "Close Kubernetes client ..." }
+        client.close()
+        log.debug { "Done closing Kubernetes client" }
     }
 
     private fun fromFabric8Pod(service: io.fabric8.kubernetes.api.model.Pod): Pod {
