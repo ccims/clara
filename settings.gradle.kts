@@ -1,4 +1,5 @@
-plugins { // Apply the foojay-resolver plugin to allow automatic download of JDKs.
+plugins {
+    // Apply the foojay-resolver plugin to allow automatic download of JDKs.
     // This cannot come from the version catalog because it itself is defined in this file.
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
@@ -37,14 +38,13 @@ fun VersionCatalogBuilder.declaredLibraries() {
     val logbackClassicVersion = version("logback-classic", "1.4.11")
     val fabric8Version = version("fabric8", "6.9.2")
     val kotestVersion = version("kotest", "5.8.0")
+    val kotlinxCoroutineVersion = version("kotlinx-coroutine", "1.8.0-RC") // TODO: needed because of the support for Kotlin 1.9.21; update to stable when available
 
     val grpcKotlinVersion = version("grpc", "1.4.1")
     val protoBufVersion = version("grpc-protobuf", "1.60.0")
     val protoBufVersionKotlin = version("protobuf-kotlin", "3.25.1")
 
     val opentelemetryVersion = version("opentelemetry", "1.32.0")
-
-    val kotlinxCoroutinesVersion = version ("kotlinx-coroutines", "1.7.3")
 
     library("hoplite.core", "com.sksamuel.hoplite", "hoplite-core").versionRef(hopliteVersion)
     library("hoplite.yaml", "com.sksamuel.hoplite", "hoplite-yaml").versionRef(hopliteVersion)
@@ -65,9 +65,9 @@ fun VersionCatalogBuilder.declaredLibraries() {
     library("grpc.protobuf", "io.grpc", "grpc-protobuf").versionRef(protoBufVersion)
     library("protobuf.kotlin", "com.google.protobuf", "protobuf-kotlin").versionRef(protoBufVersionKotlin)
 
-    library("kotlinx.coroutines", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutinesVersion)
-
     library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
+
+    library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
 
     bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))

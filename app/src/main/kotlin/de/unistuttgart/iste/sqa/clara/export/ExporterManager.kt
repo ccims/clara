@@ -8,6 +8,10 @@ import de.unistuttgart.iste.sqa.clara.config.ExportConfig
 import de.unistuttgart.iste.sqa.clara.config.ifEnabled
 import de.unistuttgart.iste.sqa.clara.export.graphviz.GraphVizExporter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 
 class ExporterManager(config: ExportConfig) {
 
@@ -39,10 +43,21 @@ class ExporterManager(config: ExportConfig) {
         val uniqueComponents = components.toSet()
         val uniqueCommunications = communications.toSet()
 
-        return exporters
-            .mapNotNull { it.export(uniqueComponents, uniqueCommunications).getOrNull() }
-            .also {
-                log.info { "Finished export process" }
-            }
+        val exportFailures = runBlocking {
+            exporters
+                .map { exporter ->
+                    async(Dispatchers.IO) {
+                        exporter
+                            .export(uniqueComponents, uniqueCommunications)
+                            .getOrNull()
+                    }
+                }
+                .awaitAll()
+                .filterNotNull()
+        }
+
+        log.info { "Finished export process" }
+
+        return exportFailures
     }
 }

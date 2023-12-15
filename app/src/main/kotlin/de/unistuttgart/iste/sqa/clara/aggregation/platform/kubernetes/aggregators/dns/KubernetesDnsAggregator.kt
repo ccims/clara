@@ -24,12 +24,16 @@ class KubernetesDnsAggregator(
     override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
         log.info { "Aggregate Kubernetes DNS ..." }
 
-        val dnsLogs = kubernetesClient.getDnsLogs()
-            .getOrElse { return Either.Left(AggregationFailure(it.description)) }
-        val knownPods = kubernetesClient.getPodsFromNamespaces(config.namespaces, config.includeKubeNamespaces)
-            .getOrElse { return Either.Left(AggregationFailure(it.description)) }
-        val knownServices = kubernetesClient.getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
-            .getOrElse { return Either.Left(AggregationFailure(it.description)) }
+        val (dnsLogs, knownPods, knownServices) = kubernetesClient.use { client ->
+            val dnsLogs = client.getDnsLogs()
+                .getOrElse { return Either.Left(AggregationFailure(it.description)) }
+            val knownPods = client.getPodsFromNamespaces(config.namespaces, config.includeKubeNamespaces)
+                .getOrElse { return Either.Left(AggregationFailure(it.description)) }
+            val knownServices = client.getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
+                .getOrElse { return Either.Left(AggregationFailure(it.description)) }
+
+            Triple(dnsLogs, knownPods, knownServices)
+        }
 
         log.trace { "Got these DNS logs:\n" + dnsLogs.joinToString("\n") }
 
