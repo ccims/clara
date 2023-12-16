@@ -1,25 +1,18 @@
-name: Build
+name: Build and push Docker image
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-  pull_request:
 
 jobs:
 
-  build:
+  build-and-push-docker-image:
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     permissions:
       contents: read
+      packages: write
 
     steps:
       - name: Checkout repo
@@ -37,5 +30,12 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Execute Gradle build
-        run: ./gradlew build
+      - name: Login to the GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push Docker image
+        run: ./gradlew pushImage
