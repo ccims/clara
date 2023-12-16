@@ -25,8 +25,10 @@ dependencyResolutionManagement {
 
 fun VersionCatalogBuilder.declaredGradlePlugins() {
     val gradlePluginKotlinVersion = version("gradle-plugin-kotlin", "1.9.21")
+    val dockerPluginVersion = version("docker-plugin", "9.4.0")
 
     plugin("kotlin", "org.jetbrains.kotlin.jvm").versionRef(gradlePluginKotlinVersion)
+    plugin("docker", "com.bmuschko.docker-remote-api").versionRef(dockerPluginVersion)
 }
 
 fun VersionCatalogBuilder.declaredLibraries() {
