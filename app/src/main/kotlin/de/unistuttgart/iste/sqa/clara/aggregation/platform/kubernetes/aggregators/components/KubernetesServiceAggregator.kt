@@ -23,11 +23,15 @@ class KubernetesServiceAggregator(
     override fun aggregate(): Either<AggregationFailure, Set<Service>> {
         log.info { "Aggregate Kubernetes services ..." }
 
-        return kubernetesClient.use { client ->
+        val result = kubernetesClient.use { client ->
             client
                 .getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
                 .mapLeft { AggregationFailure(it.description) }
                 .map { it.toSet() }
         }
+
+        log.info { "Done aggregating Kubernetes services" }
+
+        return result
     }
 }

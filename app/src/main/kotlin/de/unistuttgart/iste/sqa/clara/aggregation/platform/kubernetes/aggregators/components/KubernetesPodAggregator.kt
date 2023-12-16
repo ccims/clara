@@ -23,11 +23,15 @@ class KubernetesPodAggregator(
     override fun aggregate(): Either<AggregationFailure, Set<Pod>> {
         log.info { "Aggregate Kubernetes pods ..." }
 
-        return kubernetesClient.use { client ->
+        val result = kubernetesClient.use { client ->
             client
                 .getPodsFromNamespaces(config.namespaces, config.includeKubeNamespaces)
                 .mapLeft { AggregationFailure(it.description) }
                 .map { it.toSet() }
         }
+
+        log.info { "Done aggregating Kubernetes pods" }
+
+        return result
     }
 }
