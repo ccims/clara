@@ -62,6 +62,7 @@ val generateBuildInformation by tasks.creating(WriteProperties::class) {
         is GitUtils.Branch.None -> "<unknown>"
     }
 
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
     val buildTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
 
     property("version", project.version)
