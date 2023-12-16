@@ -14,6 +14,8 @@ plugins {
 group = "de.unistuttgart.iste.sqa.clara"
 version = file("version.txt").readText().trim()
 
+val dockerImageName = "ghcr.io/stevebinary/${rootProject.name}"
+
 kotlin {
     jvmToolchain(17)
 }
@@ -42,7 +44,7 @@ val standaloneJar by tasks.creating(Jar::class) {
     dependsOn("compileJava", "compileKotlin", "processResources")
 
     group = "build"
-    description = "Build a standalone jar which contains all dependencies, also known as a 'fat jar'"
+    description = "Build a standalone jar which contains all dependencies, also known as a 'fat jar'."
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveClassifier = "standalone"
 
@@ -56,7 +58,7 @@ val standaloneJar by tasks.creating(Jar::class) {
 
 val createDockerfile by tasks.creating(Dockerfile::class) {
     group = "docker"
-    description = "Create the Dockerfile for the image"
+    description = "Create the Dockerfile for the image."
 
     // create the minified JRE
 
@@ -86,49 +88,53 @@ val createDockerfile by tasks.creating(Dockerfile::class) {
 
     workingDir("/app")
     runCommand("chown -R clara:clara /app")
-    user("clara")
 
     copyFile("--chown=clara:clara --from=jre-build-stage /jre", "/jre")
     copyFile("--chown=clara:clara ${project.name}-${project.version}-${standaloneJar.archiveClassifier.get()}.jar", "/app/${project.name}.jar")
 
+    user("clara")
     defaultCommand("/jre/bin/java", "-jar", "${project.name}.jar")
 }
 
-val copyStandaloneJarIntoDirectoryOfDockerfile by tasks.creating(Copy::class) {
+val copyStandaloneJarIntoDockerfileDirectory by tasks.creating(Copy::class) {
+    dependsOn(standaloneJar)
+
+    group = "docker"
+    description = "Copy the standalone jar of the application to the directory of the Dockerfile."
+
     from(standaloneJar.outputs)
     into(project.layout.buildDirectory.dir("docker"))
 }
 
-
 val buildImage by tasks.creating(DockerBuildImage::class) {
-    dependsOn(createDockerfile, copyStandaloneJarIntoDirectoryOfDockerfile)
+    dependsOn(createDockerfile, copyStandaloneJarIntoDockerfileDirectory)
 
     group = "docker"
-    description = "Build the CLARA Docker image"
+    description = "Build the CLARA Docker image."
 
-    val imageName = "ghcr.io/stevebinary/${rootProject.name}"
-
-    val gitBranch = gitBranch()
-    val dockerImageTag = dockerImageTagFromGitBranchAndVersion(gitBranch)
-
-    images = buildList {
-        add("$imageName:$dockerImageTag")
-
-        if (gitBranch == GitBranch.Main) {
-            add("$imageName:latest")
-        }
-    }
-
-    println(images)
+    images = dockerImages()
 }
 
 val pushImage by tasks.creating(DockerPushImage::class) {
     dependsOn(buildImage)
 
     group = "docker"
-    description = "Push the CLARA Docker image to the container registry"
+    description = "Push the CLARA Docker image to the container registry."
 
-    // TODO: push image to the registry
+    images = dockerImages()
+}
+
+fun dockerImages(): List<String> {
+    val gitBranch = gitBranch()
+    val dockerImageTag = dockerImageTagFromGitBranchAndVersion(gitBranch)
+
+    return buildList {
+        add("$dockerImageName:$dockerImageTag")
+
+        if (gitBranch == GitBranch.Main) {
+            add("$dockerImageName:latest")
+        }
+    }
 }
 
 fun dockerImageTagFromGitBranchAndVersion(branch: GitBranch): String {
@@ -143,14 +149,14 @@ fun gitBranch(): GitBranch {
     val branch = try {
         val gitProcessOutput = ByteArrayOutputStream()
 
-        project.exec {
+        exec {
             commandLine = listOf("git", "rev-parse", "--abbrev-ref", "HEAD")
             standardOutput = gitProcessOutput
         }
 
         String(gitProcessOutput.toByteArray()).trim()
-    } catch (e: Exception) {
-        logger.warn("Unable to determine current branch: ${e.message}")
+    } catch (ex: Exception) {
+        logger.warn("Unable to determine current branch: ${ex.message}")
         return GitBranch.None
     }
 
