@@ -16,7 +16,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.IOException
 import kotlin.io.path.Path
 import kotlin.io.path.createParentDirectories
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class GraphVizExporter(private val config: GraphViz) : Exporter {
@@ -24,7 +23,7 @@ class GraphVizExporter(private val config: GraphViz) : Exporter {
     private val log = KotlinLogging.logger {}
 
     override fun export(components: Set<Component>, communications: Set<Communication>): Option<ExportFailure> {
-        log.info { "Exporting to GraphViz ..." }
+        log.info { "Export to GraphViz ..." }
 
         if (config.outputType !in GraphViz.ALLOWED_TYPES) {
             return Some(ExportFailure("GraphViz: Cannot export with GraphViz because the type '${config.outputType}' is not supported! Supported types are: ${GraphViz.ALLOWED_TYPES}"))
@@ -38,14 +37,18 @@ class GraphVizExporter(private val config: GraphViz) : Exporter {
         log.trace { "Generated GraphViz code:\n$graphvizCode" }
 
         try {
-            Path(config.outputFile).createParentDirectories()
+            Path(config.outputFile).normalize().createParentDirectories()
         } catch (ex: IOException) {
             return Some(ExportFailure("GraphViz: Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
         } catch (ex: FileSystemException) {
             return Some(ExportFailure("GraphViz: Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
         }
 
-        return executeExportProcess(graphvizCode)
+        val maybeExportFailure = executeExportProcess(graphvizCode)
+
+        log.info { "Done exporting to GraphViz" }
+
+        return maybeExportFailure
     }
 
     private fun getGraphVizVersion(): Either<ExportFailure, String> {
@@ -53,7 +56,7 @@ class GraphVizExporter(private val config: GraphViz) : Exporter {
 
         return versionAskProcess
             // for some reason the correct output is sent over the error stream
-            .readError(timeout = 2.seconds)
+            .readError(timeout = 5.seconds)
             .mapLeft { ExportFailure("GraphViz: Cannot get GraphViz version: ${it.description}") }
             .map { it.substringAfter("version").trim() }
     }
@@ -62,11 +65,11 @@ class GraphVizExporter(private val config: GraphViz) : Exporter {
         val exportProcess = ProcessBuilder("dot", "-T${config.outputType}", "-o", config.outputFile).startChecked()
 
         return exportProcess
-            .writeOutput(timeout = 1.minutes) {
+            .writeOutput(timeout = 30.seconds) {
                 write(code)
                 write(System.lineSeparator())
                 flush()
             }
-            .map { ExportFailure("GraphViz: Cannot export using: ${it.description}") }
+            .map { ExportFailure("GraphViz: Cannot export: ${it.description}") }
     }
 }

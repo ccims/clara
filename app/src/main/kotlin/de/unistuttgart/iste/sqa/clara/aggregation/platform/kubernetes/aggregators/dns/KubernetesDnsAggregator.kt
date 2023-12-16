@@ -39,7 +39,10 @@ class KubernetesDnsAggregator(
 
         val dnsQueries = dnsLogs.map { KubernetesDnsLogAnalyzer.parseLogs(it) }.flatten().toSet()
         val queryAnalyzer = KubernetesDnsQueryAnalyzer(knownPods, knownServices)
+        val communications = queryAnalyzer.analyze(dnsQueries)
 
-        return Either.Right(queryAnalyzer.analyze(dnsQueries))
+        log.info { "Done aggregating Kubernetes DNS" }
+
+        return Either.Right(communications)
     }
 }
