@@ -3,6 +3,8 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import org.gradle.jvm.tasks.Jar
 import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -15,6 +17,8 @@ group = "de.unistuttgart.iste.sqa.clara"
 version = file("version.txt").readText().trim()
 
 val dockerImageName = "ghcr.io/stevebinary/${rootProject.name}"
+
+val git = GitUtils(project)
 
 kotlin {
     jvmToolchain(17)
@@ -40,6 +44,37 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.processResources {
+    dependsOn(generateBuildInformation)
+
+    sourceSets.main {
+        resources {
+            // automatically add the generated build information to the resources of the artefact
+            srcDir(generateBuildInformation.destinationFile.get().asFile.parentFile)
+        }
+    }
+}
+
+val generateBuildInformation by tasks.creating(WriteProperties::class) {
+    group = "build"
+    description = "Generate the properties file containing information about the build."
+
+    val gitBranch = when (val branch = git.currentBranch()) {
+        is GitUtils.Branch.Main -> "main"
+        is GitUtils.Branch.Other -> branch.name
+        is GitUtils.Branch.None -> "<unknown>"
+    }
+
+    val buildTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
+
+    property("version", project.version)
+    property("build-time", buildTimeFormat.format(Date()))
+    property("git-branch", gitBranch)
+    property("git-commit", git.currentCommitId())
+
+    destinationFile = project.layout.buildDirectory.get().dir("build-information").file("build-information.properties")
+}
+
 val standaloneJar by tasks.creating(Jar::class) {
     dependsOn("compileJava", "compileKotlin", "processResources")
 
@@ -54,6 +89,16 @@ val standaloneJar by tasks.creating(Jar::class) {
 
     from(sourceSets.main.get().output)
     from(configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) })
+}
+
+val copyStandaloneJarIntoDockerfileDirectory by tasks.creating(Copy::class) {
+    dependsOn(standaloneJar)
+
+    group = "docker"
+    description = "Copy the standalone jar of the application to the directory of the Dockerfile."
+
+    from(standaloneJar.outputs)
+    into(project.layout.buildDirectory.dir("docker"))
 }
 
 val createDockerfile by tasks.creating(Dockerfile::class) {
@@ -96,16 +141,6 @@ val createDockerfile by tasks.creating(Dockerfile::class) {
     defaultCommand("/jre/bin/java", "-jar", "${project.name}.jar")
 }
 
-val copyStandaloneJarIntoDockerfileDirectory by tasks.creating(Copy::class) {
-    dependsOn(standaloneJar)
-
-    group = "docker"
-    description = "Copy the standalone jar of the application to the directory of the Dockerfile."
-
-    from(standaloneJar.outputs)
-    into(project.layout.buildDirectory.dir("docker"))
-}
-
 val buildImage by tasks.creating(DockerBuildImage::class) {
     dependsOn(createDockerfile, copyStandaloneJarIntoDockerfileDirectory)
 
@@ -125,59 +160,78 @@ val pushImage by tasks.creating(DockerPushImage::class) {
 }
 
 fun dockerImages(): List<String> {
-    val gitBranch = gitBranch()
+    val gitBranch = git.currentBranch()
     val dockerImageTag = dockerImageTagFromGitBranchAndVersion(gitBranch)
 
     return buildList {
         add("$dockerImageName:$dockerImageTag")
 
-        if (gitBranch == GitBranch.Main) {
+        if (gitBranch == GitUtils.Branch.Main) {
             add("$dockerImageName:latest")
         }
     }
 }
 
-fun dockerImageTagFromGitBranchAndVersion(branch: GitBranch): String {
+fun dockerImageTagFromGitBranchAndVersion(branch: GitUtils.Branch): String {
     return when (branch) {
-        is GitBranch.Main -> "v${project.version}"
-        is GitBranch.None -> "v${project.version}-unknown"
-        is GitBranch.Other -> "v${project.version}-${branch.name}"
+        is GitUtils.Branch.Main -> "v${project.version}"
+        is GitUtils.Branch.None -> "v${project.version}-unknown"
+        is GitUtils.Branch.Other -> "v${project.version}-${branch.name}"
     }
 }
 
-fun gitBranch(): GitBranch {
-    val branch = try {
-        val gitProcessOutput = ByteArrayOutputStream()
+class GitUtils(private val project: Project) {
 
-        exec {
-            commandLine = listOf("git", "rev-parse", "--abbrev-ref", "HEAD")
-            standardOutput = gitProcessOutput
+    sealed interface Branch {
+
+        object Main : Branch
+
+        object None : Branch
+
+        @JvmInline
+        value class Other(val name: String) : Branch
+    }
+
+    fun currentBranch(): Branch {
+        val branch = try {
+            val gitProcessOutput = ByteArrayOutputStream()
+
+            project.exec {
+                commandLine = listOf("git", "rev-parse", "--abbrev-ref", "HEAD")
+                standardOutput = gitProcessOutput
+            }
+
+            String(gitProcessOutput.toByteArray()).trim()
+        } catch (ex: Exception) {
+            project.logger.warn("Unable to determine current branch: ${ex.message}")
+            return Branch.None
         }
 
-        String(gitProcessOutput.toByteArray()).trim()
-    } catch (ex: Exception) {
-        logger.warn("Unable to determine current branch: ${ex.message}")
-        return GitBranch.None
+        if (branch == "HEAD") {
+            project.logger.warn("Unable to determine current branch: Project is checked out with detached head!")
+            return Branch.None
+        }
+
+        if (branch == "main") {
+            return Branch.Main
+        }
+
+        return Branch.Other(branch)
     }
 
-    if (branch == "HEAD") {
-        logger.warn("Unable to determine current branch: Project is checked out with detached head!")
-        return GitBranch.None
+    fun currentCommitId(): String {
+        try {
+            val gitProcessOutput = ByteArrayOutputStream()
+
+            project.exec {
+                commandLine = listOf("git", "rev-parse", "HEAD")
+                standardOutput = gitProcessOutput
+            }
+
+            return String(gitProcessOutput.toByteArray()).trim()
+        } catch (ex: Exception) {
+            project.logger.warn("Unable to determine current git commit ID: ${ex.message}")
+            return "<unknown>"
+        }
     }
-
-    if (branch == "main") {
-        return GitBranch.Main
-    }
-
-    return GitBranch.Other(branch)
-}
-
-sealed interface GitBranch {
-
-    object Main : GitBranch
-
-    object None : GitBranch
-
-    @JvmInline
-    value class Other(val name: String) : GitBranch
 }
