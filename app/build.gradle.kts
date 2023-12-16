@@ -139,9 +139,9 @@ fun dockerImages(): List<String> {
 
 fun dockerImageTagFromGitBranchAndVersion(branch: GitBranch): String {
     return when (branch) {
-        is GitBranch.Main -> project.version.toString()
-        is GitBranch.None -> "${project.version}-unknown"
-        is GitBranch.Other -> "${project.version}-${branch.name}"
+        is GitBranch.Main -> "v${project.version}"
+        is GitBranch.None -> "v${project.version}-unknown"
+        is GitBranch.Other -> "v${project.version}-${branch.name}"
     }
 }
 
