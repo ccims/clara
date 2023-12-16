@@ -13,6 +13,9 @@ import de.unistuttgart.iste.sqa.clara.utils.list.getRight
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 fun main() {
+    AppInfo.printBanner()
+    AppInfo.printBuildInformation()
+
     val log = KotlinLogging.logger {}
 
     log.info { "Start application" }
