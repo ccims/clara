@@ -36,6 +36,7 @@ fun VersionCatalogBuilder.declaredLibraries() {
     val logbackClassicVersion = version("logback-classic", "1.4.11")
     val fabric8Version = version("fabric8", "6.9.2")
     val kotestVersion = version("kotest", "5.8.0")
+    val kotlinxCoroutineVersion = version("kotlinx-coroutine", "1.8.0-RC") // TODO: needed because of the support for Kotlin 1.9.21; update to stable when available
 
     library("hoplite.core", "com.sksamuel.hoplite", "hoplite-core").versionRef(hopliteVersion)
     library("hoplite.yaml", "com.sksamuel.hoplite", "hoplite-yaml").versionRef(hopliteVersion)
@@ -51,6 +52,8 @@ fun VersionCatalogBuilder.declaredLibraries() {
     library("kotest.assertions.core", "io.kotest", "kotest-assertions-core").versionRef(kotestVersion)
     library("kotest.framework.datatest", "io.kotest", "kotest-framework-datatest").versionRef(kotestVersion)
     library("kotest.property", "io.kotest", "kotest-property").versionRef(kotestVersion)
+
+    library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
 
     bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))

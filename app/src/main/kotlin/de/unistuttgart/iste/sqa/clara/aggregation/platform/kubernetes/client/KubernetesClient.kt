@@ -4,7 +4,7 @@ import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 
-interface KubernetesClient {
+interface KubernetesClient : AutoCloseable {
 
     fun getNamespaces(): Either<KubernetesClientError, List<Namespace>>
 
@@ -16,5 +16,5 @@ interface KubernetesClient {
 
     fun getServicesFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<Component.Internal.Service>>
 
-    fun getDnsLogs(): Either<KubernetesClientError,  List<String>>
+    fun getDnsLogs(): Either<KubernetesClientError, List<String>>
 }

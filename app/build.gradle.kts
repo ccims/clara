@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.bundles.configuration)
     implementation(libs.arrow.core)
     implementation(libs.fabric8.kubernetes.client)
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.bundles.kotest)
 }
