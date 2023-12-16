@@ -1,6 +1,8 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import org.gradle.jvm.tasks.Jar
+import java.io.ByteArrayOutputStream
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -63,10 +65,10 @@ val createDockerfile by tasks.creating(Dockerfile::class) {
     runCommand(
         "\$JAVA_HOME/bin/jlink" +
                 " --add-modules java.base" +
-                " --add-modules java.xml" +
+                " --add-modules java.desktop" +
                 " --add-modules java.naming" +
                 " --add-modules java.sql" +
-                " --add-modules java.desktop" +
+                " --add-modules java.xml" +
                 " --no-man-pages" +
                 " --no-header-files" +
                 " --strip-debug" +
@@ -104,5 +106,72 @@ val buildImage by tasks.creating(DockerBuildImage::class) {
     group = "docker"
     description = "Build the CLARA Docker image"
 
-    images = listOf("ghcr.io/stevebinary/${rootProject.name}:${project.version}")
+    val imageName = "ghcr.io/stevebinary/${rootProject.name}"
+
+    val gitBranch = gitBranch()
+    val dockerImageTag = dockerImageTagFromGitBranchAndVersion(gitBranch)
+
+    images = buildList {
+        add("$imageName:$dockerImageTag")
+
+        if (gitBranch == GitBranch.Main) {
+            add("$imageName:latest")
+        }
+    }
+
+    println(images)
+}
+
+val pushImage by tasks.creating(DockerPushImage::class) {
+    dependsOn(buildImage)
+
+    group = "docker"
+    description = "Push the CLARA Docker image to the container registry"
+
+    // TODO: push image to the registry
+}
+
+fun dockerImageTagFromGitBranchAndVersion(branch: GitBranch): String {
+    return when (branch) {
+        is GitBranch.Main -> project.version.toString()
+        is GitBranch.None -> "${project.version}-unknown"
+        is GitBranch.Other -> "${project.version}-${branch.name}"
+    }
+}
+
+fun gitBranch(): GitBranch {
+    val branch = try {
+        val gitProcessOutput = ByteArrayOutputStream()
+
+        project.exec {
+            commandLine = listOf("git", "rev-parse", "--abbrev-ref", "HEAD")
+            standardOutput = gitProcessOutput
+        }
+
+        String(gitProcessOutput.toByteArray()).trim()
+    } catch (e: Exception) {
+        logger.warn("Unable to determine current branch: ${e.message}")
+        return GitBranch.None
+    }
+
+    if (branch == "HEAD") {
+        logger.warn("Unable to determine current branch: Project is checked out with detached head!")
+        return GitBranch.None
+    }
+
+    if (branch == "main") {
+        return GitBranch.Main
+    }
+
+    return GitBranch.Other(branch)
+}
+
+sealed interface GitBranch {
+
+    object Main : GitBranch
+
+    object None : GitBranch
+
+    @JvmInline
+    value class Other(val name: String) : GitBranch
 }
