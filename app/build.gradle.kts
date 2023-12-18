@@ -125,6 +125,20 @@ val createDockerfile by tasks.creating(Dockerfile::class) {
 
     from("alpine:3.19")
 
+    arg("CREATION_TIME")
+
+    label(
+        mapOf(
+            "org.opencontainers.image.title" to rootProject.name,
+            "org.opencontainers.image.description" to "Cloud Architecture Recovery Assistant",
+            "org.opencontainers.image.created" to "\$CREATION_TIME",
+            "org.opencontainers.image.version" to project.version.toString(),
+            "org.opencontainers.image.revision" to git.currentCommitId(),
+            "org.opencontainers.image.source" to "https://github.com/SteveBinary/clara",
+            "org.opencontainers.image.url" to "https://github.com/SteveBinary/clara",
+        )
+    )
+
     runCommand("addgroup --system --gid 1337 clara")
     runCommand("adduser --disabled-password --no-create-home --system --uid 1337 --ingroup clara clara")
     runCommand("apk add graphviz")
@@ -144,6 +158,12 @@ val buildImage by tasks.creating(DockerBuildImage::class) {
 
     group = "docker"
     description = "Build the CLARA Docker image."
+
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+    val creationTimeFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX")
+    val creationTime = creationTimeFormat.format(Date())
+
+    buildArgs = mapOf("CREATION_TIME" to creationTime)
 
     images = dockerImages()
 }
