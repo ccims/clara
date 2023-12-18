@@ -107,5 +107,3 @@ markdown_extensions:
 plugins:
   - glightbox
   - search
-  - git-revision-date-localized:
-      enable_creation_date: true

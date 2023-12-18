@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
   push:
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
 
   build-and-push-docker-image:
 
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout repo
@@ -45,6 +45,9 @@ jobs:
     needs: build-and-push-docker-image
 
     runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
 
     steps:
       - name: Delete untagged Docker images
