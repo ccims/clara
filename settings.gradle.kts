@@ -27,12 +27,10 @@ fun VersionCatalogBuilder.declaredGradlePlugins() {
     val gradlePluginKotlinVersion = version("gradle-plugin-kotlin", "1.9.21")
     val dockerPluginVersion = version("docker-plugin", "9.4.0")
     val protobufKotlinVersion = version("protobuf-plugin-kotlin", "0.9.4")
-    val dockerPluginVersion = version("docker-plugin", "9.4.0")
 
     plugin("kotlin", "org.jetbrains.kotlin.jvm").versionRef(gradlePluginKotlinVersion)
     plugin("docker", "com.bmuschko.docker-remote-api").versionRef(dockerPluginVersion)
     plugin("protobuf", "com.google.protobuf").versionRef(protobufKotlinVersion)
-    plugin("docker", "com.bmuschko.docker-remote-api").versionRef(dockerPluginVersion)
 }
 
 fun VersionCatalogBuilder.declaredLibraries() {
@@ -64,14 +62,6 @@ fun VersionCatalogBuilder.declaredLibraries() {
     library("kotest.assertions.core", "io.kotest", "kotest-assertions-core").versionRef(kotestVersion)
     library("kotest.framework.datatest", "io.kotest", "kotest-framework-datatest").versionRef(kotestVersion)
     library("kotest.property", "io.kotest", "kotest-property").versionRef(kotestVersion)
-
-    library("grpc.kotlin.stub", "io.grpc", "grpc-kotlin-stub").versionRef(grpcKotlinVersion)
-    library("grpc.protobuf", "io.grpc", "grpc-protobuf").versionRef(protoBufVersion)
-    library("protobuf.kotlin", "com.google.protobuf", "protobuf-kotlin").versionRef(protoBufVersionKotlin)
-
-    library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
-
-    library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
 
     library("grpc.kotlin.stub", "io.grpc", "grpc-kotlin-stub").versionRef(grpcKotlinVersion)
     library("grpc.protobuf", "io.grpc", "grpc-protobuf").versionRef(protoBufVersion)
