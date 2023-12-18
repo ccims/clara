@@ -14,6 +14,7 @@ data class AggregationConfig(
             val aggregators: Aggregators,
             val namespaces: List<Namespace>,
             val includeKubeNamespaces: Boolean = false,
+            val logsSinceTime: String,
         ) {
 
             data class Aggregators(

@@ -17,6 +17,7 @@ class KubernetesDnsAggregator(
     data class Config(
         val namespaces: List<Namespace>,
         val includeKubeNamespaces: Boolean,
+        val sinceTime: String,
     )
 
     private val log = KotlinLogging.logger {}
@@ -25,7 +26,7 @@ class KubernetesDnsAggregator(
         log.info { "Aggregate Kubernetes DNS ..." }
 
         val (dnsLogs, knownPods, knownServices) = kubernetesClient.use { client ->
-            val dnsLogs = client.getDnsLogs()
+            val dnsLogs = client.getDnsLogs(config.sinceTime)
                 .getOrElse { return Either.Left(AggregationFailure(it.description)) }
             val knownPods = client.getPodsFromNamespaces(config.namespaces, config.includeKubeNamespaces)
                 .getOrElse { return Either.Left(AggregationFailure(it.description)) }

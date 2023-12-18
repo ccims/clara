@@ -105,7 +105,7 @@ class KubernetesClientFabric8 : KubernetesClient {
         }
     }
 
-    override fun getDnsLogs(): Either<KubernetesClientError, List<String>> {
+    override fun getDnsLogs(sinceTime: String): Either<KubernetesClientError, List<String>> {
         return try {
             client
                 .pods()
@@ -113,7 +113,7 @@ class KubernetesClientFabric8 : KubernetesClient {
                 .withLabel("k8s-app=kube-dns")
                 .resources()
                 .toList()
-                .map { it.log }
+                .map { it.sinceTime(sinceTime).log }
                 .right()
         } catch (ex: KubernetesClientException) {
             Either.Left(KubernetesClientError("Cannot get Kubernetes DNS logs: ${ex.message}"))
