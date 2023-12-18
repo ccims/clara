@@ -16,5 +16,5 @@ interface KubernetesClient : AutoCloseable {
 
     fun getServicesFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<Component.Internal.Service>>
 
-    fun getDnsLogs(): Either<KubernetesClientError, List<String>>
+    fun getDnsLogs(sinceTime: String): Either<KubernetesClientError, List<String>>
 }

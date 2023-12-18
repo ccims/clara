@@ -33,7 +33,7 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
     val communicationAggregators: List<CommunicationAggregator> = buildList {
         aggregationConfig.platforms?.kubernetes?.let { kubernetesConfig ->
             kubernetesConfig.aggregators.dns?.ifEnabled {
-                val config = KubernetesDnsAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces)
+                val config = KubernetesDnsAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces, kubernetesConfig.logsSinceTime)
                 add(KubernetesDnsAggregator(config, KubernetesClientFabric8()))
                 log.info { "Registered aggregator: Kubernetes DNS" }
             }
