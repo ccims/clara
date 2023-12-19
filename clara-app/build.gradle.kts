@@ -36,11 +36,9 @@ dependencies {
     implementation(libs.bundles.configuration)
     implementation(libs.arrow.core)
     implementation(libs.fabric8.kubernetes.client)
-    implementation(libs.bundles.grpc)
-    implementation(libs.opentelemetry.api)
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.bundles.grpc)
     implementation(libs.opentelemetry.api)
+    implementation(libs.bundles.grpc)
 
     testImplementation(libs.bundles.kotest)
 }
