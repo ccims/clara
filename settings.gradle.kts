@@ -6,7 +6,7 @@ plugins {
 
 rootProject.name = "clara"
 
-include("app")
+include("clara-app")
 
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
