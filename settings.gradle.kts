@@ -26,9 +26,11 @@ dependencyResolutionManagement {
 fun VersionCatalogBuilder.declaredGradlePlugins() {
     val gradlePluginKotlinVersion = version("gradle-plugin-kotlin", "1.9.21")
     val dockerPluginVersion = version("docker-plugin", "9.4.0")
+    val protobufKotlinVersion = version("protobuf-plugin-kotlin", "0.9.4")
 
     plugin("kotlin", "org.jetbrains.kotlin.jvm").versionRef(gradlePluginKotlinVersion)
     plugin("docker", "com.bmuschko.docker-remote-api").versionRef(dockerPluginVersion)
+    plugin("protobuf", "com.google.protobuf").versionRef(protobufKotlinVersion)
 }
 
 fun VersionCatalogBuilder.declaredLibraries() {
@@ -38,7 +40,13 @@ fun VersionCatalogBuilder.declaredLibraries() {
     val logbackClassicVersion = version("logback-classic", "1.4.11")
     val fabric8Version = version("fabric8", "6.9.2")
     val kotestVersion = version("kotest", "5.8.0")
-    val kotlinxCoroutinesVersion = version("kotlinx-coroutines", "1.8.0-RC") // TODO: needed because of the support for Kotlin 1.9.21; update to stable when available
+    val kotlinxCoroutineVersion = version("kotlinx-coroutine", "1.8.0-RC") // TODO: needed because of the support for Kotlin 1.9.21; update to stable when available
+
+    val grpcKotlinVersion = version("grpc", "1.4.1")
+    val protoBufVersion = version("grpc-protobuf", "1.60.0")
+    val protoBufVersionKotlin = version("protobuf-kotlin", "3.25.1")
+
+    val opentelemetryVersion = version("opentelemetry", "1.32.0")
 
     library("hoplite.core", "com.sksamuel.hoplite", "hoplite-core").versionRef(hopliteVersion)
     library("hoplite.yaml", "com.sksamuel.hoplite", "hoplite-yaml").versionRef(hopliteVersion)
@@ -55,9 +63,16 @@ fun VersionCatalogBuilder.declaredLibraries() {
     library("kotest.framework.datatest", "io.kotest", "kotest-framework-datatest").versionRef(kotestVersion)
     library("kotest.property", "io.kotest", "kotest-property").versionRef(kotestVersion)
 
-    library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutinesVersion)
+    library("grpc.kotlin.stub", "io.grpc", "grpc-kotlin-stub").versionRef(grpcKotlinVersion)
+    library("grpc.protobuf", "io.grpc", "grpc-protobuf").versionRef(protoBufVersion)
+    library("protobuf.kotlin", "com.google.protobuf", "protobuf-kotlin").versionRef(protoBufVersionKotlin)
+
+    library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
+
+    library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
 
     bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))
     bundle("kotest", listOf("kotest.runner.junit5", "kotest.assertions.core", "kotest.framework.datatest", "kotest.property"))
+    bundle("grpc", listOf("grpc.kotlin.stub", "grpc.protobuf", "protobuf.kotlin"))
 }

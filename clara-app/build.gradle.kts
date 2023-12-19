@@ -9,6 +9,7 @@ import java.util.*
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.docker)
+    alias(libs.plugins.protobuf)
     application
 }
 
@@ -36,6 +37,8 @@ dependencies {
     implementation(libs.arrow.core)
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.opentelemetry.api)
+    implementation(libs.bundles.grpc)
 
     testImplementation(libs.bundles.kotest)
 }
