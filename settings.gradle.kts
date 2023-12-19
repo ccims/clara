@@ -6,7 +6,7 @@ plugins {
 
 rootProject.name = "clara"
 
-include("app")
+include("clara-app")
 
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
@@ -70,12 +70,6 @@ fun VersionCatalogBuilder.declaredLibraries() {
     library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
 
     library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
-
-    library("grpc.kotlin.stub", "io.grpc", "grpc-kotlin-stub").versionRef(grpcKotlinVersion)
-    library("grpc.protobuf", "io.grpc", "grpc-protobuf").versionRef(protoBufVersion)
-    library("protobuf.kotlin", "com.google.protobuf", "protobuf-kotlin").versionRef(protoBufVersionKotlin)
-
-    library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
 
     bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))
