@@ -9,24 +9,24 @@ edit_uri: tree/main/docs/content
 nav:
   - Home: index.md
   - Concept:
-    - concept/index.md
+      - concept/index.md
   - Configuration:
-    - configuration/index.md
+      - configuration/index.md
   - Aggregation:
       - aggregation/index.md
       - Platforms:
           - Kubernetes:
               - DNS:
-                - aggregation/platforms/kubernetes/dns/index.md
+                  - aggregation/platforms/kubernetes/dns/index.md
   - Export:
-    - export/index.md
-    - SVG:
-      - export/svg/index.md
-    - Gropius:
-      - export/gropius/index.md
+      - export/index.md
+      - SVG:
+          - export/svg/index.md
+      - Gropius:
+          - export/gropius/index.md
   - Validation:
-    - T2-Reference-Architecture:
-        - validation/t2-reference-architecture/index.md
+      - T2-Reference-Architecture:
+          - validation/t2-reference-architecture/index.md
 
 theme:
   name: material
