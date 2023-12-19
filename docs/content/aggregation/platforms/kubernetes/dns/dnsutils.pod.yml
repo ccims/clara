@@ -5,10 +5,10 @@ metadata:
   namespace: default
 spec:
   containers:
-  - name: dnsutils
-    image: registry.k8s.io/e2e-test-images/jessie-dnsutils:1.7
-    command:
-      - sleep
-      - "infinity"
-    imagePullPolicy: IfNotPresent
+    - name: dnsutils
+      image: registry.k8s.io/e2e-test-images/jessie-dnsutils:1.7
+      command:
+        - sleep
+        - "infinity"
+      imagePullPolicy: IfNotPresent
   restartPolicy: Always

@@ -1,0 +1,17 @@
+aggregation:
+  platforms:
+    kubernetes:
+      logs-since-time: 2023-12-18T12:30:00Z
+      namespaces:
+        - "*"
+      aggregators:
+        pod:
+        service:
+        dns:
+
+export:
+  exporters:
+    graphviz:
+      output-type: svg
+      output-file: generated/architecture.svg
+    gropius:
