@@ -5,6 +5,7 @@ import de.unistuttgart.iste.sqa.clara.api.model.Component
 import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Pod
 import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Service
 import de.unistuttgart.iste.sqa.clara.api.model.Domain
+import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 
 class KubernetesDnsQueryAnalyzer(
     private val knownPods: List<Pod>,
@@ -54,7 +55,7 @@ class KubernetesDnsQueryAnalyzer(
 
         val targetPod = knownPods
             .firstOrNull { pod ->
-                if (podIpAddress.matches(Regex.ipAddress)) {
+                if (podIpAddress.matches(Regexes.ipAddressV4)) {
                     pod.ipAddress.value == podIpAddress
                 } else {
                     pod.name.value == podReference
@@ -63,11 +64,5 @@ class KubernetesDnsQueryAnalyzer(
             ?: return null
 
         return Communication.Target(targetPod)
-    }
-
-    private object Regex {
-
-        private const val REGEX_FOR_IP_ADDRESS = """\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"""
-        val ipAddress = Regex(REGEX_FOR_IP_ADDRESS)
     }
 }

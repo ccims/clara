@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.module.Span
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -32,16 +33,23 @@ class TestSpanProvider : SpanProvider {
     }
 
     private fun createNextSpan(oldSpan: Span?, serviceList: List<String>): Span {
-        val traceId = oldSpan?.traceId ?: (100000000..999999999).random().toString()
-        // TODO replace with enums from Span class
-        val spanKind = listOf("spanKindEnum1", "spanKindEnum2", "spanKindEnum3", "spanKindEnum4", "spanKindEnum5").random()
+        val traceId = oldSpan?.traceId?.value ?: (100000000..999999999).random().toString()
+        val spanKind = Span.Kind.entries.random()
         // TODO nextSpan can originate from same service as parent
         val serviceName = serviceList.random()
         val serviceSpanName = "$serviceName-${(1..100).random()}"
-        val spanId = (oldSpan?.id?.toInt()?.plus(1)) ?: 0
+        val spanId = (oldSpan?.id?.value?.toIntOrNull() ?: -1) + 1
         // TODO create attributes
 
-        return Span(serviceName, spanId.toString(), oldSpan?.id, traceId, serviceSpanName, spanKind, emptyMap())
+        return Span(
+            id = Span.Id(spanId.toString()),
+            name = Span.Name(serviceSpanName),
+            parentId = oldSpan?.id?.value?.let { Span.ParentId(it) },
+            traceId = Span.TraceId(traceId),
+            kind = spanKind,
+            serviceName = Service.Name(serviceName),
+            attributes = Span.Attributes(emptyMap())
+        )
     }
 
     private fun mockServices(size: Int): List<String> {

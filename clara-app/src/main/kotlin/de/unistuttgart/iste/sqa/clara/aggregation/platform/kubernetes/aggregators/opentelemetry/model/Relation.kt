@@ -4,5 +4,5 @@ data class Relation(
     val caller: Service,
     val callee: Service,
     val owner: Service,
-    val endpoint: String?,
+    val endpoint: Service.Endpoint?,
 )

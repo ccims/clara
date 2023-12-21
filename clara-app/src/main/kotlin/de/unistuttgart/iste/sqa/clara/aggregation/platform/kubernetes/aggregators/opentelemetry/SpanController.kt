@@ -1,6 +1,11 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.*
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Relation
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.SpanInformation
+import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
+import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 // Services are actual Microservices
@@ -8,19 +13,18 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 // Instances are instances of microservices
 // Hardware is the used hardware (don't know if necessary)
 
-class SpanController() {
+class SpanController(private val spanProvider: SpanProvider) {
 
     private val log = KotlinLogging.logger {}
 
-    private var serviceMap: MutableMap<String, Service> = mutableMapOf()
-    private var relations: MutableList<Relation> = mutableListOf()
-    private var unnamedServices: MutableList<Service> = mutableListOf()
+    private val serviceMap: MutableMap<Service.Name, Service> = mutableMapOf()
+    private val relations: MutableList<Relation> = mutableListOf()
+    private val unnamedServices: MutableList<Service> = mutableListOf()
 
     // Proceeding of all ingoing spans via otel rest api
     // components and relations of them are discovered here
-    @Synchronized
-    fun proceedSpans(spans: List<Span>) {
-        for (span in spans) {
+    suspend fun process() {
+        spanProvider.spanFlow.collect { span ->
             //// 1 update services
             val relationInformation = extractRelationInformationAndUpdateServices(span)
             //// 2  Discover relations between services
@@ -28,46 +32,47 @@ class SpanController() {
             // 2.1  compute the first span of a transaction
             //      Mapping of the first span's path (name) with a service via the ComponentMapping-collection
             //      and creation of newly discovered relations between activities and services.
-            if (span.parentId == null) { // Get parentId from span -> if there is none you know it's parent
+            if (span.parentId == null) {
+                // Get parentId from span -> if there is none you know it's parent
                 // Get path and method (should be available)
-                val path: String = span.name
+                val path = span.name
                 val method = span.attributes.keys.filter { it.lowercase() == "http.method" }
             }
         }
     }
 
-    private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation = when (span.spanKind) {
-        SpanKind.CLIENT -> {
+    private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation = when (span.kind) {
+        Span.Kind.Client -> {
             val spanInformation = extractInformationFromClientSpan(span)
             updateServices(spanInformation)
             spanInformation
         }
 
-        SpanKind.SERVER -> {
+        Span.Kind.Server -> {
             val spanInformation = extractInformationFromServerSpan(span)
             updateServices(spanInformation)
             spanInformation
         }
 
-        SpanKind.CONSUMER -> {
+        Span.Kind.Consumer -> {
             log.warn { "Consumer span identified" }
             throw UnsupportedOperationException()
         }
 
-        SpanKind.PRODUCER -> {
+        Span.Kind.Producer -> {
             log.warn { "Producer span identified" }
             throw UnsupportedOperationException()
         }
 
-        else -> {
+        Span.Kind.Internal -> {
             throw UnsupportedOperationException()
         }
     }
 
     private fun updateServices(spanInformation: SpanInformation) {
         val client = Service(
-            serviceName = spanInformation.clientServiceName,
-            hostname = null, // For now a client does not have a hostname
+            name = spanInformation.clientServiceName,
+            hostName = null, // For now a client does not have a hostname
             ipAddress = spanInformation.clientIpAddress,
             port = spanInformation.clientPort,
             endpoints = emptyList() // For now a client does not have an endpoint
@@ -75,12 +80,12 @@ class SpanController() {
         updateService(client)
 
         val server = Service(
-            serviceName = spanInformation.serverServiceName,
-            hostname = spanInformation.serverHostname,
+            name = spanInformation.serverServiceName,
+            hostName = spanInformation.serverHostname,
             ipAddress = spanInformation.serverIpAddress,
             port = spanInformation.serverPort,
-            endpoints = if (spanInformation.serverPath != null) {
-                listOf(spanInformation.serverPath)
+            endpoints = if (spanInformation.serverEndpoint != null) {
+                listOf(spanInformation.serverEndpoint)
             } else {
                 emptyList()
             },
@@ -89,27 +94,22 @@ class SpanController() {
     }
 
     private fun updateService(service: Service) {
-        if (service.serviceName == null) {
+        if (service.name == null) {
             // TODO based on opentelemetry specification it is highly likely that we do not have the server's service name here in a server span, but the information is
             // TODO too valuealbe, therefore we need some sort of hold back list, where we can put the information into, and later on correlate it with the server span
             unnamedServices.add(service)
-        } else if (!serviceMap.containsKey(service.serviceName)) {
-            serviceMap[service.serviceName] = service
+        } else if (!serviceMap.containsKey(service.name)) {
+            serviceMap[service.name] = service
         } else {
             TODO("Update existing")
         }
     }
 
-    private val hostNameRegex = """^(https?://)?([0-9A-Za-z](?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z](?:\.[0-9A-Za-z](?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])*)""".toRegex()
-    private val ipv4Regex = """^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})){3}$""".toRegex()
-    private val pathRegex = """^/([a-zA-Z0-9_]+/?)+$""".toRegex()
-    private val portRegex = """^([0-9]|[1-9][0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$""".toRegex()
-
     // Based on https://opentelemetry.io/docs/specs/otel/trace/sdk_exporters/zipkin/ and https://opentelemetry.io/docs/specs/semconv/general/attributes/
     private fun extractInformationFromClientSpan(clientSpan: Span): SpanInformation {
 
         // First we look for the exact name of the server (might not be available)
-        val serverServiceName = clientSpan.attributes.filter { it.key == "peer.service" || it.key == "network.peer.service" }.values.first()
+        val serverServiceName = clientSpan.attributes.filter { it.key == "peer.service" || it.key == "network.peer.service" }.values.firstOrNull()
 
         // filter all values that surely belong to the server side, then try to find more info with reg-exes
         val possibleKeyNamesForServerAttributes = listOf(
@@ -128,25 +128,25 @@ class SpanController() {
             it.key.lowercase() in possibleKeyNamesForClientAttributes
         }.values
 
-        val serverHostname = possibleServerValues.firstNotNullOf { hostNameRegex.find(it)?.value }.removePrefix("https://").removePrefix("http://")
-        val serverIpAddress = possibleServerValues.firstNotNullOf { ipv4Regex.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOf { pathRegex.find(it)?.value }
-        val serverPort = possibleServerValues.firstNotNullOf { portRegex.find(it)?.value }
+        val serverHostname = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
+        val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
+        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlEndpoint.find(it)?.value }
+        val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
 
-        val clientHostName = possibleClientValues.firstNotNullOf { hostNameRegex.find(it)?.value }.removePrefix("https://").removePrefix("http://")
-        val clientIpAddress = possibleClientValues.firstNotNullOf { ipv4Regex.find(it)?.value }
-        val clientPort = possibleClientValues.firstNotNullOf { portRegex.find(it)?.value }
+        val clientHostName = possibleClientValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
+        val clientIpAddress = possibleClientValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
+        val clientPort = possibleClientValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
 
         return SpanInformation(
             clientServiceName = clientSpan.serviceName,
-            serverServiceName = serverServiceName,
-            serverHostname = serverHostname,
-            serverIpAddress = serverIpAddress,
-            serverPath = serverPath,
-            serverPort = serverPort,
-            clientIpAddress = clientIpAddress,
-            clientHostName = clientHostName,
-            clientPort = clientPort,
+            serverServiceName = serverServiceName?.let { Service.Name(serverServiceName) },
+            serverHostname = serverHostname?.let { Service.HostName(serverHostname) },
+            serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
+            serverEndpoint = serverPath?.let { Service.Endpoint(serverPath) },
+            serverPort = serverPort?.let { Service.Port(serverPort) },
+            clientIpAddress = clientIpAddress?.let { IpAddress(clientIpAddress) },
+            clientHostName = clientHostName?.let { Service.HostName(clientHostName) },
+            clientPort = clientPort?.let { Service.Port(clientPort) },
         )
     }
 
@@ -158,13 +158,14 @@ class SpanController() {
     private fun setRelations(spanInformation: SpanInformation) {
         val caller = serviceMap[spanInformation.clientServiceName] ?: throw UnsupportedOperationException()
         val callee = serviceMap[spanInformation.serverServiceName] ?: throw UnsupportedOperationException() // Todo its unlikely we have the serverServiceName often, we need resilience here
-        val endpoint = callee.endpoints.find { it == spanInformation.serverPath }
+        val endpoint = callee.endpoints.find { it == spanInformation.serverEndpoint }
         val relation = Relation(
             owner = caller, // The caller always owns the call
             caller = caller,
             callee = callee,
             endpoint = endpoint,
         )
+
         relations.add(relation)
     }
 }/*
