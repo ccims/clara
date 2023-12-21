@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.module
+package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model
 
 data class Span(
     val serviceName: String, // get from span resources
@@ -6,7 +6,7 @@ data class Span(
     val parentId: String?,
     val traceId: String,
     val name: String,
-    val spanKind: String, // todo make enum
+    val spanKind: SpanKind,
     val attributes: Map<String, String>
 
 )

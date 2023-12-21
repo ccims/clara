@@ -1,9 +1,6 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Relation
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.SpanInformation
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.module.Span
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 // Services are actual Microservices
@@ -40,24 +37,24 @@ class SpanController() {
     }
 
     private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation = when (span.spanKind) {
-        "CLIENT" -> {
+        SpanKind.CLIENT -> {
             val spanInformation = extractInformationFromClientSpan(span)
             updateServices(spanInformation)
             spanInformation
         }
 
-        "SERVER" -> {
+        SpanKind.SERVER -> {
             val spanInformation = extractInformationFromServerSpan(span)
             updateServices(spanInformation)
             spanInformation
         }
 
-        "CONSUMER" -> {
+        SpanKind.CONSUMER -> {
             log.warn { "Consumer span identified" }
             throw UnsupportedOperationException()
         }
 
-        "PRODUCER" -> {
+        SpanKind.PRODUCER -> {
             log.warn { "Producer span identified" }
             throw UnsupportedOperationException()
         }
