@@ -44,6 +44,7 @@ fun VersionCatalogBuilder.declaredLibraries() {
 
     val grpcProtobufVersion = version("grpc-protobuf", "1.60.0")
     val grpcKotlinVersion = version("grpc-kotlin", "1.4.1")
+
     val protobufKotlinVersion = version("protobuf-kotlin", "3.25.1")
 
     val opentelemetryVersion = version("opentelemetry", "1.32.0")
@@ -65,6 +66,8 @@ fun VersionCatalogBuilder.declaredLibraries() {
 
     library("grpc.kotlin.stub", "io.grpc", "grpc-kotlin-stub").versionRef(grpcKotlinVersion)
     library("grpc.protobuf", "io.grpc", "grpc-protobuf").versionRef(grpcProtobufVersion)
+    library("grpc.netty", "io.grpc", "grpc-netty").versionRef(grpcProtobufVersion)
+
     library("protobuf.kotlin", "com.google.protobuf", "protobuf-kotlin").versionRef(protobufKotlinVersion)
 
     library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
@@ -74,5 +77,5 @@ fun VersionCatalogBuilder.declaredLibraries() {
     bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))
     bundle("kotest", listOf("kotest.runner.junit5", "kotest.assertions.core", "kotest.framework.datatest", "kotest.property"))
-    bundle("grpc", listOf("grpc.protobuf", "protobuf.kotlin", "grpc.kotlin.stub"))
+    bundle("grpc", listOf("grpc.protobuf", "protobuf.kotlin", "grpc.kotlin.stub", "grpc.netty"))
 }

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flow
 
 class TestSpanProvider : SpanProvider {
 
-    override val spanFlow: Flow<Span> = flow {
+    override val spans: Flow<Span> = flow {
         val spanProvider = TestSpanProvider()
         val spans = spanProvider.createTrace(false, false, false, 8)
 
@@ -44,9 +44,8 @@ class TestSpanProvider : SpanProvider {
         return Span(
             id = Span.Id(spanId.toString()),
             name = Span.Name(serviceSpanName),
-            parentId = oldSpan?.id?.value?.let { Span.ParentId(it) },
             traceId = Span.TraceId(traceId),
-            kind = spanKind,
+            parentId = oldSpan?.id?.value?.let { Span.ParentId(it) },
             serviceName = Service.Name(serviceName),
             attributes = Span.Attributes(emptyMap())
         )

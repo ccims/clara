@@ -1,19 +1,25 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
+import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Relation
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.SpanInformation
+import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
+import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
+import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.withContext
+import kotlin.time.Duration
 
 // Services are actual Microservices
 // Activities are entire business activities meaning the whole span of a trace
 // Instances are instances of microservices
 // Hardware is the used hardware (don't know if necessary)
 
-class SpanController(private val spanProvider: SpanProvider) {
+class SpanController() : CommunicationAggregator {
 
     private val log = KotlinLogging.logger {}
 
@@ -21,10 +27,24 @@ class SpanController(private val spanProvider: SpanProvider) {
     private val relations: MutableList<Relation> = mutableListOf()
     private val unnamedServices: MutableList<Service> = mutableListOf()
 
-    // Proceeding of all ingoing spans via otel rest api
+    override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
+        
+        val spans = startCollectorServer()
+        process(spans)
+
+        // TODO return correct communictaion result
+        return Either.Right(setOf<Communication>())
+    }
+
+    private fun startCollectorServer(): List<Span> {
+        val config = OpenTelemetrySpanProvider.Config(7000, Duration.ZERO)
+        return OpenTelemetrySpanProvider(config).getSpans()
+    }
+
+    // Proceeding of all ingoing spans via otel grpc interface
     // components and relations of them are discovered here
-    suspend fun process() {
-        spanProvider.spanFlow.collect { span ->
+    fun process(spans: List<Span>) {
+        spans.forEach { span ->
             //// 1 update services
             val relationInformation = extractRelationInformationAndUpdateServices(span)
             //// 2  Discover relations between services
