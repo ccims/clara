@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
 import arrow.core.Either
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector.OpenTelemetryCollectorSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Relation
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
@@ -11,7 +12,7 @@ import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration
 
 // Services are actual Microservices
@@ -19,7 +20,7 @@ import kotlin.time.Duration
 // Instances are instances of microservices
 // Hardware is the used hardware (don't know if necessary)
 
-class SpanController() : CommunicationAggregator {
+class SpanController : CommunicationAggregator {
 
     private val log = KotlinLogging.logger {}
 
@@ -28,7 +29,7 @@ class SpanController() : CommunicationAggregator {
     private val unnamedServices: MutableList<Service> = mutableListOf()
 
     override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
-        
+
         val spans = startCollectorServer()
         process(spans)
 
@@ -37,8 +38,8 @@ class SpanController() : CommunicationAggregator {
     }
 
     private fun startCollectorServer(): List<Span> {
-        val config = OpenTelemetrySpanProvider.Config(7000, Duration.ZERO)
-        return OpenTelemetrySpanProvider(config).getSpans()
+        val config = OpenTelemetryCollectorSpanProvider.Config(7000, Duration.ZERO)
+        return runBlocking { OpenTelemetryCollectorSpanProvider(config).getSpans() }
     }
 
     // Proceeding of all ingoing spans via otel grpc interface

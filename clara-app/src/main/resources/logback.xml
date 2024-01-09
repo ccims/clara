@@ -6,6 +6,7 @@
     </appender>
 
     <logger name="io.fabric8" level="WARN"/>
+    <logger name="io.netty" level="WARN"/>
 
     <root level="${LOG_LEVEL}">
         <appender-ref ref="STDOUT"/>
