@@ -2,6 +2,7 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.SpanProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -9,11 +10,11 @@ import kotlinx.coroutines.flow.flow
 
 class TestSpanProvider : SpanProvider {
 
-    override val spans: Flow<Span> = flow {
+    override suspend fun getSpans(): List<Span> {
         val spanProvider = TestSpanProvider()
         val spans = spanProvider.createTrace(false, false, false, 8)
 
-        emitAll(spans.asFlow())
+        return spans
     }
 
     private fun createTrace(isDiverting: Boolean, isOverlapping: Boolean, returnToPrevious: Boolean, length: Int?): List<Span> {
@@ -47,7 +48,8 @@ class TestSpanProvider : SpanProvider {
             traceId = Span.TraceId(traceId),
             parentId = oldSpan?.id?.value?.let { Span.ParentId(it) },
             serviceName = Service.Name(serviceName),
-            attributes = Span.Attributes(emptyMap())
+            attributes = Span.Attributes(emptyMap()),
+            kind = Span.Kind.Producer
         )
     }
 

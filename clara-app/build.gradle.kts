@@ -1,7 +1,6 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-import com.google.protobuf.gradle.id
 import org.gradle.jvm.tasks.Jar
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
@@ -54,16 +53,18 @@ tasks.test {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.25.1"
+        artifact = libs.protobuf.protoc.get().toString()
     }
+
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.60.0"
+            artifact = libs.grpc.java.protocGenGrpcJava.get().toString()
         }
         create("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.1:jdk8@jar"
+            artifact = libs.grpc.kotlin.protocGenGrpcKotlin.get().toString()
         }
     }
+
     generateProtoTasks {
         all().forEach {
             it.plugins {
