@@ -189,6 +189,35 @@ class SpanController : CommunicationAggregator {
 
         relations.add(relation)
     }
+
+    // chat gpts idea of an algorithm
+//    fun createArchitecture(): Map<String, List<String>> {
+//        // Create a map to store the call history
+//        val callHistory: MutableMap<String, MutableList<String>> = mutableMapOf()
+//
+//        // Iterate over the spans
+//        for (span in spans) {
+//            // Check if the service name is not present in the call history map
+//            if (!callHistory.containsKey(span.serviceName)) {
+//                callHistory[span.serviceName] = mutableListOf()
+//            }
+//
+//            // Add the current operation to the service's call history
+//            callHistory[span.serviceName]?.add(span.operationName)
+//
+//            // If there is a parent span, add a connection between the parent and child services
+//            if (span.parentId != null) {
+//                val parentService = getServiceName(span.parentId)
+//                val childService = span.serviceName
+//
+//                // Add the child service to the parent's call history
+//                callHistory[parentService]?.add("$childService:${span.operationName}")
+//            }
+//        }
+//
+//        return callHistory
+//    }
+
 }/*
                 // 2.1.1 Create discovered relations between service <-> activities
                 var mappingFound = false

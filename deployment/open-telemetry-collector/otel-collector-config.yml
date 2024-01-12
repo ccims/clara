@@ -1,0 +1,20 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+
+exporters:
+  logging:
+    verbosity: detailed
+  otlp:
+    endpoint: http://host.docker.internal:7878 # Has to be changed for deployment to CLARA's FQDN; this config is for running this container on local machines.
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [logging, otlp]

@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/clara-app" />
+            <option value="$PROJECT_DIR$/clara-integration-tests" />
           </set>
         </option>
       </GradleProjectSettings>

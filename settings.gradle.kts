@@ -7,6 +7,7 @@ plugins {
 rootProject.name = "clara"
 
 include("clara-app")
+include("clara-integration-tests")
 
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS

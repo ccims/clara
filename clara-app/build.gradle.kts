@@ -51,6 +51,14 @@ tasks.test {
     useJUnitPlatform()
 }
 
+sourceSets {
+    main {
+        proto {
+            srcDir(rootDir.resolve("clara-protos"))
+        }
+    }
+}
+
 protobuf {
     protoc {
         artifact = libs.protobuf.protoc.get().toString()
