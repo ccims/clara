@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.protobuf)
     application
 }
 
@@ -11,7 +10,13 @@ kotlin {
 }
 
 dependencies {
+    testImplementation(project(":clara-app"))
+
     testImplementation(libs.bundles.kotest)
+
+    testImplementation(libs.grpc.kotlin.stub)
+    testImplementation(libs.protobuf.kotlin)
+    testImplementation(libs.arrow.core)
 }
 
 tasks.test {

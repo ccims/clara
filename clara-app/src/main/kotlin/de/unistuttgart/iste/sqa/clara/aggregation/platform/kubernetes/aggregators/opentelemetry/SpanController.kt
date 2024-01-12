@@ -1,7 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
 import arrow.core.Either
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector.OpenTelemetryCollectorSpanProvider
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector.OpenTelemetryTraceSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Relation
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
@@ -30,16 +30,16 @@ class SpanController : CommunicationAggregator {
 
     override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
 
-        val spans = startCollectorServer()
+        val spans = getSpans()
         process(spans)
 
         // TODO return correct communictaion result
         return Either.Right(setOf<Communication>())
     }
 
-    private fun startCollectorServer(): List<Span> {
-        val config = OpenTelemetryCollectorSpanProvider.Config(7000, Duration.ZERO)
-        return runBlocking { OpenTelemetryCollectorSpanProvider(config).getSpans() }
+    private fun getSpans(): List<Span> {
+        val config = OpenTelemetryTraceSpanProvider.Config(7000, Duration.ZERO)
+        return runBlocking { OpenTelemetryTraceSpanProvider(config).getSpans() }
     }
 
     // Proceeding of all ingoing spans via otel grpc interface

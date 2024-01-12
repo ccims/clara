@@ -20,7 +20,7 @@ class OpenTelemetryTraceService(private val processSpans: suspend (List<Span>) -
                 ?.value
                 ?.stringValue
                 ?: run {
-                    numberOfRejectedSpansBecauseOfMissingServiceName += request.resourceSpansCount
+                    numberOfRejectedSpansBecauseOfMissingServiceName += request.resourceSpansList.sumOf { it.scopeSpansCount }
                     return@flatMap emptyList<Span>()
                 }
 
@@ -43,7 +43,7 @@ class OpenTelemetryTraceService(private val processSpans: suspend (List<Span>) -
                 partialSuccess = exportTracePartialSuccess {
                     rejectedSpans = totalNumberOfRejectedSpans
                     errorMessage =
-                        "$numberOfRejectedSpansBecauseOfMissingServiceName spans were in resourceSpanLists that didn't contain the required attribute 'service.name' and" +
+                        "$numberOfRejectedSpansBecauseOfMissingServiceName spans were in resourceSpanLists that didn't contain the required attribute 'service.name' and " +
                                 "$numberOfRejectedSpansBecauseUnsupportedSpanKind spans had a span kind of 'SPAN_KIND_UNSPECIFIED' or 'UNRECOGNIZED'."
                 }
             }
@@ -51,7 +51,7 @@ class OpenTelemetryTraceService(private val processSpans: suspend (List<Span>) -
     }
 }
 
-private fun io.opentelemetry.proto.trace.v1.Span.toClaraSpan(serviceName: String): Option<Span> {
+fun io.opentelemetry.proto.trace.v1.Span.toClaraSpan(serviceName: String): Option<Span> {
     return Span(
         id = Span.Id(this.spanId.toStringUtf8()),
         attributes = Span.Attributes(
@@ -69,7 +69,7 @@ private fun io.opentelemetry.proto.trace.v1.Span.toClaraSpan(serviceName: String
     ).some()
 }
 
-private fun io.opentelemetry.proto.trace.v1.Span.SpanKind.toClaraSpanKind(): Option<Span.Kind> {
+fun io.opentelemetry.proto.trace.v1.Span.SpanKind.toClaraSpanKind(): Option<Span.Kind> {
     return when (this) {
         io.opentelemetry.proto.trace.v1.Span.SpanKind.SPAN_KIND_INTERNAL -> Some(Span.Kind.Internal)
         io.opentelemetry.proto.trace.v1.Span.SpanKind.SPAN_KIND_SERVER -> Some(Span.Kind.Server)

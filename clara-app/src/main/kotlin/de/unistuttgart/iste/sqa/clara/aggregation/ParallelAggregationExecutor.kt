@@ -5,7 +5,7 @@ import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
-import de.unistuttgart.iste.sqa.clara.utils.kotlinx.awaitBoth
+import de.unistuttgart.iste.sqa.clara.utils.kotlinx.awaitBothInParallel
 import de.unistuttgart.iste.sqa.clara.utils.list.flattenRight
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
@@ -28,7 +28,7 @@ class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManag
                 val components = async(Dispatchers.IO) { aggregateAllComponents() }
                 val communications = async(Dispatchers.IO) { aggregateAllCommunications() }
 
-                Pair(components, communications).awaitBoth()
+                Pair(components, communications).awaitBothInParallel()
             }
         }
 
