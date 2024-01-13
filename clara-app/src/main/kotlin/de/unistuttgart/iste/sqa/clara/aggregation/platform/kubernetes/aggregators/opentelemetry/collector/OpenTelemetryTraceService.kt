@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector
 
 import arrow.core.*
+import com.google.protobuf.ByteString
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
 import io.opentelemetry.proto.collector.trace.v1.*
@@ -53,7 +54,7 @@ class OpenTelemetryTraceService(private val processSpans: suspend (List<Span>) -
 
 fun io.opentelemetry.proto.trace.v1.Span.toClaraSpan(serviceName: String): Option<Span> {
     return Span(
-        id = Span.Id(this.spanId.toStringUtf8()),
+        id = Span.Id(this.spanId.toHexString()),
         attributes = Span.Attributes(
             buildMap(this.attributesCount) {
                 this@toClaraSpan.attributesList.forEach { attribute ->
@@ -62,11 +63,24 @@ fun io.opentelemetry.proto.trace.v1.Span.toClaraSpan(serviceName: String): Optio
             }
         ),
         name = Span.Name(this.name),
-        parentId = Span.ParentId(this.parentSpanId.toStringUtf8()),
+        parentId = Span.ParentId(this.parentSpanId.toHexString()),
         serviceName = Service.Name(serviceName),
-        traceId = Span.TraceId(this.traceId.toStringUtf8()),
+        traceId = Span.TraceId(this.traceId.toHexString()),
         kind = this.kind.toClaraSpanKind().getOrElse { return None }
     ).some()
+}
+
+fun ByteString.toHexString(): String {
+    val hexChars = "0123456789abcdef"
+    val byteArray = this.toByteArray()
+    val hexStringBuilder = StringBuilder(2 * this.size())
+    for (byte in byteArray) {
+        val firstNibble = (byte.toInt() and 0xF0).ushr(4)
+        val secondNibble = byte.toInt() and 0x0F
+        hexStringBuilder.append(hexChars[firstNibble])
+        hexStringBuilder.append(hexChars[secondNibble])
+    }
+    return hexStringBuilder.toString()
 }
 
 fun io.opentelemetry.proto.trace.v1.Span.SpanKind.toClaraSpanKind(): Option<Span.Kind> {

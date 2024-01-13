@@ -8,6 +8,7 @@ aggregation:
         pod:
         service:
         dns:
+        openTelemetry:
 
 export:
   exporters:

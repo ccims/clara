@@ -13,7 +13,7 @@ import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 // Services are actual Microservices
 // Activities are entire business activities meaning the whole span of a trace
@@ -38,7 +38,7 @@ class SpanController : CommunicationAggregator {
     }
 
     private fun getSpans(): List<Span> {
-        val config = OpenTelemetryTraceSpanProvider.Config(7000, Duration.ZERO)
+        val config = OpenTelemetryTraceSpanProvider.Config(7878, 30.seconds)
         return runBlocking { OpenTelemetryTraceSpanProvider(config).getSpans() }
     }
 
@@ -47,17 +47,21 @@ class SpanController : CommunicationAggregator {
     fun process(spans: List<Span>) {
         spans.forEach { span ->
             //// 1 update services
-            val relationInformation = extractRelationInformationAndUpdateServices(span)
-            //// 2  Discover relations between services
-            setRelations(relationInformation)
-            // 2.1  compute the first span of a transaction
-            //      Mapping of the first span's path (name) with a service via the ComponentMapping-collection
-            //      and creation of newly discovered relations between activities and services.
-            if (span.parentId == null) {
-                // Get parentId from span -> if there is none you know it's parent
-                // Get path and method (should be available)
-                val path = span.name
-                val method = span.attributes.keys.filter { it.lowercase() == "http.method" }
+            runCatching {
+                val relationInformation = extractRelationInformationAndUpdateServices(span)
+                //// 2  Discover relations between services
+                setRelations(relationInformation)
+                // 2.1  compute the first span of a transaction
+                //      Mapping of the first span's path (name) with a service via the ComponentMapping-collection
+                //      and creation of newly discovered relations between activities and services.
+                //if (span.parentId == null) {
+                //    // Get parentId from span -> if there is none you know it's parent
+                    // Get path and method (should be available)
+                //    val path = span.name
+                //    val method = span.attributes.keys.filter { it.lowercase() == "http.method" }
+                // }
+            }.getOrElse {
+                log.error { "Exception encountered during span extraction: $it" }
             }
         }
     }
@@ -86,6 +90,7 @@ class SpanController : CommunicationAggregator {
         }
 
         Span.Kind.Internal -> {
+            log.warn { "Internal span identified" }
             throw UnsupportedOperationException()
         }
     }

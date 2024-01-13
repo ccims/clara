@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns.KubernetesDnsAggregator
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.SpanController
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.pod.KubernetesPodAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.service.KubernetesServiceAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClientFabric8
@@ -36,6 +37,11 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
                 val config = KubernetesDnsAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces, kubernetesConfig.logsSinceTime)
                 add(KubernetesDnsAggregator(config, KubernetesClientFabric8()))
                 log.info { "Registered aggregator: Kubernetes DNS" }
+            }
+
+            kubernetesConfig.aggregators.openTelemetry?.ifEnabled {
+                add(SpanController())
+                log.info{ "Registered aggregator: OpenTelemetry Spans"}
             }
         }
     }

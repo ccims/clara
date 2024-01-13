@@ -21,7 +21,11 @@ data class AggregationConfig(
                 val pod: PodAggregator?,
                 val service: ServiceAggregator?,
                 val dns: DnsAggregator?,
+                val openTelemetry: OpenTelemetryAggregator?,
             ) {
+                data class OpenTelemetryAggregator(
+                    override val enable: Boolean = true,
+                ) : Enable
 
                 data class PodAggregator(
                     override val enable: Boolean = true,

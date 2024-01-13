@@ -11,6 +11,8 @@ exporters:
     verbosity: detailed
   otlp:
     endpoint: http://host.docker.internal:7878 # Has to be changed for deployment to CLARA's FQDN; this config is for running this container on local machines.
+    tls:
+      insecure: true
 
 service:
   pipelines:
