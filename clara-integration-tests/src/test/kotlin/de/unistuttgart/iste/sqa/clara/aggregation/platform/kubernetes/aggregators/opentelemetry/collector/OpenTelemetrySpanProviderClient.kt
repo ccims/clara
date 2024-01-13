@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector
 
+import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.grpc.PingServiceGrpcKt
 import de.unistuttgart.iste.sqa.clara.grpc.ping
 import io.grpc.Deadline
@@ -42,7 +43,7 @@ class OpenTelemetrySpanProviderClient(serverPort: Int, deadline: Duration) : Clo
         response.message shouldBe pingMessageToSend.message
     }
 
-    suspend fun sendSpan(span: Span, serviceName: String) {
+    suspend fun sendSpans(span: List<Span>, serviceName: String) {
         val request = exportTraceServiceRequest {
             resourceSpans.add(
                 resourceSpans {
@@ -59,7 +60,7 @@ class OpenTelemetrySpanProviderClient(serverPort: Int, deadline: Duration) : Clo
 
                     scopeSpans.add(
                         scopeSpans {
-                            spans.add(span)
+                            spans.addAll(span)
                         }
                     )
                 }
