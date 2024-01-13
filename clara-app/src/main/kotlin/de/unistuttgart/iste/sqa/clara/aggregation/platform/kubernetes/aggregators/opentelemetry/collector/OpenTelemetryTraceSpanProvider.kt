@@ -29,7 +29,6 @@ class OpenTelemetryTraceSpanProvider(private val config: Config) : SpanProvider 
         server.use { server ->
             server.start()
             delay(config.listenDuration)
-            server.close()
         }
 
         log.debug { "Retrieved ${spans.size} spans" }

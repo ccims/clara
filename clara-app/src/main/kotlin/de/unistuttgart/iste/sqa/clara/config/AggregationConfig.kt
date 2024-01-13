@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.config
 
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
+import kotlin.time.Duration
 
 data class AggregationConfig(
     val platforms: Platforms?,
@@ -14,7 +15,6 @@ data class AggregationConfig(
             val aggregators: Aggregators,
             val namespaces: List<Namespace>,
             val includeKubeNamespaces: Boolean = false,
-            val logsSinceTime: String,
         ) {
 
             data class Aggregators(
@@ -23,8 +23,11 @@ data class AggregationConfig(
                 val dns: DnsAggregator?,
                 val openTelemetry: OpenTelemetryAggregator?,
             ) {
+
                 data class OpenTelemetryAggregator(
                     override val enable: Boolean = true,
+                    val listenPort: Int,
+                    val listenDuration: Duration,
                 ) : Enable
 
                 data class PodAggregator(
@@ -37,6 +40,7 @@ data class AggregationConfig(
 
                 data class DnsAggregator(
                     override val enable: Boolean = true,
+                    val logsSinceTime: String = "",
                 ) : Enable
             }
         }

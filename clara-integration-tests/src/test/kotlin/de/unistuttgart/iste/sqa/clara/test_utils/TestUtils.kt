@@ -10,7 +10,6 @@ fun getAvailablePort(): Int {
 
     serverSocket.use {
         serverSocket.reuseAddress = true
-        serverSocket.close()
     }
 
     return serverSocket.localPort

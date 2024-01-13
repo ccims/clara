@@ -2,6 +2,7 @@ package de.unistuttgart.iste.sqa.clara.aggregation
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns.KubernetesDnsAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.SpanController
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector.OpenTelemetryTraceSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.pod.KubernetesPodAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.service.KubernetesServiceAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClientFabric8
@@ -17,6 +18,7 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
 
     val componentAggregators: List<ComponentAggregator> = buildList {
         aggregationConfig.platforms?.kubernetes?.let { kubernetesConfig ->
+
             kubernetesConfig.aggregators.pod?.ifEnabled {
                 val config = KubernetesPodAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces)
                 add(KubernetesPodAggregator(config, KubernetesClientFabric8()))
@@ -33,15 +35,17 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
 
     val communicationAggregators: List<CommunicationAggregator> = buildList {
         aggregationConfig.platforms?.kubernetes?.let { kubernetesConfig ->
-            kubernetesConfig.aggregators.dns?.ifEnabled {
-                val config = KubernetesDnsAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces, kubernetesConfig.logsSinceTime)
+
+            kubernetesConfig.aggregators.dns?.ifEnabled { dnsAggregatorConfig ->
+                val config = KubernetesDnsAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces, dnsAggregatorConfig.logsSinceTime)
                 add(KubernetesDnsAggregator(config, KubernetesClientFabric8()))
                 log.info { "Registered aggregator: Kubernetes DNS" }
             }
 
-            kubernetesConfig.aggregators.openTelemetry?.ifEnabled {
-                add(SpanController())
-                log.info{ "Registered aggregator: OpenTelemetry Spans"}
+            kubernetesConfig.aggregators.openTelemetry?.ifEnabled { openTelemetryAggregatorConfig ->
+                val config = OpenTelemetryTraceSpanProvider.Config(openTelemetryAggregatorConfig.listenPort, openTelemetryAggregatorConfig.listenDuration)
+                add(SpanController(OpenTelemetryTraceSpanProvider(config)))
+                log.info { "Registered aggregator: OpenTelemetry tracing spans" }
             }
         }
     }

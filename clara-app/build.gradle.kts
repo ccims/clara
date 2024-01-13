@@ -32,12 +32,25 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.bundles.logging)
-    implementation(libs.bundles.configuration)
+    implementation(libs.hoplite.yaml)
+    constraints {
+        implementation("org.jetbrains.kotlin", "kotlin-reflect", libs.plugins.kotlin.get().version.toString()) {
+            because(
+                "hoplite-yaml (${libs.hoplite.yaml.get().name}) uses an old version of kotlin-reflect (1.6.x) " +
+                        "which contains a compiler bug causing a crash when using kotlin.Duration in a configuration data class, " +
+                        "see (https://github.com/sksamuel/hoplite/issues/237). The issue was fixed in kotlin-reflect 1.7.0 " +
+                        "but its version is set to match the current Kotlin version because it doesn't seem to cause problems " +
+                        "with an even higher version right now. In case of future problems, update the version of hoplite-yaml " +
+                        "or upgrade/downgrade the version of kotlin-reflect. Revisit this version override if the hoplite-yaml " +
+                        "version gets bumped as this should only be a temporary fix!"
+            )
+        }
+    }
     implementation(libs.arrow.core)
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.opentelemetry.api)
+    implementation(libs.bundles.logging)
     implementation(libs.bundles.grpc)
 
     testImplementation(libs.bundles.kotest)

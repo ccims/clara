@@ -35,7 +35,7 @@ fun VersionCatalogBuilder.declaredGradlePlugins() {
 }
 
 fun VersionCatalogBuilder.declaredLibraries() {
-    val hopliteVersion = version("hoplite", "2.7.5")
+    val hopliteVersion = version("hoplite", "2.8.0.RC3")
     val arrowVersion = version("arrow", "1.2.1")
     val kotlinLoggingVersion = version("kotlin-logging", "6.0.1")
     val logbackClassicVersion = version("logback-classic", "1.4.14")
@@ -48,7 +48,6 @@ fun VersionCatalogBuilder.declaredLibraries() {
     val grpcKotlinVersion = version("grpc-kotlin", "1.4.1")
     val protobufVersion = version("protobuf-kotlin", "3.25.2")
 
-    library("hoplite.core", "com.sksamuel.hoplite", "hoplite-core").versionRef(hopliteVersion)
     library("hoplite.yaml", "com.sksamuel.hoplite", "hoplite-yaml").versionRef(hopliteVersion)
 
     library("arrow.core", "io.arrow-kt", "arrow-core").versionRef(arrowVersion)
@@ -76,7 +75,6 @@ fun VersionCatalogBuilder.declaredLibraries() {
 
     library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
 
-    bundle("configuration", listOf("hoplite.core", "hoplite.yaml"))
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))
     bundle("kotest", listOf("kotest.runner.junit5", "kotest.assertions.core", "kotest.framework.datatest", "kotest.property"))
     bundle("grpc", listOf("grpc.protobuf", "protobuf.kotlin", "grpc.kotlin.stub", "grpc.netty"))

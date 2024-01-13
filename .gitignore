@@ -6,6 +6,7 @@ build
 
 # Ignore files generated / exported by the application
 generated
+logs
 
 # Documentation with MkDocs
 docs/venv

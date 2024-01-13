@@ -16,7 +16,6 @@ class Fixture(listenDuration: Duration) {
             val fixture = Fixture(listenDuration)
             fixture.client.use {
                 testFunction(fixture)
-                fixture.client.close()
             }
         }
     }

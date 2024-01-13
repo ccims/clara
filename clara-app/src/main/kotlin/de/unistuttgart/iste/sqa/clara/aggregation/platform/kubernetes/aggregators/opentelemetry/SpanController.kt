@@ -2,10 +2,7 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 
 import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector.OpenTelemetryTraceSpanProvider
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Relation
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.SpanInformation
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.*
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
@@ -20,7 +17,7 @@ import kotlin.time.Duration.Companion.seconds
 // Instances are instances of microservices
 // Hardware is the used hardware (don't know if necessary)
 
-class SpanController : CommunicationAggregator {
+class SpanController(private val spanProvider: SpanProvider) : CommunicationAggregator {
 
     private val log = KotlinLogging.logger {}
 
@@ -31,16 +28,11 @@ class SpanController : CommunicationAggregator {
 
     override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
 
-        val spans = getSpans()
+        val spans = runBlocking { spanProvider.getSpans() }
         process(spans)
 
         // TODO return correct communication result
         return Either.Right(setOf())
-    }
-
-    private fun getSpans(): List<Span> {
-        val config = OpenTelemetryTraceSpanProvider.Config(7878, 70.seconds)
-        return runBlocking { OpenTelemetryTraceSpanProvider(config).getSpans() }
     }
 
     // Proceeding of all ingoing spans via otel grpc interface

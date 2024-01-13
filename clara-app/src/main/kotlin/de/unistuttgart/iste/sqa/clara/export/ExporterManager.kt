@@ -11,6 +11,7 @@ class ExporterManager(exportConfig: ExportConfig) {
     private val log = KotlinLogging.logger {}
 
     val exporters: List<Exporter> = buildList {
+
         exportConfig.exporters?.graphviz?.ifEnabled { graphVizConfig ->
             val config = GraphVizExporter.Config(graphVizConfig.outputType, graphVizConfig.outputFile)
             add(GraphVizExporter(config))

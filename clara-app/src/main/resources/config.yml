@@ -1,14 +1,16 @@
 aggregation:
   platforms:
     kubernetes:
-      logs-since-time: 2023-12-18T12:30:00Z
       namespaces:
         - "*"
       aggregators:
         pod:
         service:
         dns:
-        openTelemetry:
+          logs-since-time: 2024-01-01T00:00:00Z
+        open-telemetry:
+          listen-port: 7878
+          listen-duration: 10 seconds
 
 export:
   exporters:
