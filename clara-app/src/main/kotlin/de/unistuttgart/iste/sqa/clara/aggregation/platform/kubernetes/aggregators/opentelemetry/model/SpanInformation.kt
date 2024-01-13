@@ -6,6 +6,7 @@ data class SpanInformation(
     val clientServiceName: Service.Name?,
     val serverServiceName: Service.Name?,
     val serverHostname: Service.HostName?,
+    val serverHostIdentifier: Service.HostIdentifier?,
     val serverEndpoint: Service.Endpoint?,
     val serverIpAddress: IpAddress?,
     val serverPort: Service.Port?,

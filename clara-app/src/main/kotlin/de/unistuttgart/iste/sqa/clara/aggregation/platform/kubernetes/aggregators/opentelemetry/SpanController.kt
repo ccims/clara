@@ -26,19 +26,20 @@ class SpanController : CommunicationAggregator {
 
     private val serviceMap: MutableMap<Service.Name, Service> = mutableMapOf()
     private val relations: MutableList<Relation> = mutableListOf()
-    private val unnamedServices: MutableList<Service> = mutableListOf()
+    private val unnamedServices: MutableMap<Service.HostIdentifier, Service> = mutableMapOf()
+    private val unresolvableServices: MutableList<Service> = mutableListOf()
 
     override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
 
         val spans = getSpans()
         process(spans)
 
-        // TODO return correct communictaion result
-        return Either.Right(setOf<Communication>())
+        // TODO return correct communication result
+        return Either.Right(setOf())
     }
 
     private fun getSpans(): List<Span> {
-        val config = OpenTelemetryTraceSpanProvider.Config(7878, 30.seconds)
+        val config = OpenTelemetryTraceSpanProvider.Config(7878, 70.seconds)
         return runBlocking { OpenTelemetryTraceSpanProvider(config).getSpans() }
     }
 
@@ -56,7 +57,7 @@ class SpanController : CommunicationAggregator {
                 //      and creation of newly discovered relations between activities and services.
                 //if (span.parentId == null) {
                 //    // Get parentId from span -> if there is none you know it's parent
-                    // Get path and method (should be available)
+                // Get path and method (should be available)
                 //    val path = span.name
                 //    val method = span.attributes.keys.filter { it.lowercase() == "http.method" }
                 // }
@@ -99,6 +100,7 @@ class SpanController : CommunicationAggregator {
         val client = Service(
             name = spanInformation.clientServiceName,
             hostName = null, // For now a client does not have a hostname
+            hostIdentifier = null, // For now a client does not have a hostname
             ipAddress = spanInformation.clientIpAddress,
             port = spanInformation.clientPort,
             endpoints = emptyList() // For now a client does not have an endpoint
@@ -108,6 +110,7 @@ class SpanController : CommunicationAggregator {
         val server = Service(
             name = spanInformation.serverServiceName,
             hostName = spanInformation.serverHostname,
+            hostIdentifier = spanInformation.serverHostIdentifier,
             ipAddress = spanInformation.serverIpAddress,
             port = spanInformation.serverPort,
             endpoints = if (spanInformation.serverEndpoint != null) {
@@ -119,15 +122,27 @@ class SpanController : CommunicationAggregator {
         updateService(server)
     }
 
-    private fun updateService(service: Service) {
-        if (service.name == null) {
+     private fun updateService(service: Service) {
+        if (service.name == null && service.hostName == null) {
             // TODO based on opentelemetry specification it is highly likely that we do not have the server's service name here in a server span, but the information is
-            // TODO too valuealbe, therefore we need some sort of hold back list, where we can put the information into, and later on correlate it with the server span
-            unnamedServices.add(service)
-        } else if (!serviceMap.containsKey(service.name)) {
-            serviceMap[service.name] = service
-        } else {
-            TODO("Update existing")
+            // TODO too valuable, therefore we need some sort of hold back list, where we can put the information into, and later on correlate it with the server span
+            unresolvableServices.add(service)
+        } else if (service.name != null) {
+            if (!serviceMap.containsKey(service.name)) {
+                serviceMap[service.name] = service
+            } else {
+                val oldService = serviceMap[service.name]!!
+                val updatedService = service.mergeWithOtherServiceObject(oldService)
+                serviceMap[service.name] = updatedService
+            }
+        } else if (service.hostIdentifier != null) {
+            if (!unnamedServices.containsKey(service.hostIdentifier)) {
+                unnamedServices[service.hostIdentifier] = service
+            } else {
+                val oldService = unnamedServices[service.hostIdentifier]!!
+                val updatedService = service.mergeWithOtherServiceObject(oldService)
+                unnamedServices[service.hostIdentifier] = updatedService
+            }
         }
     }
 
@@ -139,7 +154,7 @@ class SpanController : CommunicationAggregator {
 
         // filter all values that surely belong to the server side, then try to find more info with reg-exes
         val possibleKeyNamesForServerAttributes = listOf(
-            "server.address", "server.port", "network.peer.address", "peer.hostname", "peer.address", "db.name", "http.uri", "http.url", "http.target"
+            "server.address", "server.port", "network.peer.address", "peer.hostname", "peer.address", "db.name", "http.uri", "http.url", "http.target", "uri", "url",
         )
 
         // filter all values that surely belong to the client side, then try to find more info with reg-exes
@@ -154,10 +169,16 @@ class SpanController : CommunicationAggregator {
             it.key.lowercase() in possibleKeyNamesForClientAttributes
         }.values
 
-        val serverHostname = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
+        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
         val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlEndpoint.find(it)?.value }
+        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlEndpoint.find(it)?.value } // TODO not found, regex might not work for fqdns
         val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
+
+        val serverHostIdentifier = if (serverPort != null) {
+            "${serverHostName}:${serverPort}"
+        } else {
+            serverHostName
+        }
 
         val clientHostName = possibleClientValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
         val clientIpAddress = possibleClientValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
@@ -166,7 +187,8 @@ class SpanController : CommunicationAggregator {
         return SpanInformation(
             clientServiceName = clientSpan.serviceName,
             serverServiceName = serverServiceName?.let { Service.Name(serverServiceName) },
-            serverHostname = serverHostname?.let { Service.HostName(serverHostname) },
+            serverHostname = serverHostName?.let { Service.HostName(serverHostName) },
+            serverHostIdentifier = serverHostIdentifier?.let {  Service.HostIdentifier(serverHostIdentifier)},
             serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
             serverEndpoint = serverPath?.let { Service.Endpoint(serverPath) },
             serverPort = serverPort?.let { Service.Port(serverPort) },
@@ -178,12 +200,15 @@ class SpanController : CommunicationAggregator {
 
     private fun extractInformationFromServerSpan(serverSpan: Span): SpanInformation {
         TODO("Not implemented yet")
+        // extract server information: especially service name and the endpoints if available.
+        // best case would be some FQDN that one could later merge with the hostIdentifiers of the unnamed services
+        // if not available merging via other attributes such as endpoints could be tried
     }
 
     // For now, we simply add every relation even if it duplicates. In the end a filtering could be done.
     private fun setRelations(spanInformation: SpanInformation) {
         val caller = serviceMap[spanInformation.clientServiceName] ?: throw UnsupportedOperationException()
-        val callee = serviceMap[spanInformation.serverServiceName] ?: throw UnsupportedOperationException() // Todo its unlikely we have the serverServiceName often, we need resilience here
+        val callee = serviceMap[spanInformation.serverServiceName] ?: unnamedServices[spanInformation.serverHostIdentifier] ?: throw UnsupportedOperationException() // Todo its unlikely we have the serverServiceName often, we need resilience here
         val endpoint = callee.endpoints.find { it == spanInformation.serverEndpoint }
         val relation = Relation(
             owner = caller, // The caller always owns the call
@@ -194,35 +219,6 @@ class SpanController : CommunicationAggregator {
 
         relations.add(relation)
     }
-
-    // chat gpts idea of an algorithm
-//    fun createArchitecture(): Map<String, List<String>> {
-//        // Create a map to store the call history
-//        val callHistory: MutableMap<String, MutableList<String>> = mutableMapOf()
-//
-//        // Iterate over the spans
-//        for (span in spans) {
-//            // Check if the service name is not present in the call history map
-//            if (!callHistory.containsKey(span.serviceName)) {
-//                callHistory[span.serviceName] = mutableListOf()
-//            }
-//
-//            // Add the current operation to the service's call history
-//            callHistory[span.serviceName]?.add(span.operationName)
-//
-//            // If there is a parent span, add a connection between the parent and child services
-//            if (span.parentId != null) {
-//                val parentService = getServiceName(span.parentId)
-//                val childService = span.serviceName
-//
-//                // Add the child service to the parent's call history
-//                callHistory[parentService]?.add("$childService:${span.operationName}")
-//            }
-//        }
-//
-//        return callHistory
-//    }
-
 }/*
                 // 2.1.1 Create discovered relations between service <-> activities
                 var mappingFound = false
