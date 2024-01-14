@@ -1,16 +1,16 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
 import arrow.core.Either
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector.OpenTelemetryTraceSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.*
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
+import de.unistuttgart.iste.sqa.clara.api.model.Component
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
+import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import kotlin.time.Duration.Companion.seconds
 
 // Services are actual Microservices
 // Activities are entire business activities meaning the whole span of a trace
@@ -31,8 +31,34 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
         val spans = runBlocking { spanProvider.getSpans() }
         process(spans)
 
-        // TODO return correct communication result
-        return Either.Right(setOf())
+        // TODO the entire mapping needs to be discussed
+        val components = serviceMap.values.map { Component.Internal.Service(
+            name = Component.Internal.Service.Name(it.name?.value!!),
+            //ipAddress = it.ipAddress // TODO discuss if we should extend the model of GraphViz especially to display endpoints
+            ipAddress = IpAddress(it.hostIdentifier?.value ?: "not-found-ip"),
+            namespace = Namespace("default")
+        ) }
+
+        val unnamedComponents = unnamedServices.values.map { Component.Internal.Service(
+            name = Component.Internal.Service.Name(it.name?.value ?: "not-found-name"),
+            //ipAddress = it.ipAddress // TODO discuss if we should extend the model of GraphViz especially to display endpoints
+            ipAddress = IpAddress(it.hostIdentifier?.value!!),
+            namespace = Namespace("default")
+        )}
+
+        val mergedComponents = components + unnamedComponents
+
+        val communications = relations.map { relation ->
+            val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.ipAddress.value == relation.caller.hostIdentifier?.value }
+            val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.ipAddress.value == relation.callee.hostIdentifier?.value }
+            if (caller != null && callee != null) {
+                Communication(Communication.Source(caller) ,Communication.Target(callee))
+            } else {
+                throw UnsupportedOperationException()
+            }
+        }.toSet()
+
+        return Either.Right(communications)
     }
 
     // Proceeding of all ingoing spans via otel grpc interface
@@ -44,19 +70,35 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
                 val relationInformation = extractRelationInformationAndUpdateServices(span)
                 //// 2  Discover relations between services
                 setRelations(relationInformation)
-                // 2.1  compute the first span of a transaction
-                //      Mapping of the first span's path (name) with a service via the ComponentMapping-collection
-                //      and creation of newly discovered relations between activities and services.
-                //if (span.parentId == null) {
-                //    // Get parentId from span -> if there is none you know it's parent
-                // Get path and method (should be available)
-                //    val path = span.name
-                //    val method = span.attributes.keys.filter { it.lowercase() == "http.method" }
-                // }
             }.getOrElse {
                 log.error { "Exception encountered during span extraction: $it" }
             }
         }
+
+        mergeServiceMaps()
+    }
+
+    private fun mergeServiceMaps() {
+
+        val processedUnnamedService = mutableListOf<Service>()
+        unnamedServices.forEach { (hostIdentifier, unnamedService) ->
+            val serviceViaIdentifier = serviceMap.filter { (_, service) -> service.hostIdentifier == hostIdentifier }.values.firstOrNull()
+            val service = if (serviceViaIdentifier == null && unnamedService.endpoints.isNotEmpty()) {
+                // TODO this might be to unsafe
+                serviceMap.filter { (_, service) ->
+                    service.endpoints.isNotEmpty()
+                            && (service.endpoints.containsAll(unnamedService.endpoints) || unnamedService.endpoints.containsAll(service.endpoints))
+                }.values.firstOrNull()
+            } else {
+                serviceViaIdentifier
+            }
+            if (service != null) {
+                val mergedService = service.mergeWithOtherServiceObject(unnamedService)
+                serviceMap.replace(service.name!!, mergedService)
+                processedUnnamedService.add(unnamedService)
+            }
+        }
+        processedUnnamedService.forEach { unnamedServices.remove(it.hostIdentifier) }
     }
 
     private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation = when (span.kind) {
@@ -114,7 +156,7 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
         updateService(server)
     }
 
-     private fun updateService(service: Service) {
+    private fun updateService(service: Service) {
         if (service.name == null && service.hostName == null) {
             // TODO based on opentelemetry specification it is highly likely that we do not have the server's service name here in a server span, but the information is
             // TODO too valuable, therefore we need some sort of hold back list, where we can put the information into, and later on correlate it with the server span
@@ -180,7 +222,7 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
             clientServiceName = clientSpan.serviceName,
             serverServiceName = serverServiceName?.let { Service.Name(serverServiceName) },
             serverHostname = serverHostName?.let { Service.HostName(serverHostName) },
-            serverHostIdentifier = serverHostIdentifier?.let {  Service.HostIdentifier(serverHostIdentifier)},
+            serverHostIdentifier = serverHostIdentifier?.let { Service.HostIdentifier(serverHostIdentifier) },
             serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
             serverEndpoint = serverPath?.let { Service.Endpoint(serverPath) },
             serverPort = serverPort?.let { Service.Port(serverPort) },
@@ -191,10 +233,44 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
     }
 
     private fun extractInformationFromServerSpan(serverSpan: Span): SpanInformation {
-        TODO("Not implemented yet")
         // extract server information: especially service name and the endpoints if available.
         // best case would be some FQDN that one could later merge with the hostIdentifiers of the unnamed services
         // if not available merging via other attributes such as endpoints could be tried
+
+        // filter all values that surely belong to the server side, then try to find more info with reg-exes
+        val possibleKeyNamesForServerAttributes = listOf(
+            "server.address", "server.port", "http.uri", "http.url", "uri", "url",
+        )
+
+        val possibleServerValues = serverSpan.attributes.filter {
+            it.key.lowercase() in possibleKeyNamesForServerAttributes
+        }.values
+
+        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
+        val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
+        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlEndpoint.find(it)?.value } // TODO not found, regex might not work for fqdns
+        val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
+
+        val serverHostIdentifier = if (serverPort != null) {
+            "${serverHostName}:${serverPort}"
+        } else {
+            serverHostName
+        }
+
+        // TODO check for possible client attributes
+        // TODO ensure it works properly
+        return SpanInformation(
+            clientServiceName = null,
+            serverServiceName = serverSpan.serviceName,
+            serverHostname = null, //serverHostName?.let { Service.HostName(serverHostName) },
+            serverHostIdentifier = null, //serverHostIdentifier?.let {  Service.HostIdentifier(serverHostIdentifier)},
+            serverIpAddress = null, // serverIpAddress?.let { IpAddress(serverIpAddress) },
+            serverEndpoint = serverPath?.let { Service.Endpoint(serverPath) },
+            serverPort = null, // serverPort?.let { Service.Port(serverPort) },
+            clientIpAddress = null,
+            clientHostName = null,
+            clientPort = null,
+        )
     }
 
     // For now, we simply add every relation even if it duplicates. In the end a filtering could be done.
@@ -212,6 +288,11 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
         relations.add(relation)
     }
 }/*
+                // 2.1  compute the first span of a transaction
+                //      Mapping of the first span's path (name) with a service via the ComponentMapping-collection
+                //      and creation of newly discovered relations between activities and services.
+                //if (span.parentId == null) {
+                // }
                 // 2.1.1 Create discovered relations between service <-> activities
                 var mappingFound = false
                 val deprecatedMappings: MutableList<ComponentMapping> = ArrayList<ComponentMapping>()

@@ -61,25 +61,10 @@ data class Service(
         }
     }
 
-    // TODO many clashes take a look here
     private fun mergeEndpoints(endpoints1: List<Endpoint>, endpoints2: List<Endpoint>): List<Endpoint> {
         val mergedEndpoints = mutableListOf<Endpoint>()
-
-        for (endpoint in endpoints1) {
-            if (!endpoints2.contains(endpoint)) {
-                mergedEndpoints.add(endpoint)
-            } else {
-                println("Clash in endpoints. Choosing: $endpoint")
-                mergedEndpoints.add(endpoint)
-            }
-        }
-
-        for (endpoint in endpoints2) {
-            if (!endpoints1.contains(endpoint)) {
-                mergedEndpoints.add(endpoint)
-            }
-        }
-
+        mergedEndpoints.addAll(endpoints1)
+        mergedEndpoints.addAll(endpoints2.filter { !endpoints1.contains(it) })
         return mergedEndpoints
     }
 }
