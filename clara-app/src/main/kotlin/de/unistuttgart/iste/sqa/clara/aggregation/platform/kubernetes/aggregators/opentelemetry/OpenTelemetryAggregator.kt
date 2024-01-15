@@ -17,7 +17,7 @@ import kotlinx.coroutines.runBlocking
 // Instances are instances of microservices
 // Hardware is the used hardware (don't know if necessary)
 
-class SpanController(private val spanProvider: SpanProvider) : CommunicationAggregator {
+class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : CommunicationAggregator {
 
     private val log = KotlinLogging.logger {}
 

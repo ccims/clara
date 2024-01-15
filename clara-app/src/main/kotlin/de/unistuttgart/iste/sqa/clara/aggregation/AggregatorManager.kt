@@ -1,8 +1,8 @@
 package de.unistuttgart.iste.sqa.clara.aggregation
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns.KubernetesDnsAggregator
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.SpanController
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector.OpenTelemetryTraceSpanProvider
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.OpenTelemetryAggregator
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider.OpenTelemetryTraceSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.pod.KubernetesPodAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.service.KubernetesServiceAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClientFabric8
@@ -44,7 +44,7 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
 
             kubernetesConfig.aggregators.openTelemetry?.ifEnabled { openTelemetryAggregatorConfig ->
                 val config = OpenTelemetryTraceSpanProvider.Config(openTelemetryAggregatorConfig.listenPort, openTelemetryAggregatorConfig.listenDuration)
-                add(SpanController(OpenTelemetryTraceSpanProvider(config)))
+                add(OpenTelemetryAggregator(OpenTelemetryTraceSpanProvider(config)))
                 log.info { "Registered aggregator: OpenTelemetry tracing spans" }
             }
         }

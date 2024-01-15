@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector
+package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider
 
 import arrow.core.*
 import com.google.protobuf.ByteString

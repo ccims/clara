@@ -1,4 +1,4 @@
-package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector
+package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider
 
 import de.unistuttgart.iste.sqa.clara.test_utils.getAvailablePort
 import kotlin.time.Duration

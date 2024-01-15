@@ -1,6 +1,5 @@
-package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.collector
+package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider
 
-import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.grpc.PingServiceGrpcKt
 import de.unistuttgart.iste.sqa.clara.grpc.ping
 import io.grpc.Deadline
