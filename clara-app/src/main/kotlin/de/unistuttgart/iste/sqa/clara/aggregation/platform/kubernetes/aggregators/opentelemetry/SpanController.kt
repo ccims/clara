@@ -188,6 +188,7 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
 
         // filter all values that surely belong to the server side, then try to find more info with reg-exes
         val possibleKeyNamesForServerAttributes = listOf(
+            // TODO apparently htt.url can be in some cases the client address
             "server.address", "server.port", "network.peer.address", "peer.hostname", "peer.address", "db.name", "http.uri", "http.url", "http.target", "uri", "url",
         )
 
@@ -203,6 +204,7 @@ class SpanController(private val spanProvider: SpanProvider) : CommunicationAggr
             it.key.lowercase() in possibleKeyNamesForClientAttributes
         }.values
 
+        // TODO especially take a look for kubernetes internal names
         val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
         val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
         val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlEndpoint.find(it)?.value } // TODO not found, regex might not work for fqdns
