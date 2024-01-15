@@ -1,5 +1,5 @@
 app:
-  block-after-finish: true
+  block-after-finish: false
 
 aggregation:
   platforms:

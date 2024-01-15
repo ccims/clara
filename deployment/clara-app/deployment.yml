@@ -18,6 +18,7 @@ spec:
       containers:
         - name: clara-app
           image: ghcr.io/stevebinary/clara-app:v0.5.2-feature-aggregation-via-distributed-tracing
+          imagePullPolicy: Always
           ports:
             - containerPort: 7878
           env:
@@ -25,3 +26,5 @@ spec:
               value: "7878"
             - name: aggregation.platforms.kubernetes.aggregators.open-telemetry.listen-duration
               value: "60 seconds"
+            - name: app.block-after-finish
+              value: "true"
