@@ -6,7 +6,7 @@ metadata:
     app: otel-collector-conf
     component: otel-collector-conf
 data:
-  otel-agent-config: |
+  otel-collector-conf: |
     receivers:
       otlp:
         protocols:

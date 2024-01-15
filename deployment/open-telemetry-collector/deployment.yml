@@ -6,17 +6,39 @@ metadata:
   labels:
     app: otel-collector
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: otel-collector
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicas: 1
   template:
     metadata:
       labels:
         app: otel-collector
     spec:
       containers:
-        - name: otel-collector
-          image: otel/opentelemetry-collector-contrib:0.92.0
+        - command:
+            - "/otelcol"
+            - "--config=/conf/otel-collector-config.yaml"
+          image: otel/opentelemetry-collector:0.92.0
+          name: otel-collector
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 400Mi
           ports:
             - containerPort: 4318
+          volumeMounts:
+            - name: otel-collector-config-vol
+              mountPath: /conf
+      volumes:
+        - configMap:
+            name: otel-collector-conf
+            items:
+              - key: otel-collector-conf
+                path: otel-collector-config.yaml
+          name: otel-collector-config-vol
