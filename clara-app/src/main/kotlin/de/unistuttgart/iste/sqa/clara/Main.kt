@@ -1,9 +1,9 @@
 package de.unistuttgart.iste.sqa.clara
 
-import de.unistuttgart.iste.sqa.clara.config.AppConfig
+import de.unistuttgart.iste.sqa.clara.config.ClaraConfig
 
 fun main() {
-    val config = AppConfig.loadFrom("/config.yml")
+    val config = ClaraConfig.loadFrom("/config.yml")
 
     val app = App(config)
 

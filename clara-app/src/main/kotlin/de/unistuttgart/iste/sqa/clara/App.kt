@@ -4,14 +4,14 @@ import de.unistuttgart.iste.sqa.clara.aggregation.AggregatorManager
 import de.unistuttgart.iste.sqa.clara.aggregation.ParallelAggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.export.ExportExecutor
-import de.unistuttgart.iste.sqa.clara.config.AppConfig
+import de.unistuttgart.iste.sqa.clara.config.ClaraConfig
 import de.unistuttgart.iste.sqa.clara.export.ExporterManager
 import de.unistuttgart.iste.sqa.clara.export.ParallelExportExecutor
 import de.unistuttgart.iste.sqa.clara.utils.list.getLeft
 import de.unistuttgart.iste.sqa.clara.utils.list.getRight
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-class App(private val config: AppConfig) {
+class App(private val config: ClaraConfig) {
 
     val log = KotlinLogging.logger {}
 
@@ -46,5 +46,10 @@ class App(private val config: AppConfig) {
         }
 
         log.info { "End application" }
+
+        if (config.app?.blockAfterFinish == true) {
+            log.info { "Keeping process alive from now on." }
+            while (true) {}
+        }
     }
 }

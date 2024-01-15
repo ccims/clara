@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clara-app-deployment
+  namespace: clara
+  labels:
+    app: clara-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clara-app
+  template:
+    metadata:
+      labels:
+        app: clara-app
+    spec:
+      containers:
+        - name: clara-app
+          image: ghcr.io/stevebinary/clara-app:v0.5.2-feature-aggregation-via-distributed-tracing
+          ports:
+            - containerPort: 7878
+          env:
+            - name: aggregation.platforms.kubernetes.aggregators.open-telemetry.listen-port
+              value: "7878"
+            - name: aggregation.platforms.kubernetes.aggregators.open-telemetry.listen-duration
+              value: "60 seconds"
