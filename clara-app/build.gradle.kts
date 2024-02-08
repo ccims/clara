@@ -1,6 +1,7 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import com.expediagroup.graphql.plugin.gradle.graphql
 import org.gradle.jvm.tasks.Jar
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
@@ -10,6 +11,7 @@ plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.docker)
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.graphql)
     application
 }
 
@@ -50,6 +52,7 @@ dependencies {
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.opentelemetry.api)
+    implementation(libs.graphql.client)
     implementation(libs.bundles.logging)
     implementation(libs.bundles.grpc)
 
@@ -96,6 +99,15 @@ protobuf {
                 create("kotlin")
             }
         }
+    }
+}
+
+graphql {
+    client {
+        allowDeprecatedFields = true
+        schemaFile = rootDir.resolve("clara-graphql/gropius/schema.graphqls")
+        packageName = "de.unistuttgart.iste.sqa.gropius"
+        queryFileDirectory = rootDir.resolve("clara-graphql/gropius").path
     }
 }
 

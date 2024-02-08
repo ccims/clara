@@ -1,5 +1,10 @@
 package de.unistuttgart.iste.sqa.clara.config
 
+import com.sksamuel.hoplite.ConfigAlias
+import com.sksamuel.hoplite.Masked
+import de.unistuttgart.iste.sqa.clara.config.ExportConfig.Exporters.GraphViz.Companion.ALLOWED_TYPES
+import java.net.URL
+
 /**
  * Config for the different exporters.
  *
@@ -93,9 +98,15 @@ data class ExportConfig(
          * Config for exporting to Gropius.
          *
          * @property enable Whether to enable this exporter.
+         * @property graphQLBackendUrl The url of the Gropius GraphQL backend, like http://localhost:8080/graphql
+         * @property graphQLBackendToken The authorization bearer token for the Gropius GraphQL backend.
          */
         data class Gropius(
             override val enable: Boolean = true,
+            @ConfigAlias("graphql-backend-url")
+            val graphQLBackendUrl: URL,
+            @ConfigAlias("graphql-backend-token")
+            val graphQLBackendToken: Masked?,
         ) : Enable
     }
 }

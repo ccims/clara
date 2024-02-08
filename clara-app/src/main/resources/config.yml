@@ -1,5 +1,6 @@
 app:
   block-after-finish: false
+  log-config: true
 
 aggregation:
   platforms:
@@ -10,8 +11,9 @@ aggregation:
         pod:
         service:
         dns:
-          logs-since-time: 2024-01-01T00:00:00Z
+          logs-since-time: 2024-02-01T00:00:00Z
         open-telemetry:
+          enable: false
           listen-port: 7878
           listen-duration: 10 seconds
 
@@ -21,3 +23,5 @@ export:
       output-type: svg
       output-file: generated/architecture.svg
     gropius:
+      graphql-backend-url: ${CLARA_GROPIUS_URL}
+      graphql-backend-token: ${CLARA_GROPIUS_TOKEN}

@@ -25,13 +25,15 @@ dependencyResolutionManagement {
 }
 
 fun VersionCatalogBuilder.declaredGradlePlugins() {
-    val gradlePluginKotlinVersion = version("gradle-plugin-kotlin", "1.9.22")
+    val gradlePluginKotlinVersion = version("gradle-kotlin-plugin", "1.9.22")
     val gradlePluginDockerVersion = version("gradle-docker-plugin", "9.4.0")
     val gradlePluginProtobufVersion = version("gradle-protobuf-plugin", "0.9.4")
+    val gradlePluginGraphQLVersion = version("gradle-graphql-plugin", "7.0.2")
 
     plugin("kotlin", "org.jetbrains.kotlin.jvm").versionRef(gradlePluginKotlinVersion)
     plugin("docker", "com.bmuschko.docker-remote-api").versionRef(gradlePluginDockerVersion)
     plugin("protobuf", "com.google.protobuf").versionRef(gradlePluginProtobufVersion)
+    plugin("graphql", "com.expediagroup.graphql").versionRef(gradlePluginGraphQLVersion)
 }
 
 fun VersionCatalogBuilder.declaredLibraries() {
@@ -43,6 +45,7 @@ fun VersionCatalogBuilder.declaredLibraries() {
     val kotestVersion = version("kotest", "5.8.0")
     val kotlinxCoroutineVersion = version("kotlinx-coroutine", "1.8.0-RC2") // TODO: needed because of the support for Kotlin 1.9.22; update to stable when available
     val opentelemetryVersion = version("opentelemetry", "1.34.0")
+    val graphQLVersion = version("graphql", "7.0.2")
 
     val grpcVersion = version("grpc", "1.60.1")
     val grpcKotlinVersion = version("grpc-kotlin", "1.4.1")
@@ -74,6 +77,8 @@ fun VersionCatalogBuilder.declaredLibraries() {
     library("opentelemetry.api", "io.opentelemetry", "opentelemetry-api").versionRef(opentelemetryVersion)
 
     library("kotlinx.coroutines.core", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(kotlinxCoroutineVersion)
+
+    library("graphql.client", "com.expediagroup", "graphql-kotlin-spring-client").versionRef(graphQLVersion)
 
     bundle("logging", listOf("kotlin-logging-jvm", "logback.classic"))
     bundle("kotest", listOf("kotest.runner.junit5", "kotest.assertions.core", "kotest.framework.datatest", "kotest.property"))

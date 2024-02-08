@@ -19,6 +19,10 @@ class App(private val config: ClaraConfig) {
         AppInfo.printBanner()
         AppInfo.printBuildInformation()
 
+        if (config.app?.logConfig == true) {
+            log.info { "Configuration: $config" }
+        }
+
         log.info { "Start application" }
 
         val aggregationExecutor: AggregationExecutor = ParallelAggregationExecutor(AggregatorManager(config.aggregation))
@@ -31,7 +35,7 @@ class App(private val config: ClaraConfig) {
         val communications = communicationAggregationResult.getRight()
 
         if (aggregationFailures.isNotEmpty()) {
-            log.warn { "Errors while aggregating: \n${aggregationFailures.joinToString(prefix = "    - ", separator = "\n    - ")}" }
+            log.error { "Errors while aggregating: \n${aggregationFailures.joinToString(prefix = "    - ", separator = "\n    - ") { it.description }}" }
         }
 
         log.info { "Found ${components.size} components and ${communications.size} communications" }
@@ -41,7 +45,7 @@ class App(private val config: ClaraConfig) {
         } else {
             val exportFailures = exportExecutor.exportAll(components, communications)
             if (exportFailures.isNotEmpty()) {
-                log.warn { "Errors while exporting: \n${exportFailures.joinToString(prefix = "    - ", separator = "\n    - ")}" }
+                log.error { "Errors while exporting: \n${exportFailures.joinToString(prefix = "    - ", separator = "\n    - ") { it.description }}" }
             }
         }
 
