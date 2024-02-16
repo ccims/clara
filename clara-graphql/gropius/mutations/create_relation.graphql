@@ -1,0 +1,21 @@
+mutation CreateRelation ($relTemplateId: ID!, $start: ID!, $end: ID!) {
+    createRelation (input: {
+        end: $end
+        endParts: []
+        extensionFields: []
+        start: $start
+        startParts: []
+        template: $relTemplateId
+        templatedFields: []
+    }) {
+        relation {
+            id
+            start {
+                id
+            }
+            end {
+                id
+            }
+        }
+    }
+}

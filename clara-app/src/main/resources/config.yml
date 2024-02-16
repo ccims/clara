@@ -23,5 +23,10 @@ export:
       output-type: svg
       output-file: generated/architecture.svg
     gropius:
-      graphql-backend-url: ${CLARA_GROPIUS_URL}
-      graphql-backend-token: ${CLARA_GROPIUS_TOKEN}
+      project-id: f803acea-a8c9-4a80-a5a7-881e7e084767
+      graphql-backend-url: http://devonport.informatik.uni-stuttgart.de:8082/graphql
+      graphql-backend-authentication:
+        authentication-url: http://devonport.informatik.uni-stuttgart.de:3000/authenticate/oauth/da7ea55f-da6a-49f4-8bba-cd8dd29f2ff5/token
+        username: ${CLARA_GROPIUS_GRAPHQL_USERNAME}
+        password: ${CLARA_GROPIUS_GRAPHQL_PASSWORD}
+        client-id: ${CLARA_GROPIUS_GRAPHQL_CLIENT_ID}

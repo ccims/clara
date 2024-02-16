@@ -1,0 +1,17 @@
+mutation CreateComponentTemplate ($description: String!, $shapeType: ShapeType!, $name: String!) {
+    createComponentTemplate (input: {
+        componentVersionTemplate: {
+            description: $description           # TODO add specific template version description
+            extensionFields: []
+            name: $name                         # TODO add specific template version name
+            templateFieldSpecifications: []
+        }
+        description: $description
+        name: $name
+        shapeType: $shapeType
+    }) {
+        componentTemplate {
+            id
+        }
+    }
+}

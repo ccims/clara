@@ -1,0 +1,9 @@
+query GetAllComponentTemplates {
+    componentTemplates {
+        nodes {                     # TODO retrieve more relevant fields
+            name
+            description
+            id
+        }
+    }
+}

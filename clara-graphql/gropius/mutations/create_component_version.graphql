@@ -1,0 +1,13 @@
+mutation CreateComponentVersion ($component: ID!, $description: String!, $name: String!, $version: String!) {
+    createComponentVersion (input: {
+        component: $component
+        description: $description
+        name: $name
+        templatedFields: []
+        version: $version
+    }) {
+        componentVersion {
+            id
+        }
+    }
+}

@@ -1,0 +1,8 @@
+query GetAllProjects {
+    projects {
+        nodes {
+            name
+            id
+        }
+    }
+}

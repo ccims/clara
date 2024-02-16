@@ -1,0 +1,8 @@
+query GetAllRelationTemplates {
+    relationTemplates {
+        nodes {                     # TODO retrieve more relevant fields
+            name
+            id
+        }
+    }
+}

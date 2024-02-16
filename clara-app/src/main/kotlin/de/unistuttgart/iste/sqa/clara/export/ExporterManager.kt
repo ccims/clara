@@ -20,7 +20,16 @@ class ExporterManager(exportConfig: ExportConfig) {
         }
 
         exportConfig.exporters?.gropius?.ifEnabled { gropiusConfig ->
-            val config = GropiusExporter.Config(gropiusConfig.graphQLBackendUrl, gropiusConfig.graphQLBackendToken?.value)
+            val config = GropiusExporter.Config(
+                projectId = gropiusConfig.projectId,
+                graphQLBackendUrl = gropiusConfig.graphQLBackendUrl,
+                graphQLBackendAuthentication = GropiusExporter.Config.Authentication(
+                    authenticationUrl = gropiusConfig.graphQLBackendAuthentication.authenticationUrl,
+                    userName = gropiusConfig.graphQLBackendAuthentication.userName.value,
+                    password = gropiusConfig.graphQLBackendAuthentication.password.value,
+                    clientId = gropiusConfig.graphQLBackendAuthentication.clientId.value,
+                )
+            )
             add(GropiusExporter(config))
             log.info { "Registered exporter: Gropius" }
         }

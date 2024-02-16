@@ -98,15 +98,27 @@ data class ExportConfig(
          * Config for exporting to Gropius.
          *
          * @property enable Whether to enable this exporter.
-         * @property graphQLBackendUrl The url of the Gropius GraphQL backend, like http://localhost:8080/graphql
-         * @property graphQLBackendToken The authorization bearer token for the Gropius GraphQL backend.
+         * @property projectId ID of the gropius project to work on.
+         * @property graphQLBackendUrl The URL of the Gropius GraphQL backend, like http://localhost:8080/graphql
+         * @property graphQLBackendAuthentication The authentication details for the Gropius GraphQL backend.
          */
         data class Gropius(
             override val enable: Boolean = true,
+            val projectId: String,
             @ConfigAlias("graphql-backend-url")
             val graphQLBackendUrl: URL,
-            @ConfigAlias("graphql-backend-token")
-            val graphQLBackendToken: Masked?,
-        ) : Enable
+            @ConfigAlias("graphql-backend-authentication")
+            val graphQLBackendAuthentication: Authentication,
+        ) : Enable {
+
+            data class Authentication(
+                @ConfigAlias("authentication-url")
+                val authenticationUrl: URL,
+                @ConfigAlias("username")
+                val userName: Masked,
+                val password: Masked,
+                val clientId: Masked,
+            )
+        }
     }
 }

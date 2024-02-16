@@ -1,0 +1,7 @@
+query GetComponentById ($id: ID) {
+    components (filter: {id: {eq: $id}}){
+        nodes {
+            id
+        }
+    }
+}
