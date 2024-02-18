@@ -16,6 +16,9 @@ interface GraphQLClient {
         }
 
         @JvmInline
+        value class ConnectionFailed(val message: String) : RequestError
+
+        @JvmInline
         value class GraphQLRequestFailed(val errors: List<GraphQLClientError>) : RequestError
     }
 

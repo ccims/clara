@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.net.ConnectException
 import java.net.URL
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -43,7 +44,7 @@ class GropiusGraphQLClient(
         return graphQLClient.execute(request)
     }
 
-    private fun getAuthenticationToken(): Either<GraphQLClient.RequestError.TokenError, Token> {
+    private fun getAuthenticationToken(): Either<GraphQLClient.RequestError, Token> {
         val requestData = mapOf(
             "grant_type" to "password",
             "client_id" to clientId,
@@ -63,7 +64,11 @@ class GropiusGraphQLClient(
 
         val httpClient = HttpClient.newHttpClient()
 
-        val response = httpClient.send(request, BodyHandlers.ofString())
+        val response = try {
+            httpClient.send(request, BodyHandlers.ofString())
+        } catch (ex: ConnectException) {
+            return Either.Left(GraphQLClient.RequestError.ConnectionFailed(message = "Cannot connect to server to get an authentication token"))
+        }
 
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             return Either.Left(GraphQLClient.RequestError.TokenError.InvalidAuthenticationData)
