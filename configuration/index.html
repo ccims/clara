@@ -46,6 +46,10 @@
       
     
     
+      <link rel="stylesheet" href="../_stylesheets/config-option-admonition.css">
+    
+      <link rel="stylesheet" href="../_stylesheets/config-option-multi-admonition.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -910,6 +914,131 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#general-configuration-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      General configuration options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-the-aggregation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring the aggregation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring the aggregation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-kubernetes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Platform: Kubernetes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Platform: Kubernetes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aggregator-pod-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aggregator: Pod (optional)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregator-service-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aggregator: Service (optional)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregator-dns-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aggregator: DNS (optional)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregator-opentelemetry-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aggregator: OpenTelemetry (optional)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-the-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring the export
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring the export">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exporter-graphviz-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exporter: GraphViz (optional)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exporter-gropius-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exporter: Gropius (optional)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-full-example-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      A full example config
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -935,6 +1064,288 @@
 
 
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
+<p>The typical configuration for CLARA is in the YAML format.
+Below, each available option is explained.
+All options with a default value are optional.</p>
+<div class="admonition tip">
+<p class="admonition-title">Sensitive Information &amp; Environment Variables</p>
+<p>Sensitive information, like usernames and passwords, don't belong into configuration files!
+For that reason, each configuration option can be specified by an environment variable.
+Instead of the actual value, the BASH-like syntax <code>${NAME_OF_THE_ENV_VARIABLE}</code> can be used to specify the environment variable.</p>
+<p>Interpolation and specifying default values is possible as well, <a href="https://github.com/sksamuel/hoplite?tab=readme-ov-file#built-in-preprocessors">just have a look here</a>!
+There you can also find other ways to set up the configuration to be effective, like referencing and substituting other parts of the configuration to make it more DRY.</p>
+</div>
+<hr />
+<h2 id="general-configuration-options">General configuration options<a class="headerlink" href="#general-configuration-options" title="Permanent link">&para;</a></h2>
+<details class="config-option">
+<summary><strong><em>app.log-config</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: false</li>
+<li>Description: Whether the whole configuration that CLARA will use should be logged at startup (at the info-level).</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>app.block-after-finish</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: false</li>
+<li>Description: Whether the CLARA process should keep running after all exports are finished.
+  This is useful when CLARA itself is running e.g. in Kubernetes and the Pod should not terminate because of the automatic restarts.</li>
+</ul>
+</details>
+<hr />
+<h2 id="configuring-the-aggregation">Configuring the aggregation<a class="headerlink" href="#configuring-the-aggregation" title="Permanent link">&para;</a></h2>
+<h3 id="platform-kubernetes">Platform: Kubernetes<a class="headerlink" href="#platform-kubernetes" title="Permanent link">&para;</a></h3>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.include-kube-namespaces</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: false</li>
+<li>Description: Whether the namespaces with the <code>kube</code>-prefix should also get scanned by CLARA.
+  Must be set to true when every namespace should be scanned, even when <strong><em>namespaces</em></strong> has the <code>*</code>-wildcard.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.namespaces</em></strong></summary>
+<ul>
+<li>Type: List of Strings</li>
+<li>Default: empty List</li>
+<li>Description: List all namespaces which CLARA should scan.
+  To just scan all namespaces (except the <code>kube</code>-namespaces) set just the <code>*</code>-wildcard as the only element.
+  The <code>*</code> needs to be in quotes.</li>
+</ul>
+</details>
+<h4 id="aggregator-pod-optional">Aggregator: Pod (optional)<a class="headerlink" href="#aggregator-pod-optional" title="Permanent link">&para;</a></h4>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.aggregators.pod.enable</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: true</li>
+<li>Description: Simple way to disable this aggregator without removing all of its associated configuration.</li>
+</ul>
+</details>
+<h4 id="aggregator-service-optional">Aggregator: Service (optional)<a class="headerlink" href="#aggregator-service-optional" title="Permanent link">&para;</a></h4>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.aggregators.service.enable</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: true</li>
+<li>Description: Simple way to disable this aggregator without removing all of its associated configuration.</li>
+</ul>
+</details>
+<h4 id="aggregator-dns-optional">Aggregator: DNS (optional)<a class="headerlink" href="#aggregator-dns-optional" title="Permanent link">&para;</a></h4>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.aggregators.dns.enable</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: true</li>
+<li>Description: Simple way to disable this aggregator without removing all of its associated configuration.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.aggregators.dns.logs-since-time</em></strong></summary>
+<ul>
+<li>Type: String (formatted as RFC3339, like <code>2024-01-01T00:00:00Z</code>)</li>
+<li>Default: empty String</li>
+<li>Description: The DNS aggregator works by analyzing the logs of the Kubernetes DNS server which must be configured to log the queries.
+  This option defines how recent the logs must be to be considered by CLARA.
+  If this option is just an empty String (the default), all available logs will be used, which can lead to unwanted side effects, like old logs from a previous version of the deployment polluting the recovered architecture.</li>
+</ul>
+</details>
+<h4 id="aggregator-opentelemetry-optional">Aggregator: OpenTelemetry (optional)<a class="headerlink" href="#aggregator-opentelemetry-optional" title="Permanent link">&para;</a></h4>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.aggregators.open-telemetry.enable</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: true</li>
+<li>Description: Simple way to disable this aggregator without removing all of its associated configuration.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.aggregators.open-telemetry.listen-port</em></strong></summary>
+<ul>
+<li>Type: Integer (must be a valid port number)</li>
+<li>Description: The port CLARA will listen to incoming spans sent by an OpenTelemetry collector.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>aggregation.platforms.kubernetes.aggregators.open-telemetry.listen-duration</em></strong></summary>
+<ul>
+<li>Type: String (<a href="https://github.com/sksamuel/hoplite?tab=readme-ov-file#duration-formats">format here</a>)</li>
+<li>Description: Amount of time CLARA should listen to incoming spans sent by an OpenTelemetry collector.</li>
+</ul>
+</details>
+<hr />
+<h2 id="configuring-the-export">Configuring the export<a class="headerlink" href="#configuring-the-export" title="Permanent link">&para;</a></h2>
+<details class="config-option">
+<summary><strong><em>export.on-empty</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: false</li>
+<li>Description: If <code>true</code>, CLARA will export the recovered using the enabled exporters, even if the architecture is completely empty.
+  This could be useful for debugging purposes.</li>
+</ul>
+</details>
+<h3 id="exporter-graphviz-optional">Exporter: GraphViz (optional)<a class="headerlink" href="#exporter-graphviz-optional" title="Permanent link">&para;</a></h3>
+<details class="config-option">
+<summary><strong><em>export.exporters.graphviz.enable</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: true</li>
+<li>Description: Simple way to disable this exporter without removing all of its associated configuration.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.graphviz.output-type</em></strong></summary>
+<ul>
+<li>Type: String (<a href="https://graphviz.org/docs/outputs/">Output Formats supported by GraphViz</a>)</li>
+<li>Description: Although all GraphViz output formats can be specified, <code>svg</code> is known to work best.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.graphviz.output-file</em></strong></summary>
+<ul>
+<li>Type: String</li>
+<li>Description: The file location (absolute or relative path) of the GraphViz output.</li>
+</ul>
+</details>
+<h3 id="exporter-gropius-optional">Exporter: Gropius (optional)<a class="headerlink" href="#exporter-gropius-optional" title="Permanent link">&para;</a></h3>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.enable</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: true</li>
+<li>Description: Simple way to disable this exporter without removing all of its associated configuration.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.project-id</em></strong></summary>
+<ul>
+<li>Type: String</li>
+<li>Description: The ID of the Gropius-project to export the recovered architecture to.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.graphql-backend-url</em></strong></summary>
+<ul>
+<li>Type: String (a valid URL)</li>
+<li>Description: The URL where CLARA can interact with the GraphQL-API of Gropius.</li>
+</ul>
+</details>
+<details class="config-option-multi">
+<summary><strong><em>export.exporters.gropius.graphql-backend-authentication</em></strong></summary>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.graphql-backend-authentication.authentication-url</em></strong></summary>
+<ul>
+<li>Type: String (a valid URL)</li>
+<li>Description: The URL where CLARA can obtain an authentication token from the Gropius-backend via username and password.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.graphql-backend-authentication.username</em></strong></summary>
+<ul>
+<li>Type: String</li>
+<li>Description: The username for obtaining an authentication token.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.graphql-backend-authentication.password</em></strong></summary>
+<ul>
+<li>Type: String</li>
+<li>Description: The password for obtaining an authentication token.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.graphql-backend-authentication.client-id</em></strong></summary>
+<ul>
+<li>Type: String</li>
+<li>Description: The OAuth client ID for obtaining an authentication token.</li>
+</ul>
+</details>
+</details>
+<hr />
+<h2 id="a-full-example-config">A full example config<a class="headerlink" href="#a-full-example-config" title="Permanent link">&para;</a></h2>
+<div class="language-yaml highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#__codelineno-0-26">26</a></span>
+<span class="normal"><a href="#__codelineno-0-27">27</a></span>
+<span class="normal"><a href="#__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#__codelineno-0-32">32</a></span>
+<span class="normal"><a href="#__codelineno-0-33">33</a></span>
+<span class="normal"><a href="#__codelineno-0-34">34</a></span>
+<span class="normal"><a href="#__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#__codelineno-0-39">39</a></span>
+<span class="normal"><a href="#__codelineno-0-40">40</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nt">app</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="w">  </span><span class="nt">log-config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="w">  </span><span class="nt">block-after-finish</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="nt">aggregation</span><span class="p">:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="w">  </span><span class="nt">platforms</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="w">    </span><span class="nt">kubernetes</span><span class="p">:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="w">      </span><span class="nt">include-kube-namespaces</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="w">      </span><span class="nt">namespaces</span><span class="p">:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">abc</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xyz</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="w">      </span><span class="nt">aggregators</span><span class="p">:</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="w">        </span><span class="nt">pod</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="w">          </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="w">          </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="w">        </span><span class="nt">dns</span><span class="p">:</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="w">          </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="w">          </span><span class="nt">logs-since-time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2024-02-01T00:00:00Z</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="w">        </span><span class="nt">open-telemetry</span><span class="p">:</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="w">          </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="w">          </span><span class="nt">listen-port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7878</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="w">          </span><span class="nt">listen-duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">45 minutes</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="nt">export</span><span class="p">:</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="w">  </span><span class="nt">on-empty</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="w">  </span><span class="nt">exporters</span><span class="p">:</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="w">    </span><span class="nt">graphviz</span><span class="p">:</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="w">      </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="w">      </span><span class="nt">output-type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">svg</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="w">      </span><span class="nt">output-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generated/architecture.svg</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="w">    </span><span class="nt">gropius</span><span class="p">:</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="w">      </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="w">      </span><span class="nt">project-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aaaaaaaa-1111-bbbb-2222-cccccccccccc</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="w">      </span><span class="nt">graphql-backend-url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://my.backend.com:8080/graphql</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="w">      </span><span class="nt">graphql-backend-authentication</span><span class="p">:</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="w">        </span><span class="nt">authentication-url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://my.backend.com:3000/authenticate/oauth/xxxxxxxx-1111-yyyy-2222-zzzzzzzzzzzz/token</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_USERNAME}</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_PASSWORD}</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="w">        </span><span class="nt">client-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_CLIENT_ID}</span>
+</span></code></pre></div></td></tr></table></div>
 
 
 
