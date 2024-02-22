@@ -10,6 +10,7 @@ nav:
   - Home: index.md
   - Concept:
       - concept/index.md
+      - concept/datatypes.md
   - Configuration:
       - configuration/index.md
   - Aggregation:

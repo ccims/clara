@@ -1,36 +1,37 @@
 package de.unistuttgart.iste.sqa.clara.api.model
 
-sealed interface Component {
+sealed interface Reference
+
+interface Referencable<T : Reference> {
+
+    val ref: T
+}
+
+data class ExternalReference(
+    val domain: Domain,
+) : Reference
+
+data class InternalReference(
+    val name: Name,
+    val ipAddress: IpAddress,
+    val namespace: Namespace,
+) : Reference {
 
     @JvmInline
-    value class External(val domain: Domain) : Component
+    value class Name(val value: String) {
 
-    sealed interface Internal : Component, Namespaced {
+        override fun toString() = value
+    }
+}
 
-        data class Pod(
-            val name: Name,
-            val ipAddress: IpAddress,
-            override val namespace: Namespace,
-        ) : Internal {
+sealed interface Component<R : Reference> : Referencable<R> {
 
-            @JvmInline
-            value class Name(val value: String) {
+    data class External(override val ref: ExternalReference) : Component<ExternalReference>
 
-                override fun toString() = value
-            }
-        }
+    sealed interface Internal : Component<InternalReference> {
 
-        data class Service(
-            val name: Name,
-            val ipAddress: IpAddress,
-            override val namespace: Namespace,
-        ) : Internal {
+        data class Pod(override val ref: InternalReference) : Internal
 
-            @JvmInline
-            value class Name(val value: String) {
-
-                override fun toString() = value
-            }
-        }
+        data class Service(override val ref: InternalReference, val podRefs: List<InternalReference>) : Internal
     }
 }

@@ -4,10 +4,7 @@ import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.*
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
-import de.unistuttgart.iste.sqa.clara.api.model.Communication
-import de.unistuttgart.iste.sqa.clara.api.model.Component
-import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
-import de.unistuttgart.iste.sqa.clara.api.model.Namespace
+import de.unistuttgart.iste.sqa.clara.api.model.*
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -37,6 +34,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
             //ipAddress = it.ipAddress // TODO discuss if we should extend the model of GraphViz especially to display endpoints
             ipAddress = IpAddress(it.hostIdentifier?.value ?: "not-found-ip"),
             namespace = Namespace("default")
+
         ) }
 
         val unnamedComponents = unnamedServices.values.map { Component.Internal.Service(
