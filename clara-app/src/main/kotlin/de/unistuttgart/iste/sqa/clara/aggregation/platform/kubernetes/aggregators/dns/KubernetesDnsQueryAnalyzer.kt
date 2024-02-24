@@ -3,13 +3,13 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Pod
-import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Service
+import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.model.Domain
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 
 class KubernetesDnsQueryAnalyzer(
     private val knownPods: List<Pod>,
-    private val knownServices: List<Service>,
+    private val knownKubernetesServices: List<KubernetesService>,
 ) : DnsQueryAnalyzer {
 
     override fun analyze(dnsQueries: Iterable<DnsQuery>): Set<Communication> {
@@ -19,7 +19,7 @@ class KubernetesDnsQueryAnalyzer(
                     .firstOrNull { it.ipAddress == dnsQuery.sourceIpAddress }
                     ?: return@mapNotNull null
 
-                val communicationTarget = getCommunicationTarget(dnsQuery, knownPods, knownServices) ?: return@mapNotNull null
+                val communicationTarget = getCommunicationTarget(dnsQuery, knownPods, knownKubernetesServices) ?: return@mapNotNull null
 
                 Communication(
                     source = Communication.Source(sourcePod),
@@ -29,9 +29,9 @@ class KubernetesDnsQueryAnalyzer(
             .toSet()
     }
 
-    private fun getCommunicationTarget(dnsQuery: DnsQuery, knownPods: List<Pod>, knownServices: List<Service>): Communication.Target? {
+    private fun getCommunicationTarget(dnsQuery: DnsQuery, knownPods: List<Pod>, knownKubernetesServices: List<KubernetesService>): Communication.Target? {
         return if (dnsQuery.targetDomain.value.endsWith(".svc.cluster.local.")) {
-            getCommunicationTargetService(dnsQuery, knownServices)
+            getCommunicationTargetService(dnsQuery, knownKubernetesServices)
         } else if (dnsQuery.targetDomain.value.endsWith(".pod.cluster.local.")) {
             getCommunicationTargetPod(dnsQuery, knownPods)
         } else {
@@ -39,10 +39,10 @@ class KubernetesDnsQueryAnalyzer(
         }
     }
 
-    private fun getCommunicationTargetService(dnsQuery: DnsQuery, knownServices: List<Service>): Communication.Target? {
+    private fun getCommunicationTargetService(dnsQuery: DnsQuery, knownKubernetesServices: List<KubernetesService>): Communication.Target? {
         val serviceName = dnsQuery.targetDomain.value.substringBefore(".")
 
-        val targetService = knownServices
+        val targetService = knownKubernetesServices
             .firstOrNull { it.name.value == serviceName }
             ?: return null
 

@@ -34,6 +34,8 @@ class App(private val config: ClaraConfig) {
         val components = componentAggregationResult.getRight()
         val communications = communicationAggregationResult.getRight()
 
+        // TODO add the merge process here
+
         if (aggregationFailures.isNotEmpty()) {
             log.error { "Errors while aggregating: \n${aggregationFailures.joinToString(prefix = "    - ", separator = "\n    - ") { it.description }}" }
         }

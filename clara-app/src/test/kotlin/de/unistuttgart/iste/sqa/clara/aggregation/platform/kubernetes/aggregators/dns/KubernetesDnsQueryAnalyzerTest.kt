@@ -2,7 +2,7 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Pod
-import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Service
+import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.KubernetesService
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
@@ -11,7 +11,7 @@ class KubernetesDnsQueryAnalyzerTest : FreeSpec({
 
     data class TestExample(
         val knownPods: List<Pod>,
-        val knownServices: List<Service>,
+        val knownKubernetesServices: List<KubernetesService>,
         val dnsQueries: List<DnsQuery>,
         val expected: Set<Communication>,
     )
@@ -20,19 +20,19 @@ class KubernetesDnsQueryAnalyzerTest : FreeSpec({
     val testExamples = listOf(
         TestExample(
             knownPods = listOf(),
-            knownServices = listOf(),
+            knownKubernetesServices = listOf(),
             dnsQueries = listOf(),
             expected = setOf()
         ),
         TestExample(
             knownPods = listOf(),
-            knownServices = listOf(),
+            knownKubernetesServices = listOf(),
             dnsQueries = listOf(),
             expected = setOf()
         ),
         TestExample(
             knownPods = listOf(),
-            knownServices = listOf(),
+            knownKubernetesServices = listOf(),
             dnsQueries = listOf(),
             expected = setOf()
         ),

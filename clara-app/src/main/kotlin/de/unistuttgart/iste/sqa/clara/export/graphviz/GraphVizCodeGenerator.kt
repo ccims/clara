@@ -69,7 +69,8 @@ private fun Component.id(): String {
     return when (this) {
         is Component.External -> "ext_${this.hashCode().toHexString()}"
         is Component.Internal.Pod -> "pod_${this.hashCode().toHexString()}"
-        is Component.Internal.Service -> "svc_${this.hashCode().toHexString()}"
+        is Component.Internal.KubernetesService -> "svc_${this.hashCode().toHexString()}"
+        is Component.Internal.OpenTelemetryService -> TODO()
     }
 }
 
@@ -77,7 +78,8 @@ private fun Component.label(): String {
     return when (this) {
         is Component.External -> this.domain.value
         is Component.Internal.Pod -> "${this.name}\\n(${this.ipAddress})"
-        is Component.Internal.Service -> "${this.name}\\n(${this.ipAddress})"
+        is Component.Internal.KubernetesService -> "${this.name}\\n(${this.ipAddress})"
+        is Component.Internal.OpenTelemetryService -> TODO()
     }
 }
 
@@ -85,7 +87,8 @@ private fun Component.attributes(): Map<String, String> {
     return when (this) {
         is Component.External -> mapOf("shape" to "oval")
         is Component.Internal.Pod -> mapOf("shape" to "rectangle")
-        is Component.Internal.Service -> mapOf("shape" to "octagon")
+        is Component.Internal.KubernetesService -> mapOf("shape" to "octagon")
+        is Component.Internal.OpenTelemetryService -> TODO()
     }
 }
 

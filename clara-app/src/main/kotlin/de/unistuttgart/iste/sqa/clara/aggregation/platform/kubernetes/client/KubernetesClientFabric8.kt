@@ -3,7 +3,7 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client
 import arrow.core.Either
 import arrow.core.right
 import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Pod
-import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Service
+import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
@@ -68,7 +68,7 @@ class KubernetesClientFabric8 : KubernetesClient {
         }
     }
 
-    override fun getServicesFromAllNamespaces(includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<Service>> {
+    override fun getServicesFromAllNamespaces(includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<KubernetesService>> {
         return try {
             client
                 .services()
@@ -83,7 +83,7 @@ class KubernetesClientFabric8 : KubernetesClient {
         }
     }
 
-    override fun getServicesFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<Service>> {
+    override fun getServicesFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<KubernetesService>> {
         return try {
             return if (namespaces.any { it.value == "*" }) {
                 getServicesFromAllNamespaces(includeKubeNamespaces)
@@ -134,9 +134,9 @@ class KubernetesClientFabric8 : KubernetesClient {
         )
     }
 
-    private fun fromFabric8Service(service: io.fabric8.kubernetes.api.model.Service): Service {
-        return Service(
-            name = Service.Name(service.metadata.name),
+    private fun fromFabric8Service(service: io.fabric8.kubernetes.api.model.Service): KubernetesService {
+        return KubernetesService(
+            name = KubernetesService.Name(service.metadata.name),
             ipAddress = IpAddress(service.spec.clusterIP),
             namespace = Namespace(service.metadata.namespace)
         )

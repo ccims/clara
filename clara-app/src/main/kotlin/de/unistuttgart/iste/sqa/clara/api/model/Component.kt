@@ -1,11 +1,24 @@
 package de.unistuttgart.iste.sqa.clara.api.model
 
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
+
 sealed interface Component {
 
     @JvmInline
     value class External(val domain: Domain) : Component
 
     sealed interface Internal : Component, Namespaced {
+
+        data class OpenTelemetryService(
+            val name: Name,
+            val hostIdentifier: Service.HostIdentifier,
+            val endpoints: List<Service.Endpoint>,
+            override val namespace: Namespace = Namespace(value = "default"),
+        ) : Internal {
+
+            @JvmInline
+            value class Name(val value: String) {}
+        }
 
         data class Pod(
             val name: Name,
@@ -20,7 +33,7 @@ sealed interface Component {
             }
         }
 
-        data class Service(
+        data class KubernetesService(
             val name: Name,
             val ipAddress: IpAddress,
             override val namespace: Namespace,
@@ -34,7 +47,6 @@ sealed interface Component {
         }
     }
 }
-
 
 /*sealed interface Reference
 

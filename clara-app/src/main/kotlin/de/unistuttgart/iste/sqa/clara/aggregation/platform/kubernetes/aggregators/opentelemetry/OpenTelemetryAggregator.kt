@@ -29,28 +29,29 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
         process(spans)
 
         // TODO the entire mapping needs to be discussed
-        val components = serviceMap.values.map { Component.Internal.Service(
-            name = Component.Internal.Service.Name(it.name?.value!!),
-            //ipAddress = it.ipAddress // TODO discuss if we should extend the model of GraphViz especially to display endpoints
-            ipAddress = IpAddress(it.hostIdentifier?.value ?: "not-found-ip"),
-            namespace = Namespace("default")
+        val components = serviceMap.values.map {
+            Component.Internal.OpenTelemetryService(
+                name = Component.Internal.OpenTelemetryService.Name(it.name?.value!!),
+                hostIdentifier = it.hostIdentifier ?: throw UnsupportedOperationException("TODO"),
+                endpoints = it.endpoints,
+            )
+        }
 
-        ) }
-
-        val unnamedComponents = unnamedServices.values.map { Component.Internal.Service(
-            name = Component.Internal.Service.Name(it.name?.value ?: "not-found-name"),
-            //ipAddress = it.ipAddress // TODO discuss if we should extend the model of GraphViz especially to display endpoints
-            ipAddress = IpAddress(it.hostIdentifier?.value!!),
-            namespace = Namespace("default")
-        )}
+        val unnamedComponents = unnamedServices.values.map {
+            Component.Internal.OpenTelemetryService(
+                name = Component.Internal.OpenTelemetryService.Name(it.name?.value ?: "not-found-name"),
+                hostIdentifier = it.hostIdentifier ?: throw UnsupportedOperationException("TODO"),
+                endpoints = it.endpoints,
+            )
+        }
 
         val mergedComponents = components + unnamedComponents
 
         val communications = relations.map { relation ->
-            val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.ipAddress.value == relation.caller.hostIdentifier?.value }
-            val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.ipAddress.value == relation.callee.hostIdentifier?.value }
+            val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.hostIdentifier == relation.caller.hostIdentifier }
+            val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.hostIdentifier == relation.callee.hostIdentifier }
             if (caller != null && callee != null) {
-                Communication(Communication.Source(caller) ,Communication.Target(callee))
+                Communication(Communication.Source(caller), Communication.Target(callee))
             } else {
                 throw UnsupportedOperationException()
             }
@@ -61,7 +62,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
 
     // Proceeding of all ingoing spans via otel grpc interface
     // components and relations of them are discovered here
-    fun process(spans: List<Span>) {
+    private fun process(spans: List<Span>) {
         spans.forEach { span ->
             //// 1 update services
             runCatching {
@@ -262,11 +263,11 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
         return SpanInformation(
             clientServiceName = null,
             serverServiceName = serverSpan.serviceName,
-            serverHostname = null, //serverHostName?.let { Service.HostName(serverHostName) },
-            serverHostIdentifier = null, //serverHostIdentifier?.let {  Service.HostIdentifier(serverHostIdentifier)},
-            serverIpAddress = null, // serverIpAddress?.let { IpAddress(serverIpAddress) },
+            serverHostname = serverHostName?.let { Service.HostName(serverHostName) },
+            serverHostIdentifier = serverHostIdentifier?.let { Service.HostIdentifier(serverHostIdentifier) },
+            serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
             serverEndpoint = serverPath?.let { Service.Endpoint(serverPath) },
-            serverPort = null, // serverPort?.let { Service.Port(serverPort) },
+            serverPort = serverPort?.let { Service.Port(serverPort) },
             clientIpAddress = null,
             clientHostName = null,
             clientPort = null,
