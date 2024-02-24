@@ -35,7 +35,8 @@ class KubernetesDnsQueryAnalyzer(
         } else if (dnsQuery.targetDomain.value.endsWith(".pod.cluster.local.")) {
             getCommunicationTargetPod(dnsQuery, knownPods)
         } else {
-            Communication.Target(Component.External(Domain(dnsQuery.targetDomain.value.removeSuffix("."))))
+            val domain = dnsQuery.targetDomain.value.removeSuffix(".")
+            Communication.Target(Component.External(Domain(domain), Component.Name(domain)))
         }
     }
 

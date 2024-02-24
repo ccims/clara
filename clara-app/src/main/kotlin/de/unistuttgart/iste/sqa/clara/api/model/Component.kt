@@ -4,49 +4,43 @@ import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregator
 
 sealed interface Component {
 
+    val name: Name
+
     @JvmInline
-    value class External(val domain: Domain) : Component
+    value class Name(val value: String) {}
+
+    data class External(val domain: Domain, override val name: Name) : Component
 
     sealed interface Internal : Component, Namespaced {
 
         data class OpenTelemetryService(
-            val name: Name,
-            val hostIdentifier: Service.HostIdentifier,
-            val endpoints: List<Service.Endpoint>,
+            override val name: Name,
+            val domain: Domain,
+            val endpoints: List<Endpoint>,
             override val namespace: Namespace = Namespace(value = "default"),
-        ) : Internal {
-
-            @JvmInline
-            value class Name(val value: String) {}
-        }
+        ) : Internal
 
         // TODO the pod should not be visible on this level anymore.
         // TODO The KubernetesAggregator should already merge pods and services into one service component
         data class Pod(
-            val name: Name,
+            override val name: Name,
             val ipAddress: IpAddress,
             override val namespace: Namespace,
-        ) : Internal {
-
-            @JvmInline
-            value class Name(val value: String) {
-
-                override fun toString() = value
-            }
-        }
+        ) : Internal
 
         data class KubernetesService(
-            val name: Name,
+            override val name: Name,
             val ipAddress: IpAddress,
             override val namespace: Namespace,
-        ) : Internal {
+        ) : Internal
 
-            @JvmInline
-            value class Name(val value: String) {
-
-                override fun toString() = value
-            }
-        }
+        data class MergedService(
+            override val name: Name,
+            override val namespace: Namespace,
+            val ipAddress: IpAddress?,
+            val domain: Domain?,
+            val endpoints: List<Endpoint>?,
+        ) : Internal
     }
 }
 

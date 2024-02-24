@@ -31,25 +31,25 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
         // TODO the entire mapping needs to be discussed
         val components = serviceMap.values.map {
             Component.Internal.OpenTelemetryService(
-                name = Component.Internal.OpenTelemetryService.Name(it.name?.value!!),
-                hostIdentifier = it.hostIdentifier ?: throw UnsupportedOperationException("TODO"),
-                endpoints = it.endpoints,
+                name = Component.Name(it.name?.value!!),
+                domain = Domain(it.hostIdentifier?.value ?: throw UnsupportedOperationException("TODO")),
+                endpoints = it.endpoints.toComponentEndpoints(),
             )
         }
 
         val unnamedComponents = unnamedServices.values.map {
             Component.Internal.OpenTelemetryService(
-                name = Component.Internal.OpenTelemetryService.Name(it.name?.value ?: "not-found-name"),
-                hostIdentifier = it.hostIdentifier ?: throw UnsupportedOperationException("TODO"),
-                endpoints = it.endpoints,
+                name = Component.Name(it.name?.value ?: "not-found-name"),
+                domain = Domain(it.hostIdentifier?.value ?: throw UnsupportedOperationException("TODO")),
+                endpoints = it.endpoints.toComponentEndpoints(),
             )
         }
 
         val mergedComponents = components + unnamedComponents
 
         val communications = relations.map { relation ->
-            val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.hostIdentifier == relation.caller.hostIdentifier }
-            val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.hostIdentifier == relation.callee.hostIdentifier }
+            val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.caller.hostIdentifier?.value }
+            val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.callee.hostIdentifier?.value }
             if (caller != null && callee != null) {
                 Communication(Communication.Source(caller), Communication.Target(callee))
             } else {

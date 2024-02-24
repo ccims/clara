@@ -7,5 +7,5 @@ import de.unistuttgart.iste.sqa.clara.api.model.Component
 fun interface ComponentMerger {
 
     fun merge(components: List<Component>, communications: List<Communication>)
-            : Pair<List<Either<MergeFailure, Component>>, List<Either<MergeFailure, Communication>>>
+            : Pair<Either<MergeFailure, List<Component>>, Either<MergeFailure, List<Communication>>>
 }

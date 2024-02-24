@@ -1,5 +1,6 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model
 
+import de.unistuttgart.iste.sqa.clara.api.model.Endpoint
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 
 data class Service(
@@ -55,6 +56,7 @@ data class Service(
                     value1
                 }
             }
+
             value1 != null -> value1
             value2 != null -> value2
             else -> null
@@ -68,4 +70,7 @@ data class Service(
         return mergedEndpoints
     }
 }
+
+fun List<Service.Endpoint>.toComponentEndpoints(): List<Endpoint> = this.map { Endpoint(it.value) }
+
 
