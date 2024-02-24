@@ -20,6 +20,8 @@ sealed interface Component {
             value class Name(val value: String) {}
         }
 
+        // TODO the pod should not be visible on this level anymore.
+        // TODO The KubernetesAggregator should already merge pods and services into one service component
         data class Pod(
             val name: Name,
             val ipAddress: IpAddress,

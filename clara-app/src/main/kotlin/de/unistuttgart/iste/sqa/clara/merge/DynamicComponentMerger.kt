@@ -20,6 +20,12 @@ class DynamicComponentMerger : ComponentMerger {
     // communications take generic source, target types and thus should work with the result.
     // we just need to make sure, that the merged component can still be matched, as the communications hold a reference to their object
     override fun merge(components: List<Component>, communications: List<Communication>): Pair<List<Either<MergeFailure, Component>>, List<Either<MergeFailure, Communication>>> {
+
+        val kubernetesComponents = components.filterIsInstance<Component.Internal.KubernetesService>()
+        val openTelemetryComponents = components.filterIsInstance<Component.Internal.OpenTelemetryService>()
+
+
+
         TODO("Not yet implemented")
     }
 }
