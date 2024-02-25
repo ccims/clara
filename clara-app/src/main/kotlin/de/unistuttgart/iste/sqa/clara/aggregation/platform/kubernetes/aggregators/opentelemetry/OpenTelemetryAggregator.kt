@@ -47,6 +47,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
 
         val mergedComponents = components + unnamedComponents
 
+        // TODO make a differentiation to external services
         val communications = relations.map { relation ->
             val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.caller.hostIdentifier?.value }
             val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.callee.hostIdentifier?.value }

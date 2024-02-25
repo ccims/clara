@@ -11,13 +11,12 @@ sealed interface Component {
 
     data class External(val domain: Domain, override val name: Name) : Component
 
-    sealed interface Internal : Component, Namespaced {
+    sealed interface Internal : Component {
 
         data class OpenTelemetryService(
             override val name: Name,
             val domain: Domain,
             val endpoints: List<Endpoint>,
-            override val namespace: Namespace = Namespace(value = "default"),
         ) : Internal
 
         // TODO the pod should not be visible on this level anymore.
@@ -26,13 +25,13 @@ sealed interface Component {
             override val name: Name,
             val ipAddress: IpAddress,
             override val namespace: Namespace,
-        ) : Internal
+        ) : Internal, Namespaced
 
         data class KubernetesService(
             override val name: Name,
             val ipAddress: IpAddress,
             override val namespace: Namespace,
-        ) : Internal
+        ) : Internal, Namespaced
 
         data class MergedService(
             override val name: Name,
@@ -40,7 +39,7 @@ sealed interface Component {
             val ipAddress: IpAddress?,
             val domain: Domain?,
             val endpoints: List<Endpoint>?,
-        ) : Internal
+        ) : Internal, Namespaced
     }
 }
 
