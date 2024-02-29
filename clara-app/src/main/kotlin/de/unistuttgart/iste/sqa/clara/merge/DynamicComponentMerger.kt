@@ -3,8 +3,7 @@ package de.unistuttgart.iste.sqa.clara.merge
 import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.api.merge.ComponentMerger
 import de.unistuttgart.iste.sqa.clara.api.merge.MergeFailure
-import de.unistuttgart.iste.sqa.clara.api.model.Communication
-import de.unistuttgart.iste.sqa.clara.api.model.Component
+import de.unistuttgart.iste.sqa.clara.api.model.*
 import java.lang.UnsupportedOperationException
 
 class DynamicComponentMerger : ComponentMerger {
@@ -20,44 +19,54 @@ class DynamicComponentMerger : ComponentMerger {
     // next we need to merge communications.
     // communications take generic source, target types and thus should work with the result.
     // we just need to make sure, that the merged component can still be matched, as the communications hold a reference to their object
-    override fun merge(components: List<Component>, communications: List<Communication>): Pair<Either<MergeFailure, List<Component>>, Either<MergeFailure, List<Communication>>> {
+    override fun merge(components: List<AggregatedComponent>, communications: List<AggregatedCommunication>): Pair<List<Either<MergeFailure, Component>>, List<Either<MergeFailure, Communication>>> {
 
         if (components.isEmpty()) {
-            return Pair(Either.Right(emptyList()), Either.Right(emptyList()))
+            return Pair(emptyList(), emptyList())
         }
 
         // For now, we only have those two service types.
         val mergedComponents = compareAndMergeComponents(
             components,
-            Component.Internal.KubernetesService::class.java,
-            Component.Internal.OpenTelemetryService::class.java,
+            AggregatedComponent.Internal.KubernetesComponent::class.java,
+            AggregatedComponent.Internal.OpenTelemetryComponent::class.java,
         )
 
         // TODO merge communications
-        return Pair(Either.Right(mergedComponents), Either.Right(emptyList()))
+        return Pair(mergedComponents, emptyList())
     }
 
     private fun <B, C> compareAndMergeComponents(
-        components: List<Component>,
+        aggregatedComponents: List<AggregatedComponent>,
         baseComponentType: B,
         compareComponentType: C,
-    ): List<Component> {
+    ): List<Either<MergeFailure, Component>> {
 
-        val baseComponents = components.filter { it::class.java == baseComponentType }
-        val compareComponents = components.filter { it::class.java == compareComponentType }.toMutableList()
+        val baseComponents = aggregatedComponents.filter { it::class.java == baseComponentType }
+        val compareComponents = aggregatedComponents.filter { it::class.java == compareComponentType }.toMutableList()
 
         if (baseComponents.isEmpty() || compareComponents.isEmpty()) {
-            return components
+            return aggregatedComponents.map {
+                Either.Right(
+                    Component.InternalComponent(
+                        name = Component.Name(it.name.value),
+                        namespace = Namespace("placeholder"),
+                        ipAddress = IpAddress("placeholder"),
+                        domain = Domain("placeholder"),
+                        endpoints = listOf()
+                    )
+                )
+            }
         }
 
-        val mergedComponents = mutableListOf<Component>()
+        val mergedComponents = mutableListOf<Either.Right<Component>>()
 
         baseComponents.forEach { baseComponent ->
             val compareComponent = compareComponents.find {
                 compareComponents(baseComponent, it)
             }
             if (compareComponent != null) {
-                mergedComponents.add(mergeComponents(baseComponent, compareComponent))
+                mergedComponents.add(Either.Right(mergeComponents(baseComponent, compareComponent)))
                 compareComponents.remove(compareComponent)
             }
         }
@@ -65,16 +74,16 @@ class DynamicComponentMerger : ComponentMerger {
     }
 
     // TODO more complex comparison based on attributes if names do not match
-    private fun compareComponents(baseComponent: Component, compareComponent: Component): Boolean =
+    private fun compareComponents(baseComponent: AggregatedComponent, compareComponent: AggregatedComponent): Boolean =
         baseComponent.name == compareComponent.name
 
-    private fun mergeComponents(baseComponent: Component, compareComponent: Component): Component {
+    private fun mergeComponents(baseComponent: AggregatedComponent, compareComponent: AggregatedComponent): Component {
         return when {
-            baseComponent::class.java == Component.Internal.KubernetesService::class.java &&
-                    compareComponent::class.java == Component.Internal.OpenTelemetryService::class.java ->
+            baseComponent::class.java == AggregatedComponent.Internal.KubernetesComponent::class.java &&
+                    compareComponent::class.java == AggregatedComponent.Internal.OpenTelemetryComponent::class.java ->
                 mergeKubernetesComponentWithOpenTelemetryComponent(
-                    baseComponent as Component.Internal.KubernetesService,
-                    compareComponent as Component.Internal.OpenTelemetryService
+                    baseComponent as AggregatedComponent.Internal.KubernetesComponent,
+                    compareComponent as AggregatedComponent.Internal.OpenTelemetryComponent
                 )
 
             else -> throw UnsupportedOperationException("We can not merge those components yet.")
@@ -83,11 +92,11 @@ class DynamicComponentMerger : ComponentMerger {
 
     // TODO this is very rudimentary yet
     private fun mergeKubernetesComponentWithOpenTelemetryComponent(
-        baseComponent: Component.Internal.KubernetesService,
-        compareComponent: Component.Internal.OpenTelemetryService,
-    ): Component.Internal.MergedService {
-        return Component.Internal.MergedService(
-            name = baseComponent.name,
+        baseComponent: AggregatedComponent.Internal.KubernetesComponent,
+        compareComponent: AggregatedComponent.Internal.OpenTelemetryComponent,
+    ): Component.InternalComponent {
+        return Component.InternalComponent(
+            name = Component.Name(baseComponent.name.value),
             namespace = baseComponent.namespace,
             ipAddress = baseComponent.ipAddress,
             domain = compareComponent.domain,

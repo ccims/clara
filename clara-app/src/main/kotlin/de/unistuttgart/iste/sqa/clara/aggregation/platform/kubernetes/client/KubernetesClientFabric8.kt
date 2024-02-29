@@ -2,8 +2,6 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client
 
 import arrow.core.Either
 import arrow.core.right
-import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Pod
-import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
@@ -16,8 +14,8 @@ class KubernetesClientFabric8 : KubernetesClient {
 
     private val client = KubernetesClientBuilder().build()
 
-    override fun getNamespaces(): Either<KubernetesClientError, List<Namespace>> {
-        return try {
+    private val namespaces by lazy {
+        try {
             client
                 .namespaces()
                 .list()
@@ -29,7 +27,11 @@ class KubernetesClientFabric8 : KubernetesClient {
         }
     }
 
-    override fun getPodsFromAllNamespace(includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<Pod>> {
+    override fun getNamespaces(): Either<KubernetesClientError, List<Namespace>> {
+        return namespaces
+    }
+
+    override fun getPodsFromAllNamespace(includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<KubernetesPod>> {
         return try {
             client
                 .pods()
@@ -45,7 +47,7 @@ class KubernetesClientFabric8 : KubernetesClient {
         }
     }
 
-    override fun getPodsFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<Pod>> {
+    override fun getPodsFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<KubernetesPod>> {
         return try {
             if (namespaces.any { it.value == "*" }) {
                 getPodsFromAllNamespace(includeKubeNamespaces)
@@ -126,9 +128,9 @@ class KubernetesClientFabric8 : KubernetesClient {
         log.debug { "Done closing Kubernetes client" }
     }
 
-    private fun fromFabric8Pod(service: io.fabric8.kubernetes.api.model.Pod): Pod {
-        return Pod(
-            name = Pod.Name(service.metadata.name),
+    private fun fromFabric8Pod(service: io.fabric8.kubernetes.api.model.Pod): KubernetesPod {
+        return KubernetesPod(
+            name = KubernetesPod.Name(service.metadata.name),
             ipAddress = IpAddress(service.status.podIP),
             namespace = Namespace(service.metadata.namespace)
         )

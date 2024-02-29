@@ -12,15 +12,15 @@ object GraphVizCodeGenerator {
 
     fun generateDotCode(components: Iterable<Component>, communications: Iterable<Communication>): String {
         val internalComponentsPerNamespace = buildSet {
-            addAll(components.filterIsInstance<Component.Internal>())
-            addAll(communications.map { it.source.component }.filterIsInstance<Component.Internal>())
-            addAll(communications.map { it.target.component }.filterIsInstance<Component.Internal>())
+            addAll(components.filterIsInstance<Component.InternalComponent>())
+            addAll(communications.map { it.source.component }.filterIsInstance<Component.InternalComponent>())
+            addAll(communications.map { it.target.component }.filterIsInstance<Component.InternalComponent>())
         }.groupBy { it.namespace }
 
         val externalComponents = buildSet {
-            addAll(components.filterIsInstance<Component.External>())
-            addAll(communications.map { it.source.component }.filterIsInstance<Component.External>())
-            addAll(communications.map { it.target.component }.filterIsInstance<Component.External>())
+            addAll(components.filterIsInstance<Component.ExternalComponent>())
+            addAll(communications.map { it.source.component }.filterIsInstance<Component.ExternalComponent>())
+            addAll(communications.map { it.target.component }.filterIsInstance<Component.ExternalComponent>())
         }
 
         val dotCode = graph {
@@ -62,33 +62,21 @@ private fun Graph.addNodeFromComponent(component: Component) = this.node(compone
 
 private fun SubGraph.addNodeFromComponent(component: Component) = this.node(component.toNode())
 
-private fun Component.toNode() = Node(id = this.id(), label = this.label(), attributes = this.attributes())
+private fun Component.toNode() = Node(id = this.name.id(), label = this.label(), attributes = this.attributes())
 
-@OptIn(ExperimentalStdlibApi::class)
-private fun Component.id(): String {
-    return when (this) {
-        is Component.External -> "ext_${this.hashCode().toHexString()}"
-        is Component.Internal.Pod -> "pod_${this.hashCode().toHexString()}"
-        is Component.Internal.KubernetesService -> "svc_${this.hashCode().toHexString()}"
-        is Component.Internal.OpenTelemetryService -> TODO()
-    }
-}
+private fun Component.Name.id(): String = this.value.lowercase().filter { it.isLetter() || it.isDigit() || it == '_' }
 
 private fun Component.label(): String {
     return when (this) {
-        is Component.External -> this.domain.value
-        is Component.Internal.Pod -> "${this.name}\\n(${this.ipAddress})"
-        is Component.Internal.KubernetesService -> "${this.name}\\n(${this.ipAddress})"
-        is Component.Internal.OpenTelemetryService -> TODO()
+        is Component.ExternalComponent -> "${this.name}\\n(${this.domain})"
+        is Component.InternalComponent -> "${this.name}\\n(${this.ipAddress}\\n(${this.domain}))"
     }
 }
 
 private fun Component.attributes(): Map<String, String> {
     return when (this) {
-        is Component.External -> mapOf("shape" to "oval")
-        is Component.Internal.Pod -> mapOf("shape" to "rectangle")
-        is Component.Internal.KubernetesService -> mapOf("shape" to "octagon")
-        is Component.Internal.OpenTelemetryService -> TODO()
+        is Component.ExternalComponent -> mapOf("shape" to "oval")
+        is Component.InternalComponent -> mapOf("shape" to "octagon")
     }
 }
 

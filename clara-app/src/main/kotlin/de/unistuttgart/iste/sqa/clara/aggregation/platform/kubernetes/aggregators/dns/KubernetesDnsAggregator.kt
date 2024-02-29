@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClient
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -22,7 +23,7 @@ class KubernetesDnsAggregator(
 
     private val log = KotlinLogging.logger {}
 
-    override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
+    override fun aggregate(): Either<AggregationFailure, Set<AggregatedCommunication>> {
         log.info { "Aggregate Kubernetes DNS ..." }
 
         val (dnsLogs, knownPods, knownServices) = kubernetesClient.use { client ->

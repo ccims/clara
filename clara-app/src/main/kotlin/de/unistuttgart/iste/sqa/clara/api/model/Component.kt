@@ -1,46 +1,51 @@
 package de.unistuttgart.iste.sqa.clara.api.model
 
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
+sealed interface AggregatedComponent {
+
+    val name: Name
+
+    @JvmInline
+    value class Name(val value: String)
+
+    data class External(val domain: Domain, override val name: Name) : AggregatedComponent
+
+    sealed interface Internal : AggregatedComponent {
+
+        data class OpenTelemetryComponent(
+            override val name: Name,
+            val domain: Domain,
+            val endpoints: List<Endpoint>,
+        ) : Internal
+
+        data class KubernetesComponent(
+            override val name: Name,
+            val ipAddress: IpAddress,
+            override val namespace: Namespace,
+        ) : Internal, Namespaced
+    }
+}
 
 sealed interface Component {
 
     val name: Name
 
     @JvmInline
-    value class Name(val value: String) {}
-
-    data class External(val domain: Domain, override val name: Name) : Component
-
-    sealed interface Internal : Component {
-
-        data class OpenTelemetryService(
-            override val name: Name,
-            val domain: Domain,
-            val endpoints: List<Endpoint>,
-        ) : Internal
-
-        // TODO the pod should not be visible on this level anymore.
-        // TODO The KubernetesAggregator should already merge pods and services into one service component
-        data class Pod(
-            override val name: Name,
-            val ipAddress: IpAddress,
-            override val namespace: Namespace,
-        ) : Internal, Namespaced
-
-        data class KubernetesService(
-            override val name: Name,
-            val ipAddress: IpAddress,
-            override val namespace: Namespace,
-        ) : Internal, Namespaced
-
-        data class MergedService(
-            override val name: Name,
-            override val namespace: Namespace,
-            val ipAddress: IpAddress?,
-            val domain: Domain?,
-            val endpoints: List<Endpoint>?,
-        ) : Internal, Namespaced
+    value class Name(val value: String) {
+        override fun toString() = value
     }
+
+    data class InternalComponent(
+        override val name: Name,
+        val namespace: Namespace,
+        val ipAddress: IpAddress?,
+        val domain: Domain?,
+        val endpoints: List<Endpoint>?,
+    ) : Component
+
+    data class ExternalComponent(
+        override val name: Name,
+        val domain: Domain?,
+    ) : Component
 }
 
 /*sealed interface Reference

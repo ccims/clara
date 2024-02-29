@@ -3,8 +3,7 @@ package de.unistuttgart.iste.sqa.clara.aggregation
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns.KubernetesDnsAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.OpenTelemetryAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider.OpenTelemetryTraceSpanProvider
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.pod.KubernetesPodAggregator
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.service.KubernetesServiceAggregator
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.kubeapi.KubeApiAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClientFabric8
 import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
 import de.unistuttgart.iste.sqa.clara.api.aggregation.ComponentAggregator

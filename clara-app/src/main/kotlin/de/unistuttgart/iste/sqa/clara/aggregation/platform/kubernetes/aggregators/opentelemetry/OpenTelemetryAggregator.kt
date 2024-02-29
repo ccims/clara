@@ -23,23 +23,23 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
     private val unnamedServices: MutableMap<Service.HostIdentifier, Service> = mutableMapOf()
     private val unresolvableServices: MutableList<Service> = mutableListOf()
 
-    override fun aggregate(): Either<AggregationFailure, Set<Communication>> {
+    override fun aggregate(): Either<AggregationFailure, Set<AggregatedCommunication>> {
 
         val spans = runBlocking { spanProvider.getSpans() }
         process(spans)
 
         // TODO the entire mapping needs to be discussed
         val components = serviceMap.values.map {
-            Component.Internal.OpenTelemetryService(
-                name = Component.Name(it.name?.value!!),
+            AggregatedComponent.Internal.OpenTelemetryComponent(
+                name = AggregatedComponent.Name(it.name?.value!!),
                 domain = Domain(it.hostIdentifier?.value ?: throw UnsupportedOperationException("TODO")),
                 endpoints = it.endpoints.toComponentEndpoints(),
             )
         }
 
         val unnamedComponents = unnamedServices.values.map {
-            Component.Internal.OpenTelemetryService(
-                name = Component.Name(it.name?.value ?: "not-found-name"),
+            AggregatedComponent.Internal.OpenTelemetryComponent(
+                name = AggregatedComponent.Name(it.name?.value ?: "not-found-name"),
                 domain = Domain(it.hostIdentifier?.value ?: throw UnsupportedOperationException("TODO")),
                 endpoints = it.endpoints.toComponentEndpoints(),
             )
@@ -52,7 +52,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
             val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.caller.hostIdentifier?.value }
             val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.callee.hostIdentifier?.value }
             if (caller != null && callee != null) {
-                Communication(Communication.Source(caller), Communication.Target(callee))
+                AggregatedCommunication(AggregatedCommunication.Source(caller.name), AggregatedCommunication.Target(callee.name))
             } else {
                 throw UnsupportedOperationException()
             }

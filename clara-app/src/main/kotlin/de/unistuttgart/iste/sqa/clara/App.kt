@@ -4,9 +4,11 @@ import de.unistuttgart.iste.sqa.clara.aggregation.AggregatorManager
 import de.unistuttgart.iste.sqa.clara.aggregation.ParallelAggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.export.ExportExecutor
+import de.unistuttgart.iste.sqa.clara.api.merge.ComponentMerger
 import de.unistuttgart.iste.sqa.clara.config.ClaraConfig
 import de.unistuttgart.iste.sqa.clara.export.ExporterManager
 import de.unistuttgart.iste.sqa.clara.export.ParallelExportExecutor
+import de.unistuttgart.iste.sqa.clara.merge.DynamicComponentMerger
 import de.unistuttgart.iste.sqa.clara.utils.list.getLeft
 import de.unistuttgart.iste.sqa.clara.utils.list.getRight
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -26,15 +28,18 @@ class App(private val config: ClaraConfig) {
         log.info { "Start application" }
 
         val aggregationExecutor: AggregationExecutor = ParallelAggregationExecutor(AggregatorManager(config.aggregation))
+        val componentMerger: ComponentMerger = DynamicComponentMerger()
         val exportExecutor: ExportExecutor = ParallelExportExecutor(ExporterManager(config.export))
 
         val (componentAggregationResult, communicationAggregationResult) = aggregationExecutor.aggregateAll()
         val aggregationFailures = componentAggregationResult.getLeft().toMutableList().apply { addAll(componentAggregationResult.getLeft()) }
 
-        val components = componentAggregationResult.getRight()
-        val communications = communicationAggregationResult.getRight()
+        val aggregatedComponents = componentAggregationResult.getRight()
+        val aggregatedCommunications = communicationAggregationResult.getRight()
 
-        // TODO add the merge process here
+        val (componentsResults, communicationResults) = componentMerger.merge(aggregatedComponents, aggregatedCommunications)
+        val components = componentsResults.getRight()
+        val communications = communicationResults.getRight()
 
         if (aggregationFailures.isNotEmpty()) {
             log.error { "Errors while aggregating: \n${aggregationFailures.joinToString(prefix = "    - ", separator = "\n    - ") { it.description }}" }
@@ -55,7 +60,8 @@ class App(private val config: ClaraConfig) {
 
         if (config.app?.blockAfterFinish == true) {
             log.info { "Keeping process alive from now on." }
-            while (true) {}
+            while (true) {
+            }
         }
     }
 }

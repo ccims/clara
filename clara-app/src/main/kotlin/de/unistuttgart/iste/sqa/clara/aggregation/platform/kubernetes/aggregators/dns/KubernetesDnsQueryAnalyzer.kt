@@ -1,18 +1,19 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns
 
-import de.unistuttgart.iste.sqa.clara.api.model.Communication
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesPod
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesService
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Component
-import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.Pod
-import de.unistuttgart.iste.sqa.clara.api.model.Component.Internal.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.model.Domain
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 
 class KubernetesDnsQueryAnalyzer(
-    private val knownPods: List<Pod>,
+    private val knownPods: List<KubernetesPod>,
     private val knownKubernetesServices: List<KubernetesService>,
 ) : DnsQueryAnalyzer {
 
-    override fun analyze(dnsQueries: Iterable<DnsQuery>): Set<Communication> {
+    override fun analyze(dnsQueries: Iterable<DnsQuery>): Set<AggregatedCommunication> {
         return dnsQueries
             .mapNotNull { dnsQuery ->
                 val sourcePod = knownPods
@@ -21,36 +22,36 @@ class KubernetesDnsQueryAnalyzer(
 
                 val communicationTarget = getCommunicationTarget(dnsQuery, knownPods, knownKubernetesServices) ?: return@mapNotNull null
 
-                Communication(
-                    source = Communication.Source(sourcePod),
+                AggregatedCommunication(
+                    source = AggregatedCommunication.Source(AggregatedComponent.Name("placeholder")),
                     target = communicationTarget,
                 )
             }
             .toSet()
     }
 
-    private fun getCommunicationTarget(dnsQuery: DnsQuery, knownPods: List<Pod>, knownKubernetesServices: List<KubernetesService>): Communication.Target? {
+    private fun getCommunicationTarget(dnsQuery: DnsQuery, knownPods: List<KubernetesPod>, knownKubernetesServices: List<KubernetesService>): AggregatedCommunication.Target? {
         return if (dnsQuery.targetDomain.value.endsWith(".svc.cluster.local.")) {
             getCommunicationTargetService(dnsQuery, knownKubernetesServices)
         } else if (dnsQuery.targetDomain.value.endsWith(".pod.cluster.local.")) {
             getCommunicationTargetPod(dnsQuery, knownPods)
         } else {
             val domain = dnsQuery.targetDomain.value.removeSuffix(".")
-            Communication.Target(Component.External(Domain(domain), Component.Name(domain)))
+            AggregatedCommunication.Target(AggregatedComponent.Name("external-placeholder"))
         }
     }
 
-    private fun getCommunicationTargetService(dnsQuery: DnsQuery, knownKubernetesServices: List<KubernetesService>): Communication.Target? {
+    private fun getCommunicationTargetService(dnsQuery: DnsQuery, knownKubernetesServices: List<KubernetesService>): AggregatedCommunication.Target? {
         val serviceName = dnsQuery.targetDomain.value.substringBefore(".")
 
         val targetService = knownKubernetesServices
             .firstOrNull { it.name.value == serviceName }
             ?: return null
 
-        return Communication.Target(targetService)
+        return AggregatedCommunication.Target(AggregatedComponent.Name("placeholder"))
     }
 
-    private fun getCommunicationTargetPod(dnsQuery: DnsQuery, knownPods: List<Pod>): Communication.Target? {
+    private fun getCommunicationTargetPod(dnsQuery: DnsQuery, knownPods: List<KubernetesPod>): AggregatedCommunication.Target? {
         val podReference = dnsQuery.targetDomain.value.substringBefore(".")
         val podIpAddress = podReference.replace('-', '.')
 
@@ -64,6 +65,6 @@ class KubernetesDnsQueryAnalyzer(
             }
             ?: return null
 
-        return Communication.Target(targetPod)
+        return AggregatedCommunication.Target(AggregatedComponent.Name("placeholder"))
     }
 }

@@ -3,6 +3,8 @@ package de.unistuttgart.iste.sqa.clara.aggregation
 import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 import de.unistuttgart.iste.sqa.clara.utils.kotlinx.awaitBothInParallel
@@ -15,7 +17,7 @@ class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManag
 
     private val log = KotlinLogging.logger {}
 
-    override fun aggregateAll(): Pair<List<Either<AggregationFailure, Component>>, List<Either<AggregationFailure, Communication>>> {
+    override fun aggregateAll(): Pair<List<Either<AggregationFailure, AggregatedComponent>>, List<Either<AggregationFailure, AggregatedCommunication>>> {
         if (aggregatorManager.componentAggregators.isEmpty() && aggregatorManager.communicationAggregators.isEmpty()) {
             log.warn { "No aggregators specified and enabled!" }
             return Pair(emptyList(), emptyList())
@@ -37,7 +39,7 @@ class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManag
         return aggregationResult
     }
 
-    private suspend fun aggregateAllComponents(): List<Either<AggregationFailure, Component>> {
+    private suspend fun aggregateAllComponents(): List<Either<AggregationFailure, AggregatedComponent>> {
         return withContext(coroutineContext) {
             aggregatorManager
                 .componentAggregators
@@ -51,7 +53,7 @@ class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManag
         }
     }
 
-    private suspend fun aggregateAllCommunications(): List<Either<AggregationFailure, Communication>> {
+    private suspend fun aggregateAllCommunications(): List<Either<AggregationFailure, AggregatedCommunication>> {
         return withContext(coroutineContext) {
             aggregatorManager
                 .communicationAggregators
