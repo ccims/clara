@@ -1,5 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.api.model
 
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesPod
+
 sealed interface AggregatedComponent {
 
     val name: Name
@@ -21,6 +23,7 @@ sealed interface AggregatedComponent {
             override val name: Name,
             val ipAddress: IpAddress,
             override val namespace: Namespace,
+            val pods: List<KubernetesPod>
         ) : Internal, Namespaced
     }
 }

@@ -4,7 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.asAggregatedComponent
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClient
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesPod
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.ComponentAggregator
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
@@ -38,6 +41,12 @@ class KubeApiAggregator(
         val pods = getPodsResult.getOrElse { return it.left() }
         val services = getServicesResult.getOrElse { return it.left() }
 
-        return KubernetesApiServicePodMerger().getAggregatedComponents(pods, services).right()
+        val podsNotSelectedByAnyService = pods.filter { pod ->
+            services.flatMap { it.selectedPods }.contains(pod).not()
+        }
+
+        val aggregatedComponents = services.map(KubernetesService::asAggregatedComponent) + podsNotSelectedByAnyService.map(KubernetesPod::asAggregatedComponent)
+
+        return aggregatedComponents.toSet().right()
     }
 }

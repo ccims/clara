@@ -14,8 +14,8 @@ class KubernetesClientFabric8 : KubernetesClient {
 
     private val client = KubernetesClientBuilder().build()
 
-    private val namespaces by lazy {
-        try {
+    override fun getNamespaces(): Either<KubernetesClientError, List<Namespace>> {
+        return try {
             client
                 .namespaces()
                 .list()
@@ -25,10 +25,6 @@ class KubernetesClientFabric8 : KubernetesClient {
         } catch (ex: KubernetesClientException) {
             Either.Left(KubernetesClientError("Cannot get namespaces: ${ex.message}"))
         }
-    }
-
-    override fun getNamespaces(): Either<KubernetesClientError, List<Namespace>> {
-        return namespaces
     }
 
     override fun getPodsFromAllNamespace(includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<KubernetesPod>> {
@@ -140,7 +136,14 @@ class KubernetesClientFabric8 : KubernetesClient {
         return KubernetesService(
             name = KubernetesService.Name(service.metadata.name),
             ipAddress = IpAddress(service.spec.clusterIP),
-            namespace = Namespace(service.metadata.namespace)
+            namespace = Namespace(service.metadata.namespace),
+            selectedPods = client
+                .pods()
+                .inNamespace(service.metadata.namespace)
+                .withLabels(service.spec.selector)
+                .list()
+                .items
+                .map(::fromFabric8Pod)
         )
     }
 }
