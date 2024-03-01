@@ -21,3 +21,13 @@ internal fun KubernetesService.asAggregatedComponent(): AggregatedComponent {
         pods = this.selectedPods
     )
 }
+
+internal fun aggregatedServiceNameFrom(pod: KubernetesPod, knownServices: Iterable<KubernetesService>): AggregatedComponent.Name {
+    return knownServices.find { service -> service.selectedPods.contains(pod) }
+        ?.asAggregatedComponent()?.name
+        ?: pod.asAggregatedComponent().name
+}
+
+internal fun aggregatedServiceNameFrom(service: KubernetesService): AggregatedComponent.Name {
+    return service.asAggregatedComponent().name
+}
