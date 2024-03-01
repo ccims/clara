@@ -18,24 +18,19 @@ data class AggregationConfig(
         ) {
 
             data class Aggregators(
-                val pod: PodAggregator?,
-                val service: ServiceAggregator?,
+                val kubeApi: KubeApiAggregator?,
                 val dns: DnsAggregator?,
                 val openTelemetry: OpenTelemetryAggregator?,
             ) {
+
+                data class KubeApiAggregator(
+                    override val enable: Boolean = true,
+                ) : Enable
 
                 data class OpenTelemetryAggregator(
                     override val enable: Boolean = true,
                     val listenPort: Int,
                     val listenDuration: Duration,
-                ) : Enable
-
-                data class PodAggregator(
-                    override val enable: Boolean = true,
-                ) : Enable
-
-                data class ServiceAggregator(
-                    override val enable: Boolean = true,
                 ) : Enable
 
                 data class DnsAggregator(

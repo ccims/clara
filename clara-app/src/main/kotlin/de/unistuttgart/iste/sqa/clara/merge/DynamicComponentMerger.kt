@@ -4,7 +4,6 @@ import arrow.core.Either
 import de.unistuttgart.iste.sqa.clara.api.merge.ComponentMerger
 import de.unistuttgart.iste.sqa.clara.api.merge.MergeFailure
 import de.unistuttgart.iste.sqa.clara.api.model.*
-import java.lang.UnsupportedOperationException
 
 class DynamicComponentMerger : ComponentMerger {
 
@@ -46,17 +45,7 @@ class DynamicComponentMerger : ComponentMerger {
         val compareComponents = aggregatedComponents.filter { it::class.java == compareComponentType }.toMutableList()
 
         if (baseComponents.isEmpty() || compareComponents.isEmpty()) {
-            return aggregatedComponents.map {
-                Either.Right(
-                    Component.InternalComponent(
-                        name = Component.Name(it.name.value),
-                        namespace = Namespace("placeholder"),
-                        ipAddress = IpAddress("placeholder"),
-                        domain = Domain("placeholder"),
-                        endpoints = listOf()
-                    )
-                )
-            }
+            return aggregatedComponents.map { Either.Right(it.toComponent()) }
         }
 
         val mergedComponents = mutableListOf<Either.Right<Component>>()
@@ -86,7 +75,7 @@ class DynamicComponentMerger : ComponentMerger {
                     compareComponent as AggregatedComponent.Internal.OpenTelemetryComponent
                 )
 
-            else -> throw UnsupportedOperationException("We can not merge those components yet.")
+            else -> throw UnsupportedOperationException("We can not merge those components yet (${baseComponent::class.java.name} and ${compareComponent::class.java.name}).")
         }
     }
 
@@ -99,8 +88,30 @@ class DynamicComponentMerger : ComponentMerger {
             name = Component.Name(baseComponent.name.value),
             namespace = baseComponent.namespace,
             ipAddress = baseComponent.ipAddress,
-            domain = compareComponent.domain,
-            endpoints = compareComponent.endpoints,
+            endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, compareComponent.paths),
+        )
+    }
+}
+
+private fun AggregatedComponent.toComponent(): Component {
+    return when (this) {
+        is AggregatedComponent.External -> Component.ExternalComponent(
+            name = Component.Name(this.name.value),
+            domain = this.domain
+        )
+
+        is AggregatedComponent.Internal.KubernetesComponent -> Component.InternalComponent(
+            name = Component.Name(this.name.value),
+            namespace = this.namespace,
+            ipAddress = this.ipAddress,
+            endpoints = null,
+        )
+
+        is AggregatedComponent.Internal.OpenTelemetryComponent -> Component.InternalComponent(
+            name = Component.Name(this.name.value),
+            namespace = null,
+            ipAddress = null,
+            endpoints = Component.InternalComponent.Endpoints(this.domain, this.paths)
         )
     }
 }

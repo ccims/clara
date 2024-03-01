@@ -8,8 +8,7 @@ aggregation:
       namespaces:
         - "*"
       aggregators:
-        pod:
-        service:
+        kube-api:
         dns:
           logs-since-time: 2024-02-01T00:00:00Z
         open-telemetry:
@@ -23,6 +22,7 @@ export:
       output-type: svg
       output-file: generated/architecture.svg
     gropius:
+      enable: false
       project-id: f803acea-a8c9-4a80-a5a7-881e7e084767
       graphql-backend-url: http://devonport.informatik.uni-stuttgart.de:8082/graphql
       graphql-backend-authentication:

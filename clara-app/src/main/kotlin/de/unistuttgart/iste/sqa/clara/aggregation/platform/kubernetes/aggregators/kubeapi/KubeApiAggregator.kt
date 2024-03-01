@@ -12,6 +12,7 @@ import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.ComponentAggregator
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class KubeApiAggregator(
     private val config: Config,
@@ -23,7 +24,10 @@ class KubeApiAggregator(
         val includeKubeNamespaces: Boolean,
     )
 
+    private val log = KotlinLogging.logger {}
+
     override fun aggregate(): Either<AggregationFailure, Set<AggregatedComponent>> {
+        log.info { "Aggregate Kubernetes API ..." }
 
         val (getPodsResult, getServicesResult) = kubernetesClient.use { client ->
             Pair(
@@ -46,6 +50,8 @@ class KubeApiAggregator(
         }
 
         val aggregatedComponents = services.map(KubernetesService::asAggregatedComponent) + podsNotSelectedByAnyService.map(KubernetesPod::asAggregatedComponent)
+
+        log.info { "Done aggregating Kubernetes API" }
 
         return aggregatedComponents.toSet().right()
     }

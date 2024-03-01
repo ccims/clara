@@ -1,6 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns.KubernetesDnsAggregator
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.kubeapi.KubeApiAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.OpenTelemetryAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider.OpenTelemetryTraceSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClientFabric8
@@ -17,16 +18,10 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
     val componentAggregators: List<ComponentAggregator> = buildList {
         aggregationConfig.platforms?.kubernetes?.let { kubernetesConfig ->
 
-            kubernetesConfig.aggregators.pod?.ifEnabled {
-                val config = KubernetesPodAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces)
-                add(KubernetesPodAggregator(config, KubernetesClientFabric8()))
-                log.info { "Registered aggregator: Kubernetes pod" }
-            }
-
-            kubernetesConfig.aggregators.service?.ifEnabled {
-                val config = KubernetesServiceAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces)
-                add(KubernetesServiceAggregator(config, KubernetesClientFabric8()))
-                log.info { "Registered aggregator: Kubernetes service" }
+            kubernetesConfig.aggregators.kubeApi?.ifEnabled {
+                val config = KubeApiAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces)
+                add(KubeApiAggregator(config, KubernetesClientFabric8()))
+                log.info { "Registered aggregator: Kubernetes API" }
             }
         }
     }

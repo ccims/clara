@@ -9,8 +9,8 @@ data class Communication(val source: Source, val target: Target) {
     value class Target(val component: Component.Name)
 }
 
-
 data class AggregatedCommunication(val source: Source, val target: Target) {
+
     @JvmInline
     value class Source(val component: AggregatedComponent.Name)
 

@@ -1,6 +1,6 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model
 
-import de.unistuttgart.iste.sqa.clara.api.model.Endpoint
+import de.unistuttgart.iste.sqa.clara.api.model.Path
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 
 data class Service(
@@ -9,7 +9,7 @@ data class Service(
     val ipAddress: IpAddress?,
     val port: Port?,
     val hostIdentifier: HostIdentifier?,
-    val endpoints: List<Endpoint>,
+    val paths: List<Path>,
 ) {
 
     @JvmInline
@@ -22,7 +22,7 @@ data class Service(
     value class Port(val value: Int) : Comparable<Int> by value
 
     @JvmInline
-    value class Endpoint(val value: String)
+    value class Path(val value: String)
 
     // Combination from hostname and port, used to create keys for maps and differentiate different applications on the same host.
     @JvmInline
@@ -34,14 +34,14 @@ data class Service(
         val mergedIpAddress = mergeProperty(ipAddress, other.ipAddress, "ipAddress")
         val mergedPort = mergeProperty(port, other.port, "port")
         val mergedHostIdentifier = mergeProperty(hostIdentifier, other.hostIdentifier, "hostIdentifier")
-        val mergedEndpoints = mergeEndpoints(endpoints, other.endpoints)
+        val mergedEndpoints = mergeEndpoints(paths, other.paths)
 
         return Service(
             name = mergedName,
             hostName = mergedHostName,
             ipAddress = mergedIpAddress,
             port = mergedPort,
-            endpoints = mergedEndpoints,
+            paths = mergedEndpoints,
             hostIdentifier = mergedHostIdentifier,
         )
     }
@@ -63,14 +63,14 @@ data class Service(
         }
     }
 
-    private fun mergeEndpoints(endpoints1: List<Endpoint>, endpoints2: List<Endpoint>): List<Endpoint> {
-        val mergedEndpoints = mutableListOf<Endpoint>()
+    private fun mergeEndpoints(endpoints1: List<Path>, endpoints2: List<Path>): List<Path> {
+        val mergedEndpoints = mutableListOf<Path>()
         mergedEndpoints.addAll(endpoints1)
         mergedEndpoints.addAll(endpoints2.filter { !endpoints1.contains(it) })
         return mergedEndpoints
     }
 }
 
-fun List<Service.Endpoint>.toComponentEndpoints(): List<Endpoint> = this.map { Endpoint(it.value) }
+fun List<Service.Path>.toComponentPaths(): List<Path> = this.map { Path(it.value) }
 
 

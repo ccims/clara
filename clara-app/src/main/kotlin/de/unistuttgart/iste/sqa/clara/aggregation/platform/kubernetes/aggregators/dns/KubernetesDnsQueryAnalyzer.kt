@@ -1,29 +1,31 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns
 
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.aggregatedServiceNameFrom
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.asAggregatedComponent
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesPod
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
-import de.unistuttgart.iste.sqa.clara.api.model.Component
-import de.unistuttgart.iste.sqa.clara.api.model.Domain
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 
 class KubernetesDnsQueryAnalyzer(
-    private val knownPods: List<KubernetesPod>,
+    private val knownKubernetesPods: List<KubernetesPod>,
     private val knownKubernetesServices: List<KubernetesService>,
 ) : DnsQueryAnalyzer {
 
     override fun analyze(dnsQueries: Iterable<DnsQuery>): Set<AggregatedCommunication> {
         return dnsQueries
             .mapNotNull { dnsQuery ->
-                val sourcePod = knownPods
+                val sourcePod = knownKubernetesPods
                     .firstOrNull { it.ipAddress == dnsQuery.sourceIpAddress }
                     ?: return@mapNotNull null
 
-                val communicationTarget = getCommunicationTarget(dnsQuery, knownPods, knownKubernetesServices) ?: return@mapNotNull null
+                val communicationTarget = getCommunicationTarget(dnsQuery, knownKubernetesPods, knownKubernetesServices) ?: return@mapNotNull null
+
+                val sourceServiceName = aggregatedServiceNameFrom(sourcePod, knownKubernetesServices)
 
                 AggregatedCommunication(
-                    source = AggregatedCommunication.Source(AggregatedComponent.Name("placeholder")),
+                    source = AggregatedCommunication.Source(sourceServiceName),
                     target = communicationTarget,
                 )
             }
@@ -37,7 +39,7 @@ class KubernetesDnsQueryAnalyzer(
             getCommunicationTargetPod(dnsQuery, knownPods)
         } else {
             val domain = dnsQuery.targetDomain.value.removeSuffix(".")
-            AggregatedCommunication.Target(AggregatedComponent.Name("external-placeholder"))
+            AggregatedCommunication.Target(AggregatedComponent.Name(domain))
         }
     }
 
@@ -48,7 +50,9 @@ class KubernetesDnsQueryAnalyzer(
             .firstOrNull { it.name.value == serviceName }
             ?: return null
 
-        return AggregatedCommunication.Target(AggregatedComponent.Name("placeholder"))
+        val targetComponentName = aggregatedServiceNameFrom(targetService)
+
+        return AggregatedCommunication.Target(targetComponentName)
     }
 
     private fun getCommunicationTargetPod(dnsQuery: DnsQuery, knownPods: List<KubernetesPod>): AggregatedCommunication.Target? {
@@ -65,6 +69,8 @@ class KubernetesDnsQueryAnalyzer(
             }
             ?: return null
 
-        return AggregatedCommunication.Target(AggregatedComponent.Name("placeholder"))
+        val targetComponentName = aggregatedServiceNameFrom(targetPod, knownKubernetesServices)
+
+        return AggregatedCommunication.Target(targetComponentName)
     }
 }

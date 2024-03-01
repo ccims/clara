@@ -25,7 +25,7 @@ object GraphVizCodeGenerator {
 
         val dotCode = graph {
             internalComponentsPerNamespace.onEachIndexed { index, (namespace, components) ->
-                addSubGraphFromNamespace(index, namespace, components)
+                addSubGraphFromNamespace(index, namespace ?: Namespace("<unknown>"), components)
             }
 
             externalComponents.forEach { externalComponent ->
@@ -69,7 +69,7 @@ private fun Component.Name.id(): String = this.value.lowercase().filter { it.isL
 private fun Component.label(): String {
     return when (this) {
         is Component.ExternalComponent -> "${this.name}\\n(${this.domain})"
-        is Component.InternalComponent -> "${this.name}\\n(${this.ipAddress}\\n(${this.domain}))"
+        is Component.InternalComponent -> "${this.name}\\n(${this.ipAddress}\\n(${this.endpoints})"
     }
 }
 
