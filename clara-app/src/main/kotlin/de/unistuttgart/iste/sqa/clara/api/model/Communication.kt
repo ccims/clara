@@ -3,17 +3,17 @@ package de.unistuttgart.iste.sqa.clara.api.model
 data class Communication(val source: Source, val target: Target) {
 
     @JvmInline
-    value class Source(val component: Component.Name)
+    value class Source(val componentName: Component.Name)
 
     @JvmInline
-    value class Target(val component: Component.Name)
+    value class Target(val componentName: Component.Name)
 }
 
 data class AggregatedCommunication(val source: Source, val target: Target) {
 
     @JvmInline
-    value class Source(val component: AggregatedComponent.Name)
+    value class Source(val componentName: AggregatedComponent.Name)
 
     @JvmInline
-    value class Target(val component: AggregatedComponent.Name)
+    value class Target(val componentName: AggregatedComponent.Name)
 }

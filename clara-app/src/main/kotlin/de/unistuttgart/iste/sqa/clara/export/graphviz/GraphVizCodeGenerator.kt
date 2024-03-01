@@ -13,14 +13,14 @@ object GraphVizCodeGenerator {
     fun generateDotCode(components: Iterable<Component>, communications: Iterable<Communication>): String {
         val internalComponentsPerNamespace = buildSet {
             addAll(components.filterIsInstance<Component.InternalComponent>())
-            addAll(communications.map { it.source.component }.filterIsInstance<Component.InternalComponent>())
-            addAll(communications.map { it.target.component }.filterIsInstance<Component.InternalComponent>())
+            addAll(communications.map { it.source.componentName }.filterIsInstance<Component.InternalComponent>())
+            addAll(communications.map { it.target.componentName }.filterIsInstance<Component.InternalComponent>())
         }.groupBy { it.namespace }
 
         val externalComponents = buildSet {
             addAll(components.filterIsInstance<Component.ExternalComponent>())
-            addAll(communications.map { it.source.component }.filterIsInstance<Component.ExternalComponent>())
-            addAll(communications.map { it.target.component }.filterIsInstance<Component.ExternalComponent>())
+            addAll(communications.map { it.source.componentName }.filterIsInstance<Component.ExternalComponent>())
+            addAll(communications.map { it.target.componentName }.filterIsInstance<Component.ExternalComponent>())
         }
 
         val dotCode = graph {
@@ -53,8 +53,8 @@ private fun Graph.addSubGraphFromNamespace(index: Int, namespace: Namespace, com
 
 private fun Graph.addEdgeFromCommunication(communications: Communication) {
     this.edge(
-        from = communications.source.component.id(),
-        to = communications.target.component.id()
+        from = communications.source.componentName.id(),
+        to = communications.target.componentName.id()
     )
 }
 

@@ -1,6 +1,8 @@
 package de.unistuttgart.iste.sqa.clara.merge
 
 import arrow.core.Either
+import arrow.core.right
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toCommunication
 import de.unistuttgart.iste.sqa.clara.api.merge.ComponentMerger
 import de.unistuttgart.iste.sqa.clara.api.merge.MergeFailure
 import de.unistuttgart.iste.sqa.clara.api.model.*
@@ -31,8 +33,8 @@ class DynamicComponentMerger : ComponentMerger {
             AggregatedComponent.Internal.OpenTelemetryComponent::class.java,
         )
 
-        // TODO merge communications
-        return Pair(mergedComponents, emptyList())
+        // TODO filter communications where target/source does not exist anymore
+        return Pair(mergedComponents, communications.map { it.toCommunication().right() })
     }
 
     private fun <B, C> compareAndMergeComponents(
