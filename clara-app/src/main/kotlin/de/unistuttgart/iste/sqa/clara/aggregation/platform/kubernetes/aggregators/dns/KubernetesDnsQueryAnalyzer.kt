@@ -1,7 +1,6 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.aggregatedServiceNameFrom
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.asAggregatedComponent
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesPod
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication

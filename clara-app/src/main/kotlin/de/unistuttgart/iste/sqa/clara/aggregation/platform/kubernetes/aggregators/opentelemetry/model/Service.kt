@@ -1,7 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model
 
-import de.unistuttgart.iste.sqa.clara.api.model.Path
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
+import de.unistuttgart.iste.sqa.clara.api.model.Path
 
 data class Service(
     val name: Name?,
@@ -71,6 +71,4 @@ data class Service(
     }
 }
 
-fun List<Service.Path>.toComponentPaths(): List<Path> = this.map { Path(it.value) }
-
-
+internal fun List<Service.Path>.toComponentPaths(): List<Path> = this.map { Path(it.value) }

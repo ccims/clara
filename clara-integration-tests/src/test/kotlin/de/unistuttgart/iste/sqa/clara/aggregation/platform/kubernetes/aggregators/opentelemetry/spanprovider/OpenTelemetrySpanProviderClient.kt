@@ -13,12 +13,11 @@ import io.opentelemetry.proto.resource.v1.resource
 import io.opentelemetry.proto.trace.v1.Span
 import io.opentelemetry.proto.trace.v1.resourceSpans
 import io.opentelemetry.proto.trace.v1.scopeSpans
-import java.io.Closeable
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlin.time.Duration
 
-class OpenTelemetrySpanProviderClient(serverPort: Int, deadline: Duration) : Closeable {
+class OpenTelemetrySpanProviderClient(serverPort: Int, deadline: Duration) : AutoCloseable {
 
     private val channel = ManagedChannelBuilder.forAddress("127.0.0.1", serverPort).usePlaintext().build()
 

@@ -8,16 +8,16 @@ import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClient
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesPod
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesService
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
-import de.unistuttgart.iste.sqa.clara.api.aggregation.ComponentAggregator
-import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class KubeApiAggregator(
     private val config: Config,
     private val kubernetesClient: KubernetesClient,
-) : ComponentAggregator {
+) : Aggregator {
 
     data class Config(
         val namespaces: List<Namespace>,
@@ -26,7 +26,7 @@ class KubeApiAggregator(
 
     private val log = KotlinLogging.logger {}
 
-    override fun aggregate(): Either<AggregationFailure, Set<AggregatedComponent>> {
+    override fun aggregate(): Either<AggregationFailure, Aggregation> {
         log.info { "Aggregate Kubernetes API ..." }
 
         val (getPodsResult, getServicesResult) = kubernetesClient.use { client ->
@@ -53,6 +53,9 @@ class KubeApiAggregator(
 
         log.info { "Done aggregating Kubernetes API" }
 
-        return aggregatedComponents.toSet().right()
+        return Aggregation(
+            components = aggregatedComponents.toSet(),
+            communications = emptySet(),
+        ).right()
     }
 }

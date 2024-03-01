@@ -8,7 +8,7 @@ data class KubernetesService(
     val name: Name,
     val ipAddress: IpAddress,
     override val namespace: Namespace,
-    val selectedPods: List<KubernetesPod>
+    val selectedPods: List<KubernetesPod>,
 ) : Namespaced {
 
     @JvmInline

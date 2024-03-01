@@ -2,18 +2,20 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.right
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClient
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
-import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
-import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
-import de.unistuttgart.iste.sqa.clara.api.model.Communication
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
+import de.unistuttgart.iste.sqa.clara.api.model.Domain
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class KubernetesDnsAggregator(
     private val config: Config,
     private val kubernetesClient: KubernetesClient,
-) : CommunicationAggregator {
+) : Aggregator {
 
     data class Config(
         val namespaces: List<Namespace>,
@@ -23,7 +25,7 @@ class KubernetesDnsAggregator(
 
     private val log = KotlinLogging.logger {}
 
-    override fun aggregate(): Either<AggregationFailure, Set<AggregatedCommunication>> {
+    override fun aggregate(): Either<AggregationFailure, Aggregation> {
         log.info { "Aggregate Kubernetes DNS ..." }
 
         val (dnsLogs, knownPods, knownServices) = kubernetesClient.use { client ->
@@ -39,12 +41,25 @@ class KubernetesDnsAggregator(
 
         log.trace { "Got these DNS logs:\n" + dnsLogs.joinToString("\n") }
 
-        val dnsQueries = dnsLogs.map { KubernetesDnsLogAnalyzer.parseLogs(it) }.flatten().toSet()
+        val dnsQueries = dnsLogs.flatMap { KubernetesDnsLogAnalyzer.parseLogs(it) }.toSet()
         val queryAnalyzer = KubernetesDnsQueryAnalyzer(knownPods, knownServices)
         val communications = queryAnalyzer.analyze(dnsQueries)
 
         log.info { "Done aggregating Kubernetes DNS" }
 
-        return Either.Right(communications)
+        val allComponentNames = (communications.map { it.source.componentName } + communications.map { it.target.componentName }).toSet()
+
+        val allPodAndServiceNames = knownPods.map { it.name.value } + knownServices.map { it.name.value }
+
+        // components whose name is not a known service or pod are considered external
+        val externalComponents = allComponentNames
+            .filter { allPodAndServiceNames.contains(it.value).not() }
+            .map { AggregatedComponent.External(name = AggregatedComponent.Name(it.value), domain = Domain(it.value)) }
+            .toSet()
+
+        return Aggregation(
+            components = externalComponents,
+            communications = communications,
+        ).right()
     }
 }

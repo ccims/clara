@@ -3,9 +3,8 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.ServerBuilder
-import java.io.Closeable
 
-class OpenTelemetryProtocolExporterServer(private val config: Config, processSpans: suspend (List<Span>) -> Unit) : Closeable {
+class OpenTelemetryProtocolExporterServer(config: Config, processSpans: suspend (List<Span>) -> Unit) : AutoCloseable {
 
     data class Config(val listenPort: Int)
 

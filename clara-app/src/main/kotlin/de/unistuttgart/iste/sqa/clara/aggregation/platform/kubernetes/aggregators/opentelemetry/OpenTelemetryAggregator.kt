@@ -1,10 +1,15 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry
 
 import arrow.core.Either
+import arrow.core.right
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.*
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
-import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
-import de.unistuttgart.iste.sqa.clara.api.model.*
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
+import de.unistuttgart.iste.sqa.clara.api.model.Domain
+import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -14,7 +19,7 @@ import kotlinx.coroutines.runBlocking
 // Instances are instances of microservices
 // Hardware is the used hardware (don't know if necessary)
 
-class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : CommunicationAggregator {
+class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregator {
 
     private val log = KotlinLogging.logger {}
 
@@ -23,7 +28,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
     private val unnamedServices: MutableMap<Service.HostIdentifier, Service> = mutableMapOf()
     private val unresolvableServices: MutableList<Service> = mutableListOf()
 
-    override fun aggregate(): Either<AggregationFailure, Set<AggregatedCommunication>> {
+    override fun aggregate(): Either<AggregationFailure, Aggregation> {
         log.info { "Aggregate OpenTelemetry ..." }
 
         val spans = runBlocking { spanProvider.getSpans() }
@@ -46,7 +51,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
             )
         }
 
-        val mergedComponents = components + unnamedComponents
+        val mergedComponents = (components + unnamedComponents).toSet()
 
         // TODO make a differentiation to external services -> if no name is available we might assume it is external
         val communications = relations.map { relation ->
@@ -61,7 +66,10 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
 
         log.info { "Done aggregating OpenTelemetry" }
 
-        return Either.Right(communications)
+        return Aggregation(
+            components = mergedComponents,
+            communications = communications,
+        ).right()
     }
 
     // Proceeding of all ingoing spans via otel grpc interface
@@ -168,7 +176,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
             if (!serviceMap.containsKey(service.name)) {
                 serviceMap[service.name] = service
             } else {
-                val oldService = serviceMap[service.name]!!
+                val oldService = serviceMap[service.name]!! // FIXME: save access, this could cause a NullPointerException
                 val updatedService = service.mergeWithOtherServiceObject(oldService)
                 serviceMap[service.name] = updatedService
             }
@@ -176,7 +184,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Communic
             if (!unnamedServices.containsKey(service.hostIdentifier)) {
                 unnamedServices[service.hostIdentifier] = service
             } else {
-                val oldService = unnamedServices[service.hostIdentifier]!!
+                val oldService = unnamedServices[service.hostIdentifier]!! // FIXME: save access, this could cause a NullPointerException
                 val updatedService = service.mergeWithOtherServiceObject(oldService)
                 unnamedServices[service.hostIdentifier] = updatedService
             }

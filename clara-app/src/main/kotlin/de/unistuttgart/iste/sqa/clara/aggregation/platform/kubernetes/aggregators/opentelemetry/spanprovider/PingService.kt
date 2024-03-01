@@ -5,7 +5,7 @@ import de.unistuttgart.iste.sqa.clara.grpc.PingServiceGrpcKt
 import de.unistuttgart.iste.sqa.clara.grpc.Pong
 import de.unistuttgart.iste.sqa.clara.grpc.pong
 
-class PingService: PingServiceGrpcKt.PingServiceCoroutineImplBase() {
+class PingService : PingServiceGrpcKt.PingServiceCoroutineImplBase() {
 
     override suspend fun sendPing(request: Ping): Pong {
         return pong {

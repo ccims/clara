@@ -4,11 +4,11 @@ import de.unistuttgart.iste.sqa.clara.aggregation.AggregatorManager
 import de.unistuttgart.iste.sqa.clara.aggregation.ParallelAggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.export.ExportExecutor
-import de.unistuttgart.iste.sqa.clara.api.merge.ComponentMerger
+import de.unistuttgart.iste.sqa.clara.api.merge.Merger
 import de.unistuttgart.iste.sqa.clara.config.ClaraConfig
 import de.unistuttgart.iste.sqa.clara.export.ExporterManager
 import de.unistuttgart.iste.sqa.clara.export.ParallelExportExecutor
-import de.unistuttgart.iste.sqa.clara.merge.DynamicComponentMerger
+import de.unistuttgart.iste.sqa.clara.merge.DynamicMerger
 import de.unistuttgart.iste.sqa.clara.utils.list.getLeft
 import de.unistuttgart.iste.sqa.clara.utils.list.getRight
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -28,21 +28,22 @@ class App(private val config: ClaraConfig) {
         log.info { "Start application" }
 
         val aggregationExecutor: AggregationExecutor = ParallelAggregationExecutor(AggregatorManager(config.aggregation))
-        val componentMerger: ComponentMerger = DynamicComponentMerger()
+        val merger: Merger = DynamicMerger()
         val exportExecutor: ExportExecutor = ParallelExportExecutor(ExporterManager(config.export))
 
-        val (componentAggregationResult, communicationAggregationResult) = aggregationExecutor.aggregateAll()
-        val aggregationFailures = componentAggregationResult.getLeft().toMutableList().apply { addAll(componentAggregationResult.getLeft()) }
-
-        val aggregatedComponents = componentAggregationResult.getRight()
-        val aggregatedCommunications = communicationAggregationResult.getRight()
-
-        val (componentsResults, communicationResults) = componentMerger.merge(aggregatedComponents, aggregatedCommunications)
-        val components = componentsResults.getRight()
-        val communications = communicationResults.getRight()
+        val aggregationResult = aggregationExecutor.aggregateAll()
+        val aggregationFailures = aggregationResult.getLeft()
 
         if (aggregationFailures.isNotEmpty()) {
-            log.error { "Errors while aggregating: \n${aggregationFailures.joinToString(prefix = "    - ", separator = "\n    - ") { it.description }}" }
+            log.error { "Errors while aggregating: \n${aggregationFailures.indentedEnumeration { it.description }}" }
+        }
+
+        val aggregations = aggregationResult.getRight().toSet()
+
+        val (mergeFailures, components, communications) = merger.merge(aggregations)
+
+        if (mergeFailures.isNotEmpty()) {
+            log.error { "Errors while merging the results of the different aggregators: \n${mergeFailures.indentedEnumeration { it.description }}" }
         }
 
         log.info { "Found ${components.size} components and ${communications.size} communications" }
@@ -52,7 +53,7 @@ class App(private val config: ClaraConfig) {
         } else {
             val exportFailures = exportExecutor.exportAll(components, communications)
             if (exportFailures.isNotEmpty()) {
-                log.error { "Errors while exporting: \n${exportFailures.joinToString(prefix = "    - ", separator = "\n    - ") { it.description }}" }
+                log.error { "Errors while exporting: \n${exportFailures.indentedEnumeration { it.description }}" }
             }
         }
 
@@ -64,4 +65,8 @@ class App(private val config: ClaraConfig) {
             }
         }
     }
+}
+
+private fun <T> Iterable<T>.indentedEnumeration(transform: (T) -> CharSequence): String {
+    return this.joinToString(prefix = "    - ", separator = "\n    - ", transform = transform)
 }

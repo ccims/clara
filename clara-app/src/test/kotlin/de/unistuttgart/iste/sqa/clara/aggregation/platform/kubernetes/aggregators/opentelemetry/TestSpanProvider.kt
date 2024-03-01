@@ -3,10 +3,6 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Service
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.Span
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.SpanProvider
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 
 class TestSpanProvider : SpanProvider {
 

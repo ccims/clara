@@ -5,13 +5,11 @@ import de.unistuttgart.iste.sqa.clara.test_utils.awaitBothInParallel
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.opentelemetry.proto.trace.v1.Span
 import io.opentelemetry.proto.trace.v1.span
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
 import io.opentelemetry.proto.trace.v1.Span as OpenTelemetrySpan
 
 class OpenTelemetrySpanProviderIntegrationTest : FreeSpec({
@@ -71,22 +69,9 @@ class OpenTelemetrySpanProviderIntegrationTest : FreeSpec({
 
                 actualReceivedSpans shouldBeSameSizeAs expectedReceivedSpans
 
-                // experimenting because kotests shouldContainExactly is extremely slow
-                // TODO: finish
-
-                measureTime {
-                    expectedReceivedSpans.forEachIndexed { index, expectedSpan ->
-                        actualReceivedSpans[index] shouldBe expectedSpan
-                    }
-                }.also { println("custom: $it") }
-
-                measureTime {
-                    actualReceivedSpans shouldContainExactly expectedReceivedSpans
-                }.also { println("kotest shouldContainExactly: $it") }
-
-                measureTime {
-                    actualReceivedSpans shouldContainExactlyInAnyOrder expectedReceivedSpans
-                }.also { println("kotest shouldContainExactlyInAnyOrder: $it") }
+                expectedReceivedSpans.forEachIndexed { index, expectedSpan ->
+                    actualReceivedSpans[index] shouldBe expectedSpan
+                }
             }
         }
     }

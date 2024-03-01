@@ -46,16 +46,9 @@ All options with a default value are optional.
       To just scan all namespaces (except the `kube`-namespaces) set just the `*`-wildcard as the only element.
       The `*` needs to be in quotes.
 
-#### Aggregator: Pod (optional)
+#### Aggregator: Kubernetes API (optional)
 
-??? config-option "**_aggregation.platforms.kubernetes.aggregators.pod.enable_**"
-    - Type: Boolean
-    - Default: true
-    - Description: Simple way to disable this aggregator without removing all of its associated configuration.
-
-#### Aggregator: Service (optional)
-
-??? config-option "**_aggregation.platforms.kubernetes.aggregators.service.enable_**"
+??? config-option "**_aggregation.platforms.kubernetes.aggregators.kube-api.enable_**"
     - Type: Boolean
     - Default: true
     - Description: Simple way to disable this aggregator without removing all of its associated configuration.
@@ -160,9 +153,7 @@ aggregation:
         - abc
         - xyz
       aggregators:
-        pod:
-          enable: true
-        service:
+        kube-api:
           enable: true
         dns:
           enable: true

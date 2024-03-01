@@ -6,11 +6,11 @@ aggregation:
   platforms:
     kubernetes:
       namespaces:
-        - "*"
+        - tea-store
       aggregators:
         kube-api:
         dns:
-          logs-since-time: 2024-02-01T00:00:00Z
+          logs-since-time: 2024-03-01T00:00:00Z
         open-telemetry:
           enable: false
           listen-port: 7878

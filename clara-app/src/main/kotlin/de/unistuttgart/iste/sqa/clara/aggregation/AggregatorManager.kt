@@ -5,8 +5,7 @@ import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.OpenTelemetryAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider.OpenTelemetryTraceSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClientFabric8
-import de.unistuttgart.iste.sqa.clara.api.aggregation.CommunicationAggregator
-import de.unistuttgart.iste.sqa.clara.api.aggregation.ComponentAggregator
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
 import de.unistuttgart.iste.sqa.clara.config.AggregationConfig
 import de.unistuttgart.iste.sqa.clara.config.ifEnabled
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -15,7 +14,7 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
 
     private val log = KotlinLogging.logger {}
 
-    val componentAggregators: List<ComponentAggregator> = buildList {
+    val aggregators: List<Aggregator> = buildList {
         aggregationConfig.platforms?.kubernetes?.let { kubernetesConfig ->
 
             kubernetesConfig.aggregators.kubeApi?.ifEnabled {
@@ -23,11 +22,6 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
                 add(KubeApiAggregator(config, KubernetesClientFabric8()))
                 log.info { "Registered aggregator: Kubernetes API" }
             }
-        }
-    }
-
-    val communicationAggregators: List<CommunicationAggregator> = buildList {
-        aggregationConfig.platforms?.kubernetes?.let { kubernetesConfig ->
 
             kubernetesConfig.aggregators.dns?.ifEnabled { dnsAggregatorConfig ->
                 val config = KubernetesDnsAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces, dnsAggregatorConfig.logsSinceTime)

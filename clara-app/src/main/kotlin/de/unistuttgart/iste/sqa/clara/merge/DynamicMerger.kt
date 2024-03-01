@@ -1,13 +1,14 @@
 package de.unistuttgart.iste.sqa.clara.merge
 
-import arrow.core.Either
-import arrow.core.right
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toCommunication
-import de.unistuttgart.iste.sqa.clara.api.merge.ComponentMerger
+import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
+import de.unistuttgart.iste.sqa.clara.api.merge.Merge
 import de.unistuttgart.iste.sqa.clara.api.merge.MergeFailure
-import de.unistuttgart.iste.sqa.clara.api.model.*
+import de.unistuttgart.iste.sqa.clara.api.merge.Merger
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
+import de.unistuttgart.iste.sqa.clara.api.model.Component
 
-class DynamicComponentMerger : ComponentMerger {
+class DynamicMerger : Merger {
 
     // First we need to filter the returned component types (Otel, Dns, etc)
     // Next we define a strict merging hierarchy: 1. DNS 2. Otel, 3. SBOM, 4. ?)
@@ -20,10 +21,23 @@ class DynamicComponentMerger : ComponentMerger {
     // next we need to merge communications.
     // communications take generic source, target types and thus should work with the result.
     // we just need to make sure, that the merged component can still be matched, as the communications hold a reference to their object
-    override fun merge(components: List<AggregatedComponent>, communications: List<AggregatedCommunication>): Pair<List<Either<MergeFailure, Component>>, List<Either<MergeFailure, Communication>>> {
+    override fun merge(aggregations: Set<Aggregation>): Merge {
 
+        val components = aggregations.flatMap { it.components }
+        val communications = aggregations.flatMap { it.communications }
+
+        val initialFailures = buildList {
+            if (components.isEmpty()) {
+                add(MergeFailure("No components to merge!"))
+            }
+            if (communications.isEmpty()) {
+                add(MergeFailure("No communications to merge!"))
+            }
+        }
+
+        // we want to continue if there are no communications but components
         if (components.isEmpty()) {
-            return Pair(emptyList(), emptyList())
+            return Merge(failures = initialFailures, components = emptyList(), communications = emptyList())
         }
 
         // For now, we only have those two service types.
@@ -33,31 +47,33 @@ class DynamicComponentMerger : ComponentMerger {
             AggregatedComponent.Internal.OpenTelemetryComponent::class.java,
         )
 
+        // TODO return merging failures
+
         // TODO filter communications where target/source does not exist anymore
-        return Pair(mergedComponents, communications.map { it.toCommunication().right() })
+        return Merge(failures = emptyList(), components = mergedComponents, communications = communications.map { it.toCommunication() })
     }
 
     private fun <B, C> compareAndMergeComponents(
         aggregatedComponents: List<AggregatedComponent>,
         baseComponentType: B,
         compareComponentType: C,
-    ): List<Either<MergeFailure, Component>> {
+    ): List<Component> {
 
         val baseComponents = aggregatedComponents.filter { it::class.java == baseComponentType }
         val compareComponents = aggregatedComponents.filter { it::class.java == compareComponentType }.toMutableList()
 
         if (baseComponents.isEmpty() || compareComponents.isEmpty()) {
-            return aggregatedComponents.map { Either.Right(it.toComponent()) }
+            return aggregatedComponents.map { it.toComponent() }
         }
 
-        val mergedComponents = mutableListOf<Either.Right<Component>>()
+        val mergedComponents = mutableListOf<Component>()
 
         baseComponents.forEach { baseComponent ->
             val compareComponent = compareComponents.find {
                 compareComponents(baseComponent, it)
             }
             if (compareComponent != null) {
-                mergedComponents.add(Either.Right(mergeComponents(baseComponent, compareComponent)))
+                mergedComponents.add(mergeComponents(baseComponent, compareComponent))
                 compareComponents.remove(compareComponent)
             }
         }
