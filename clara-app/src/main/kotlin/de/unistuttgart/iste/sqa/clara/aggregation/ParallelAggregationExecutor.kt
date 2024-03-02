@@ -5,10 +5,7 @@ import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManager) : AggregationExecutor {
 
@@ -26,7 +23,7 @@ class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManag
             withContext(coroutineContext) {
                 aggregatorManager
                     .aggregators
-                    .map { async { it.aggregate() } }
+                    .map { async(Dispatchers.IO) { it.aggregate() } }
                     .awaitAll()
             }
         }
