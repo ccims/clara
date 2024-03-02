@@ -34,7 +34,7 @@ class GropiusGraphQLClient(
 
     override suspend fun <T : Any> execute(request: GraphQLClientRequest<T>): Either<GraphQLClient.RequestError, T> {
         if (!this::graphQLClient.isInitialized || !this::currentToken.isInitialized || currentToken.isExpired()) {
-            log.debug { "Requesting a new authentication token ${if (this::currentToken.isInitialized && currentToken.isExpired()) "because the old one is expired " else ""}..." }
+            log.debug { "Requesting a new Gropius-GraphQL authentication token ${if (this::currentToken.isInitialized && currentToken.isExpired()) "because the old one is expired " else ""}..." }
             currentToken = getAuthenticationToken().getOrElse { return it.left() }
             log.debug { "Got a new authentication token which expires in ${Duration.between(Instant.now(), currentToken.expiresAt).toKotlinDuration()}" }
 

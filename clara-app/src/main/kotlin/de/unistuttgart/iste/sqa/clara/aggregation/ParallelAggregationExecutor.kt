@@ -7,7 +7,10 @@ import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 
-class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManager) : AggregationExecutor {
+class ParallelAggregationExecutor(
+    private val aggregatorManager: AggregatorManager,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : AggregationExecutor {
 
     private val log = KotlinLogging.logger {}
 
@@ -20,12 +23,14 @@ class ParallelAggregationExecutor(private val aggregatorManager: AggregatorManag
         log.info { "Start aggregation process ..." }
 
         val aggregationResult = runBlocking {
-            withContext(coroutineContext) {
-                aggregatorManager
-                    .aggregators
-                    .map { async(Dispatchers.IO) { it.aggregate() } }
-                    .awaitAll()
-            }
+            aggregatorManager
+                .aggregators
+                .map { aggregator ->
+                    async(dispatcher) {
+                        aggregator.aggregate()
+                    }
+                }
+                .awaitAll()
         }
 
         log.info { "Finished aggregation process" }

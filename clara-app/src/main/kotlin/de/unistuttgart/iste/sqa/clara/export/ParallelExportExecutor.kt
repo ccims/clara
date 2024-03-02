@@ -7,7 +7,10 @@ import de.unistuttgart.iste.sqa.clara.api.model.Component
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 
-class ParallelExportExecutor(private val exporterManager: ExporterManager) : ExportExecutor {
+class ParallelExportExecutor(
+    private val exporterManager: ExporterManager,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : ExportExecutor {
 
     private val log = KotlinLogging.logger {}
 
@@ -27,19 +30,17 @@ class ParallelExportExecutor(private val exporterManager: ExporterManager) : Exp
         val uniqueCommunications = communications.toSet()
 
         val exportFailures = runBlocking {
-            withContext(coroutineContext) {
-                exporterManager
-                    .exporters
-                    .map { exporter ->
-                        async(Dispatchers.IO) {
-                            exporter
-                                .export(uniqueComponents, uniqueCommunications)
-                                .getOrNull()
-                        }
+            exporterManager
+                .exporters
+                .map { exporter ->
+                    async(dispatcher) {
+                        exporter
+                            .export(uniqueComponents, uniqueCommunications)
+                            .getOrNull()
                     }
-                    .awaitAll()
-                    .filterNotNull()
-            }
+                }
+                .awaitAll()
+                .filterNotNull()
         }
 
         log.info { "Finished export process" }
