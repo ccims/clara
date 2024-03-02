@@ -34,29 +34,27 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         val spans = runBlocking { spanProvider.getSpans() }
         process(spans)
 
-        // TODO the entire mapping needs to be discussed
-        val components = serviceMap.values.map {
+        // We assume that internal components that are part of any action send a trace, thus after merging all unnamed services, the leftovers have to be external
+        val internalComponents = serviceMap.values.map {
             AggregatedComponent.Internal.OpenTelemetryComponent(
                 name = AggregatedComponent.Name(it.name?.value!!),
-                domain = Domain(it.hostName?.value ?: throw UnsupportedOperationException("TODO")),
+                domain = Domain(it.hostName?.value ?: "not-found-domain"),
                 paths = it.paths.toComponentPaths(),
             )
         }
 
-        val unnamedComponents = unnamedServices.values.map {
-            AggregatedComponent.Internal.OpenTelemetryComponent(
-                name = AggregatedComponent.Name(it.name?.value ?: "not-found-name"),
-                domain = Domain(it.hostName?.value ?: throw UnsupportedOperationException("TODO")),
-                paths = it.paths.toComponentPaths(),
+        val externalComponents = unnamedServices.values.map {
+            AggregatedComponent.External(
+                name = AggregatedComponent.Name(it.hostName?.value!!),
+                domain = Domain(it.hostName.value),
             )
         }
 
-        val mergedComponents = (components + unnamedComponents).toSet()
+        val components = (internalComponents + externalComponents).toSet()
 
-        // TODO make a differentiation to external services -> if no name is available we might assume it is external
         val communications = relations.map { relation ->
-            val caller = mergedComponents.find { component -> component.name.value == relation.caller.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.caller.hostName?.value }
-            val callee = mergedComponents.find { component -> component.name.value == relation.callee.name?.value } ?: mergedComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
+            val caller = internalComponents.find { component -> component.name.value == relation.caller.name?.value } ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
+            val callee = internalComponents.find { component -> component.name.value == relation.callee.name?.value } ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
             if (caller != null && callee != null) {
                 AggregatedCommunication(AggregatedCommunication.Source(caller.name), AggregatedCommunication.Target(callee.name))
             } else {
@@ -67,7 +65,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         log.info { "Done aggregating OpenTelemetry" }
 
         return Aggregation(
-            components = mergedComponents,
+            components = components,
             communications = communications,
         ).right()
     }
