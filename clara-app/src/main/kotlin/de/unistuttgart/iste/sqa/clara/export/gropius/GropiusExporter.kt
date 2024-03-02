@@ -1,19 +1,16 @@
 package de.unistuttgart.iste.sqa.clara.export.gropius
 
-import arrow.core.None
-import arrow.core.Option
-import arrow.core.Some
-import arrow.core.getOrElse
+import arrow.core.*
 import de.unistuttgart.iste.sqa.clara.api.export.ExportFailure
 import de.unistuttgart.iste.sqa.clara.api.export.Exporter
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GraphQLClient
 import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GropiusGraphQLClient
-import de.unistuttgart.iste.sqa.gropius.CreateComponent
-import de.unistuttgart.iste.sqa.gropius.GetProjectById
+import de.unistuttgart.iste.sqa.gropius.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import java.lang.UnsupportedOperationException
 import java.net.URL
 
 class GropiusExporter(private val config: Config) : Exporter {
@@ -67,23 +64,8 @@ class GropiusExporter(private val config: Config) : Exporter {
         //
         // 6. upload dataset
 
-        val result = runBlocking {
-            // TODO: run the correct queries and mutations
-            //graphQLClient.execute(DeleteRelation(DeleteRelation.Variables(id = "")))
-            graphQLClient.execute(
-                CreateComponent(
-                    CreateComponent.Variables(
-                        description = "asdf",
-                        name = "asdf2name",
-                        template = "cdfcfe50-3602-4ace-8d85-d8bccfe15cde"
-                    )
-                )
-            )
-        }.getOrElse {
-            return Some(ExportFailure("Gropius: errors while executing a GraphQL request: $it"))
-        }
-
-        println(result)
+        val dataSetComponents = addDatasetComponents(components)
+        addRelations(communications, dataSetComponents)
 
         log.info { "Done exporting to Gropius" }
 
@@ -122,44 +104,132 @@ class GropiusExporter(private val config: Config) : Exporter {
 //
 //        // TODO: error handling
 //    }
-//
-//    fun addDatasetComponents(components: Set<Component>) {
-//        val resultComponents = runBlocking {
-//            graphQLClient.execute(GetComponents())
-//        }
-//
-//        val createdComponentsIdList: MutableMap<Component, String> = mutableMapOf()
-//
-//        // check if exact component already exists
-//        for (component in components) {
-//            /*
-//            // TODO: decide if and how detected components are congruent with db entries (match by name, ip, id, ...)
-//
-//            var tmpId = ""
-//            // TODO: outsource component mapping to a config file or component object
-//            when (component) {
-//                is Component.Internal.Pod -> tmpId = "3fdb8e40-26f7-4621-82fa-394a77b55a88"
-//                is Component.Internal.Service -> tmpId = "3fdb8e40-26f7-4621-82fa-394a77b55a88"
-//                is Component.External -> TODO()
-//            }
-//            */
-//
-//            // TODO: change query to search for object in db
-//            val searchResult = resultComponents.data?.components?.nodes?.find { it.id == "TODO ID" }
-//            if (searchResult == null) {
-//
-//                val resultComponent = runBlocking {
-//                    graphQLClient.execute(CreateComponent(component))
-//                }
-//
-//                // TODO: is this the correct way of detecting unsuccessful mutations???
-//                val idResult = resultComponent.data?.createComponent?.component?.id;
-//                if (idResult != null) {
-//                    createdComponentsIdList[component] = idResult
-//                }
-//            } else {
-//                createdComponentsIdList[component] = searchResult.id
-//            }
-//        }
-//    }
+
+    private fun addDatasetComponents(components: Set<Component>): Set<GropiusComponent> {
+        val resultComponents = runBlocking {
+            graphQLClient.execute(GetAllComponents()).getOrElse {
+                throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+            }
+        }
+
+        val createdComponentsIdList: MutableSet<GropiusComponent> = mutableSetOf()
+
+        // check if exact component already exists
+        for (component in components) {
+
+            // TODO: decide if and how detected components are congruent with db entries (match by name, ip, id, ...)
+
+            // TODO: change query to search for object in db
+            val searchResult = resultComponents.components.nodes.find { it.name == component.name.value }
+            if (searchResult == null) {
+                val componentResult = runBlocking {
+                    val (description, template) = when (component) {
+                        is Component.InternalComponent -> Pair(component.ipAddress?.value ?: "nothing", "ed79a792-7cd3-40ba-8b75-42bac1fbbede") // microservice template
+                        is Component.ExternalComponent -> Pair(component.domain.value, "df765fb5-8085-414e-af4b-07cd97161d21") // general template
+                    }
+                    graphQLClient.execute(
+                        CreateComponent(
+                            CreateComponent.Variables(
+                                description = description,
+                                name = component.name.value,
+                                template = template,
+                                repositoryURL = "https://example.org" // in the future we might want to add the repo link gathered from the SBOM here
+                            )
+                        )
+                    )
+                }.getOrElse {
+                    // TODO: is this the correct way of detecting unsuccessful mutations???
+                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                }
+
+                // Add version to component
+                val versionResult = runBlocking {
+                    graphQLClient.execute(
+                        CreateComponentVersion(
+                            CreateComponentVersion.Variables(
+                                component = componentResult.createComponent.component.id,
+                                description = "v1.0", // TODO versioning
+                                name = "v1.0",
+                                version = "v1.0",
+                            )
+                        )
+                    )
+                }.getOrElse {
+                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                }
+
+                val componentId = GropiusComponent.ComponentId(componentResult.createComponent.component.id)
+                val versionId = GropiusComponent.ComponentVersionId(versionResult.createComponentVersion.componentVersion.id)
+                createdComponentsIdList.add(GropiusComponent(component, componentId, versionId))
+
+                // Add componentVersion to project
+                runBlocking {
+                    graphQLClient.execute(
+                        AddComponentVersionToProject(
+                            AddComponentVersionToProject.Variables(
+                                project = config.projectId,
+                                componentVersion = versionResult.createComponentVersion.componentVersion.id
+                            )
+                        )
+                    )
+                }.getOrElse {
+                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                }
+            } else {
+                val versionResult = runBlocking {
+                    graphQLClient.execute(
+                        GetComponentVersionById(
+                            GetComponentVersionById.Variables(
+                                id = searchResult.id
+                            )
+                        )
+                    )
+                }.getOrElse {
+                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                }
+
+                createdComponentsIdList.add(
+                    GropiusComponent(
+                        component = component,
+                        componentId = GropiusComponent.ComponentId(searchResult.id),
+                        componentVersionId = GropiusComponent.ComponentVersionId(versionResult.components.nodes.first().versions.nodes.first().id)
+                    )
+                )
+            }
+        }
+        return createdComponentsIdList
+    }
+
+    private fun addRelations(communications: Set<Communication>, gropiusComponents: Set<GropiusComponent>) {
+        for (communication in communications) {
+            val start = gropiusComponents.find { it.component.name == communication.source.componentName }?.componentVersionId ?: throw UnsupportedOperationException("TODO")
+            val end = gropiusComponents.find { it.component.name == communication.target.componentName }?.componentVersionId ?: throw UnsupportedOperationException("TODO")
+            runBlocking {
+                graphQLClient.execute(
+                    CreateRelation(
+                        CreateRelation.Variables(
+                            start = start.value,
+                            end = end.value,
+                            relTemplateId = "7bb43192-715b-44db-af2d-3eaba6f846ea" // General Relation Template
+                        )
+                    )
+                )
+            }.getOrElse {
+                throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+            }
+        }
+    }
+}
+
+data class GropiusComponent(
+    val component: Component,
+    val componentId: ComponentId,
+    val componentVersionId: ComponentVersionId,
+) {
+
+    @JvmInline
+    value class ComponentId(val value: String)
+
+    @JvmInline
+    value class ComponentVersionId(val value: String)
 }

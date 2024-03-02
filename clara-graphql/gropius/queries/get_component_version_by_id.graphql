@@ -1,0 +1,12 @@
+query GetComponentVersionById ($id: ID) {
+    components (filter: {id: {eq: $id}}){
+        nodes {
+            id
+            versions {
+                nodes {
+                    id
+                }
+            }
+        }
+    }
+}

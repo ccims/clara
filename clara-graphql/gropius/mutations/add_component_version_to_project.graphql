@@ -1,0 +1,13 @@
+mutation AddComponentVersionToProject($componentVersion: ID!, $project: ID!) {
+    addComponentVersionToProject(input: {
+        componentVersion: $componentVersion
+        project: $project
+    }) {
+        componentVersion {
+            id
+        }
+        project {
+            id
+        }
+    }
+}

@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.opentelemetry.api)
     implementation(libs.graphql.client)
+    implementation("io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64") // @SteveBinary, vielleicht weißt du wie man classifier in der KotlinDSL definiert
     implementation(libs.bundles.logging)
     implementation(libs.bundles.grpc)
 
