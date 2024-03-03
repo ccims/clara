@@ -8,7 +8,6 @@ import de.unistuttgart.iste.sqa.clara.api.export.ExportFailure
 import de.unistuttgart.iste.sqa.clara.api.export.Exporter
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
-import de.unistuttgart.iste.sqa.clara.config.ExportConfig.Exporters.GraphViz
 import de.unistuttgart.iste.sqa.clara.utils.process.readError
 import de.unistuttgart.iste.sqa.clara.utils.process.startChecked
 import de.unistuttgart.iste.sqa.clara.utils.process.writeOutput
@@ -29,10 +28,6 @@ class GraphVizExporter(private val config: Config) : Exporter {
 
     override fun export(components: Set<Component>, communications: Set<Communication>): Option<ExportFailure> {
         log.info { "Export to GraphViz ..." }
-
-        if (config.outputType !in GraphViz.ALLOWED_TYPES) {
-            return Some(ExportFailure("GraphViz: Cannot export with GraphViz because the type '${config.outputType}' is not supported! Supported types are: ${GraphViz.ALLOWED_TYPES}"))
-        }
 
         val graphVizVersion = getGraphVizVersion().getOrElse { return Some(it) }
         log.info { "Using GraphViz version: $graphVizVersion" }

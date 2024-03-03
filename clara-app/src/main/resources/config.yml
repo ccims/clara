@@ -19,7 +19,7 @@ aggregation:
 export:
   exporters:
     graphviz:
-      output-type: svg
+      output-type: SVG
       output-file: generated/architecture.svg
     gropius:
       project-id: f803acea-a8c9-4a80-a5a7-881e7e084767

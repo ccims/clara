@@ -89,7 +89,7 @@ All options with a default value are optional.
 ??? config-option "**_export.on-empty_**"
     - Type: Boolean
     - Default: false
-    - Description: If `true`, CLARA will export the recovered using the enabled exporters, even if the architecture is completely empty.
+    - Description: If `true`, CLARA will export the recovered architecture using the enabled exporters, even if the architecture is completely empty.
       This could be useful for debugging purposes.
 
 ### Exporter: GraphViz (optional)
@@ -100,12 +100,13 @@ All options with a default value are optional.
     - Description: Simple way to disable this exporter without removing all of its associated configuration.
 
 ??? config-option "**_export.exporters.graphviz.output-type_**"
-    - Type: String ([Output Formats supported by GraphViz](https://graphviz.org/docs/outputs/))
-    - Description: Although all GraphViz output formats can be specified, `svg` is known to work best.
+    - Type: String (one of `BMP`, `DOT`, `GIF`, `JPG`, `JPEG`, `JSON`, `PDF`, `PNG`, `SVG`, `TIFF`)
+    - Description: Output format of the export. `SVG` is known to work well and in most situations the best choice.
 
 ??? config-option "**_export.exporters.graphviz.output-file_**"
     - Type: String
     - Description: The file location (absolute or relative path) of the GraphViz output.
+    - Example: `generated/architecture.svg`
 
 ### Exporter: Gropius (optional)
 
@@ -168,7 +169,7 @@ export:
   exporters:
     graphviz:
       enable: true
-      output-type: svg
+      output-type: SVG
       output-file: generated/architecture.svg
     gropius:
       enable: true

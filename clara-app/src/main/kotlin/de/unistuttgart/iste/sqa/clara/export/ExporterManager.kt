@@ -14,7 +14,7 @@ class ExporterManager(exportConfig: ExportConfig) {
     val exporters: List<Exporter> = buildList {
 
         exportConfig.exporters?.graphviz?.ifEnabled { graphVizConfig ->
-            val config = GraphVizExporter.Config(graphVizConfig.outputType, graphVizConfig.outputFile)
+            val config = GraphVizExporter.Config(graphVizConfig.outputType.name.lowercase(), graphVizConfig.outputFile)
             add(GraphVizExporter(config))
             log.info { "Registered exporter: GraphViz" }
         }

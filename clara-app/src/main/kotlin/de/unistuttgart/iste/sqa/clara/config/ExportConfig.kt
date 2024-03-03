@@ -2,7 +2,6 @@ package de.unistuttgart.iste.sqa.clara.config
 
 import com.sksamuel.hoplite.ConfigAlias
 import com.sksamuel.hoplite.Masked
-import de.unistuttgart.iste.sqa.clara.config.ExportConfig.Exporters.GraphViz.Companion.ALLOWED_TYPES
 import java.net.URL
 
 /**
@@ -26,71 +25,27 @@ data class ExportConfig(
          *
          * @property enable Whether to enable this exporter.
          * @property outputFile The path and filename of the generated output by GraphViz.
-         * @property outputType The type of the output, e.g. 'png' or 'svg'. Specified in the list [ALLOWED_TYPES] from the [GraphViz Docs](https://graphviz.org/docs/outputs/).
+         * @property outputType The type of the output, e.g. 'PNG' or 'SVG'. See [GraphViz Docs](https://graphviz.org/docs/outputs/).
          */
         data class GraphViz(
             override val enable: Boolean = true,
             val outputFile: String,
-            val outputType: String,
+            val outputType: FileType,
         ) : Enable {
 
-            companion object {
+            @Suppress("unused")
+            enum class FileType {
 
-                val ALLOWED_TYPES = listOf(
-                    "bmp",
-                    "cgimage",
-                    "canon",
-                    "dot",
-                    "gv",
-                    "xdot",
-                    "xdot1.2",
-                    "xdot1.4",
-                    "eps",
-                    "exr",
-                    "fig",
-                    "gd",
-                    "gd2",
-                    "gif",
-                    "gtk",
-                    "ico",
-                    "imap",
-                    "imap_np",
-                    "ismap",
-                    "cmap",
-                    "cmapx",
-                    "cmapx_np",
-                    "jpg",
-                    "jpeg",
-                    "jpe",
-                    "jp2",
-                    "json",
-                    "json0",
-                    "dot_json",
-                    "xdot_json",
-                    "pdf",
-                    "pic",
-                    "pct",
-                    "pict",
-                    "plain",
-                    "plain-text",
-                    "png",
-                    "pov",
-                    "ps",
-                    "ps2",
-                    "psd",
-                    "sgi",
-                    "svg",
-                    "svgz",
-                    "tga",
-                    "tiff",
-                    "tk",
-                    "vml",
-                    "vrml",
-                    "wbmp",
-                    "webp",
-                    "xlib",
-                    "x11"
-                )
+                BMP,
+                DOT,
+                GIF,
+                JPG,
+                JPEG,
+                JSON,
+                PDF,
+                PNG,
+                SVG,
+                TIFF,
             }
         }
 
