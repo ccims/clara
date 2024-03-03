@@ -10,7 +10,6 @@ import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GropiusGraphQLClien
 import de.unistuttgart.iste.sqa.gropius.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import java.lang.UnsupportedOperationException
 import java.net.URL
 
 class GropiusExporter(private val config: Config) : Exporter {
@@ -42,14 +41,6 @@ class GropiusExporter(private val config: Config) : Exporter {
     override fun export(components: Set<Component>, communications: Set<Communication>): Option<ExportFailure> {
         log.info { "Export to Gropius ..." }
 
-        // 1. load configs
-        //    - defaults
-        //    - gropius project
-        //    - credentials
-        //
-        // 2. check project
-        //
-        //
         // 2. check templates
         // checkDatasetTemplates()
         //
@@ -64,6 +55,10 @@ class GropiusExporter(private val config: Config) : Exporter {
         //
         // 6. upload dataset
 
+        checkProject().onSome { exportFailure -> return Some(ExportFailure("Gropius: ${exportFailure.description}")) }
+
+        checkDatasetTemplates().onSome { exportFailure -> return Some(ExportFailure("Gropius: ${exportFailure.description}")) }
+
         val dataSetComponents = addDatasetComponents(components)
         addRelations(communications, dataSetComponents)
 
@@ -72,49 +67,63 @@ class GropiusExporter(private val config: Config) : Exporter {
         return None
     }
 
-    suspend fun checkProject() {
+    private fun checkProject(): Option<ExportFailure> {
+        val projectResult = runBlocking {
+            graphQLClient.execute(GetProjectById(GetProjectById.Variables(id = config.projectId)))
+        }
 
-        val projectResult = graphQLClient.execute(GetProjectById(GetProjectById.Variables(id = config.projectId)))
-        // TODO: throw error, when found projects with if are length 0
+        return when (projectResult) {
+            is Either.Left -> Some(ExportFailure("Cannot validate the existence of the project with the ID ${config.projectId} (${projectResult.value})"))
+            is Either.Right -> if (projectResult.value.projects.nodes.isEmpty()) Some(ExportFailure("The project with the ID ${config.projectId} does not exist!")) else None
+        }
     }
 
-//    suspend fun checkDatasetTemplates() {
-//        val resultComponents = graphQLClient.execute(GetComponentTemplates())
-//        val resultRelations = runBlocking {
-//            graphQLClient.execute(GetRelationTemplates())
-//        }
-//
-//        // TODO: check if required templates exist (see clara config)
-//
-//        val neededComponentTemplates: List<Any> = emptyList()
-//        val neededRelationTemplates: List<Any> = emptyList()
-//
-//        // TODO: generate required templates from
-//        /*
-//        val resultAddComponentTemplates = runBlocking {  // does batch processing work here?
-//            for (tmplComponent in neededComponentTemplates) {
-//                graphQLClient.execute(CreateComponentTemplate(tmplComponent))
-//            }
-//
-//            for (tmplRelation in neededRelationTemplates) {
-//                graphQLClient.execute(CreateRelationTemplate(tmplRelation))
-//            }
-//        }
-//         */
-//
-//        // TODO: error handling
-//    }
+    fun checkDatasetTemplates(): Option<ExportFailure> {
+        // TODO: are the component scoped under the project ID?
+        val componentTemplatesResult = runBlocking { graphQLClient.execute(GetAllComponentTemplates()) }
+        val relationTemplatesResult = runBlocking { graphQLClient.execute(GetAllRelationTemplates()) }
+
+        val componentTemplates = componentTemplatesResult
+            .map { result -> result.componentTemplates.nodes }
+            .getOrElse { error -> return Some(ExportFailure("Failed to query all component templates ($error)")) }
+
+        val relationTemplates = relationTemplatesResult
+            .map { result -> result.relationTemplates.nodes }
+            .getOrElse { error -> return Some(ExportFailure("Failed to query all relation templates ($error)")) }
+
+        // TODO: check if required templates exist (see clara config)
+
+        val neededComponentTemplates = emptyList<String>()
+        val neededRelationTemplates = emptyList<String>()
+
+        // TODO: generate required templates from
+        /*
+        val resultAddComponentTemplates = runBlocking {  // does batch processing work here?
+            for (tmplComponent in neededComponentTemplates) {
+                graphQLClient.execute(CreateComponentTemplate(tmplComponent))
+            }
+
+            for (tmplRelation in neededRelationTemplates) {
+                graphQLClient.execute(CreateRelationTemplate(tmplRelation))
+            }
+        }
+         */
+
+        // TODO: error handling
+
+        return None
+    }
 
     private fun addDatasetComponents(components: Set<Component>): Set<GropiusComponent> {
         val resultComponents = runBlocking {
             graphQLClient.execute(GetAllComponents()).getOrElse {
-                throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
             }
         }
 
-        val createdComponentsIdList: MutableSet<GropiusComponent> = mutableSetOf()
+        val createdGropiusComponents = mutableSetOf<GropiusComponent>()
 
-        // check if exact component already exists
+        // check if exact component already exists -> TODO: this should be configurable. Modes for existing components could be: fail, override, ...
         for (component in components) {
 
             // TODO: decide if and how detected components are congruent with db entries (match by name, ip, id, ...)
@@ -124,8 +133,8 @@ class GropiusExporter(private val config: Config) : Exporter {
             if (searchResult == null) {
                 val componentResult = runBlocking {
                     val (description, template) = when (component) {
-                        is Component.InternalComponent -> Pair(component.ipAddress?.value ?: "nothing", "ed79a792-7cd3-40ba-8b75-42bac1fbbede") // microservice template
-                        is Component.ExternalComponent -> Pair(component.domain.value, "df765fb5-8085-414e-af4b-07cd97161d21") // general template
+                        is Component.InternalComponent -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "ed79a792-7cd3-40ba-8b75-42bac1fbbede") // microservice template
+                        is Component.ExternalComponent -> Pair("Domain: ${component.domain.value}", "df765fb5-8085-414e-af4b-07cd97161d21") // general template
                     }
                     graphQLClient.execute(
                         CreateComponent(
@@ -139,7 +148,7 @@ class GropiusExporter(private val config: Config) : Exporter {
                     )
                 }.getOrElse {
                     // TODO: is this the correct way of detecting unsuccessful mutations???
-                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                    throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
                 }
 
                 // Add version to component
@@ -149,18 +158,18 @@ class GropiusExporter(private val config: Config) : Exporter {
                             CreateComponentVersion.Variables(
                                 component = componentResult.createComponent.component.id,
                                 description = "v1.0", // TODO versioning
-                                name = "v1.0",
-                                version = "v1.0",
+                                name = component.name.value,
+                                version = "1.0",
                             )
                         )
                     )
                 }.getOrElse {
-                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                    throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
                 }
 
                 val componentId = GropiusComponent.ComponentId(componentResult.createComponent.component.id)
                 val versionId = GropiusComponent.ComponentVersionId(versionResult.createComponentVersion.componentVersion.id)
-                createdComponentsIdList.add(GropiusComponent(component, componentId, versionId))
+                createdGropiusComponents.add(GropiusComponent(component, componentId, versionId))
 
                 // Add componentVersion to project
                 runBlocking {
@@ -173,7 +182,7 @@ class GropiusExporter(private val config: Config) : Exporter {
                         )
                     )
                 }.getOrElse {
-                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                    throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
                 }
             } else {
                 val versionResult = runBlocking {
@@ -185,10 +194,10 @@ class GropiusExporter(private val config: Config) : Exporter {
                         )
                     )
                 }.getOrElse {
-                    throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                    throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
                 }
 
-                createdComponentsIdList.add(
+                createdGropiusComponents.add(
                     GropiusComponent(
                         component = component,
                         componentId = GropiusComponent.ComponentId(searchResult.id),
@@ -197,7 +206,7 @@ class GropiusExporter(private val config: Config) : Exporter {
                 )
             }
         }
-        return createdComponentsIdList
+        return createdGropiusComponents
     }
 
     private fun addRelations(communications: Set<Communication>, gropiusComponents: Set<GropiusComponent>) {
@@ -215,21 +224,8 @@ class GropiusExporter(private val config: Config) : Exporter {
                     )
                 )
             }.getOrElse {
-                throw UnsupportedOperationException("Gropius: errors while executing a GraphQL request: $it") // FIXME proper handling
+                throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
             }
         }
     }
-}
-
-data class GropiusComponent(
-    val component: Component,
-    val componentId: ComponentId,
-    val componentVersionId: ComponentVersionId,
-) {
-
-    @JvmInline
-    value class ComponentId(val value: String)
-
-    @JvmInline
-    value class ComponentVersionId(val value: String)
 }
