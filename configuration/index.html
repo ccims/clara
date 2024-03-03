@@ -1169,7 +1169,7 @@ There you can also find other ways to set up the configuration to be effective, 
 <ul>
 <li>Type: Boolean</li>
 <li>Default: false</li>
-<li>Description: If <code>true</code>, CLARA will export the recovered using the enabled exporters, even if the architecture is completely empty.
+<li>Description: If <code>true</code>, CLARA will export the recovered architecture using the enabled exporters, even if the architecture is completely empty.
   This could be useful for debugging purposes.</li>
 </ul>
 </details>
@@ -1185,8 +1185,8 @@ There you can also find other ways to set up the configuration to be effective, 
 <details class="config-option">
 <summary><strong><em>export.exporters.graphviz.output-type</em></strong></summary>
 <ul>
-<li>Type: String (<a href="https://graphviz.org/docs/outputs/">Output Formats supported by GraphViz</a>)</li>
-<li>Description: Although all GraphViz output formats can be specified, <code>svg</code> is known to work best.</li>
+<li>Type: String (one of <code>BMP</code>, <code>DOT</code>, <code>GIF</code>, <code>JPG</code>, <code>JPEG</code>, <code>JSON</code>, <code>PDF</code>, <code>PNG</code>, <code>SVG</code>, <code>TIFF</code>)</li>
+<li>Description: Output format of the export. <code>SVG</code> is known to work well and in most situations the best choice.</li>
 </ul>
 </details>
 <details class="config-option">
@@ -1194,6 +1194,7 @@ There you can also find other ways to set up the configuration to be effective, 
 <ul>
 <li>Type: String</li>
 <li>Description: The file location (absolute or relative path) of the GraphViz output.</li>
+<li>Example: <code>generated/architecture.svg</code></li>
 </ul>
 </details>
 <h3 id="exporter-gropius-optional">Exporter: Gropius (optional)<a class="headerlink" href="#exporter-gropius-optional" title="Permanent link">&para;</a></h3>
@@ -1316,7 +1317,7 @@ There you can also find other ways to set up the configuration to be effective, 
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="w">  </span><span class="nt">exporters</span><span class="p">:</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="w">    </span><span class="nt">graphviz</span><span class="p">:</span>
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="w">      </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="w">      </span><span class="nt">output-type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">svg</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="w">      </span><span class="nt">output-type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SVG</span>
 </span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="w">      </span><span class="nt">output-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generated/architecture.svg</span>
 </span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="w">    </span><span class="nt">gropius</span><span class="p">:</span>
 </span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="w">      </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
