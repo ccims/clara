@@ -35,7 +35,7 @@ class App(private val config: ClaraConfig) {
         val aggregationFailures = aggregationResult.getLeft()
 
         if (aggregationFailures.isNotEmpty()) {
-            log.error { "Errors while aggregating: \n${aggregationFailures.indentedEnumeration { it.description }}" }
+            log.error { "Errors while aggregating: \n${aggregationFailures.indentedEnumeration { it.format() }}" }
         }
 
         val aggregations = aggregationResult.getRight().toSet()
@@ -43,7 +43,7 @@ class App(private val config: ClaraConfig) {
         val (mergeFailures, components, communications) = merger.merge(aggregations)
 
         if (mergeFailures.isNotEmpty()) {
-            log.error { "Errors while merging the results of the different aggregators: \n${mergeFailures.indentedEnumeration { it.description }}" }
+            log.error { "Errors while merging the results of the different aggregators: \n${mergeFailures.indentedEnumeration { it.format() }}" }
         }
 
         log.info { "Found ${components.size} components and ${communications.size} communications" }
@@ -53,7 +53,7 @@ class App(private val config: ClaraConfig) {
         } else {
             val exportFailures = exportExecutor.exportAll(components, communications)
             if (exportFailures.isNotEmpty()) {
-                log.error { "Errors while exporting: \n${exportFailures.indentedEnumeration { it.description }}" }
+                log.error { "Errors while exporting: \n${exportFailures.indentedEnumeration { it.format() }}" }
             }
         }
 

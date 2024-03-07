@@ -23,7 +23,7 @@ object KubernetesDnsLogAnalyzer : DnsLogAnalyzer {
 
     private object Regex {
 
-        private const val REGEX_FOR_SUCCESSFUL_DNS_QUERY = """\[INFO]\s(?<sourceIP>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d{1,5}\s-\s\d{1,5}\s"A\sIN\s(?<targetDomain>[a-zA-z0-9-_.]+).*NOERROR.*"""
+        private const val REGEX_FOR_SUCCESSFUL_DNS_QUERY = """\[INFO]\s(?<sourceIP>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d{1,5}\s-\s\d{1,5}\s".*IN\s(?<targetDomain>[a-zA-z0-9-_.]+).*NOERROR.*"""
         val successfulDnsQuery = Regex(REGEX_FOR_SUCCESSFUL_DNS_QUERY)
     }
 }

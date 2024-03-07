@@ -33,11 +33,11 @@ class KubeApiAggregator(
             Pair(
                 client
                     .getPodsFromNamespaces(config.namespaces, config.includeKubeNamespaces)
-                    .mapLeft { AggregationFailure(it.description) }
+                    .mapLeft { KubeApiAggregationFailure(it.description) }
                     .map { it.toSet() },
                 client
                     .getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
-                    .mapLeft { AggregationFailure(it.description) }
+                    .mapLeft { KubeApiAggregationFailure(it.description) }
                     .map { it.toSet() }
             )
         }

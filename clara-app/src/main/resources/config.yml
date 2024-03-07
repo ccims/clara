@@ -6,7 +6,7 @@ aggregation:
   platforms:
     kubernetes:
       namespaces:
-        - tea-store
+        - clara
       aggregators:
         kube-api:
         dns:

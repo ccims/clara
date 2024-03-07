@@ -3,6 +3,7 @@ package de.unistuttgart.iste.sqa.clara.export.gropius
 import arrow.core.*
 import de.unistuttgart.iste.sqa.clara.api.export.ExportFailure
 import de.unistuttgart.iste.sqa.clara.api.export.Exporter
+import de.unistuttgart.iste.sqa.clara.api.export.onFailure
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GraphQLClient
@@ -55,9 +56,9 @@ class GropiusExporter(private val config: Config) : Exporter {
         //
         // 6. upload dataset
 
-        checkProject().onSome { exportFailure -> return Some(ExportFailure("Gropius: ${exportFailure.description}")) }
+        checkProject().onFailure { return it }
 
-        checkDatasetTemplates().onSome { exportFailure -> return Some(ExportFailure("Gropius: ${exportFailure.description}")) }
+        checkDatasetTemplates().onFailure { return it }
 
         val dataSetComponents = addDatasetComponents(components)
         addRelations(communications, dataSetComponents)
@@ -67,29 +68,29 @@ class GropiusExporter(private val config: Config) : Exporter {
         return None
     }
 
-    private fun checkProject(): Option<ExportFailure> {
+    private fun checkProject(): Option<GropiusExportFailure> {
         val projectResult = runBlocking {
             graphQLClient.execute(GetProjectById(GetProjectById.Variables(id = config.projectId)))
         }
 
         return when (projectResult) {
-            is Either.Left -> Some(ExportFailure("Cannot validate the existence of the project with the ID ${config.projectId} (${projectResult.value})"))
-            is Either.Right -> if (projectResult.value.projects.nodes.isEmpty()) Some(ExportFailure("The project with the ID ${config.projectId} does not exist!")) else None
+            is Either.Left -> Some(GropiusExportFailure("Cannot validate the existence of the project with the ID ${config.projectId} (${projectResult.value})"))
+            is Either.Right -> if (projectResult.value.projects.nodes.isEmpty()) Some(GropiusExportFailure("The project with the ID ${config.projectId} does not exist!")) else None
         }
     }
 
-    fun checkDatasetTemplates(): Option<ExportFailure> {
+    private fun checkDatasetTemplates(): Option<GropiusExportFailure> {
         // TODO: are the component scoped under the project ID?
         val componentTemplatesResult = runBlocking { graphQLClient.execute(GetAllComponentTemplates()) }
         val relationTemplatesResult = runBlocking { graphQLClient.execute(GetAllRelationTemplates()) }
 
         val componentTemplates = componentTemplatesResult
             .map { result -> result.componentTemplates.nodes }
-            .getOrElse { error -> return Some(ExportFailure("Failed to query all component templates ($error)")) }
+            .getOrElse { error -> return Some(GropiusExportFailure("Failed to query all component templates ($error)")) }
 
         val relationTemplates = relationTemplatesResult
             .map { result -> result.relationTemplates.nodes }
-            .getOrElse { error -> return Some(ExportFailure("Failed to query all relation templates ($error)")) }
+            .getOrElse { error -> return Some(GropiusExportFailure("Failed to query all relation templates ($error)")) }
 
         // TODO: check if required templates exist (see clara config)
 

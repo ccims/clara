@@ -39,9 +39,9 @@ class GraphVizExporter(private val config: Config) : Exporter {
         try {
             Path(config.outputFile).normalize().createParentDirectories()
         } catch (ex: IOException) {
-            return Some(ExportFailure("GraphViz: Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
+            return Some(GraphVizExportFailure("Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
         } catch (ex: FileSystemException) {
-            return Some(ExportFailure("GraphViz: Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
+            return Some(GraphVizExportFailure("Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
         }
 
         val maybeExportFailure = executeExportProcess(graphvizCode)
@@ -57,7 +57,7 @@ class GraphVizExporter(private val config: Config) : Exporter {
         return versionAskProcess
             // for some reason the correct output is sent over the error stream
             .readError(timeout = 5.seconds)
-            .mapLeft { ExportFailure("GraphViz: Cannot get GraphViz version: ${it.description}") }
+            .mapLeft { GraphVizExportFailure("Cannot get GraphViz version: ${it.description}") }
             .map { it.substringAfter("version").trim() }
     }
 
@@ -70,6 +70,6 @@ class GraphVizExporter(private val config: Config) : Exporter {
                 write(System.lineSeparator())
                 flush()
             }
-            .map { ExportFailure("GraphViz: Cannot export: ${it.description}") }
+            .map { GraphVizExportFailure("Cannot export: ${it.description}") }
     }
 }

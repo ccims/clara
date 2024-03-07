@@ -28,10 +28,10 @@ class DynamicMerger : Merger {
 
         val initialFailures = buildList {
             if (components.isEmpty()) {
-                add(MergeFailure("No components to merge!"))
+                add(DynamicMergingFailure("No components to merge!"))
             }
             if (communications.isEmpty()) {
-                add(MergeFailure("No communications to merge!"))
+                add(DynamicMergingFailure("No communications to merge!"))
             }
         }
 

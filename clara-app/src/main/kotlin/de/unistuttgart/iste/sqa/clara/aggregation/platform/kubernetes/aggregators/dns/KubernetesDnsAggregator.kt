@@ -30,11 +30,11 @@ class KubernetesDnsAggregator(
 
         val (dnsLogs, knownPods, knownServices) = kubernetesClient.use { client ->
             val dnsLogs = client.getDnsLogs(config.sinceTime)
-                .getOrElse { return Either.Left(AggregationFailure(it.description)) }
+                .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
             val knownPods = client.getPodsFromNamespaces(config.namespaces, config.includeKubeNamespaces)
-                .getOrElse { return Either.Left(AggregationFailure(it.description)) }
+                .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
             val knownServices = client.getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
-                .getOrElse { return Either.Left(AggregationFailure(it.description)) }
+                .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
 
             Triple(dnsLogs, knownPods, knownServices)
         }
