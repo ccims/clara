@@ -1038,6 +1038,21 @@ For that feature to work correctly, it is crucial that the DNS server is configu
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="w">        </span><span class="no">loadbalance</span>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="w">    </span><span class="no">}</span>
 </span></code></pre></div></td></tr></table></div>
+<div class="admonition info">
+<p class="admonition-title">Other DNS servers</p>
+<p>Your cluster might come with additional DNS servers to reduce the load.
+A prominent example is the <a href="https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/">node-local-dns</a> for caching DNS.
+There, you must also enable the <code>log</code> plugin.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Compatible DNS servers</p>
+<p>Because CLARA analyzes the logged DNS queries,</p>
+<ol>
+<li>query logging must be activated</li>
+<li>the query logs must be compatible with the CoreDNS logs.</li>
+</ol>
+<p>Currently, CLARA analyzes all logs from the pods with the labels <code>k8s-app=kube-dns</code> or <code>k8s-app=node-local-dns</code> in the namespace <code>kube-system</code>.</p>
+</div>
 <h2 id="managed-kubernetes-cluster">Managed Kubernetes cluster<a class="headerlink" href="#managed-kubernetes-cluster" title="Permanent link">&para;</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Using a managed Kubernetes cluster from a service provider</p>
