@@ -12,20 +12,24 @@ data:
         protocols:
           grpc:
           http:
+      jaeger:
+        protocols:
+          thrift_http:
+            endpoint: "0.0.0.0:14268"
     
     processors:
     
     exporters:
       logging:
         verbosity: detailed
-      otlp:
-        endpoint: "clara-app:7878"
+      otlp/jaeger:
+        endpoint: "localhost:7878"
         tls:
           insecure: true
     
     service:
       pipelines:
         traces:
-          receivers: [otlp]
+          receivers: [otlp, jaeger]
           processors: []
-          exporters: [logging, otlp]
+          exporters: [logging, otlp/jaeger]

@@ -32,6 +32,8 @@ spec:
               memory: 400Mi
           ports:
             - containerPort: 4318
+            - containerPort: 4317
+            - containerPort: 14268
           volumeMounts:
             - name: otel-collector-config-vol
               mountPath: /conf

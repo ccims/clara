@@ -13,7 +13,7 @@ processors:
 exporters:
   logging:
     verbosity: detailed
-  otlp:
+  otlp/jaeger:
     endpoint: http://host.docker.internal:7878 # Has to be changed for deployment to CLARA's FQDN; this config is for running this container on local machines.
     tls:
       insecure: true
@@ -21,6 +21,6 @@ exporters:
 service:
   pipelines:
     traces:
-      receivers: [otlp]
+      receivers: [otlp, jaeger]
       processors: []
-      exporters: [logging, otlp]
+      exporters: [logging, otlp/jaeger]
