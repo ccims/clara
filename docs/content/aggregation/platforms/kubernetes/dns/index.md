@@ -29,6 +29,19 @@ data:
     }
 ```
 
+!!! info "Other DNS servers"
+    Your cluster might come with additional DNS servers to reduce the load.
+    A prominent example is the [node-local-dns](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/) for caching DNS.
+    There, you must also enable the `log` plugin.
+
+!!! warning "Compatible DNS servers"
+    Because CLARA analyzes the logged DNS queries,
+
+    1. query logging must be activated
+    2. the query logs must be compatible with the CoreDNS logs.
+
+    Currently, CLARA analyzes all logs from the pods with the labels `k8s-app=kube-dns` or `k8s-app=node-local-dns` in the namespace `kube-system`.
+
 ## Managed Kubernetes cluster
 
 !!! warning "Using a managed Kubernetes cluster from a service provider"

@@ -45,8 +45,6 @@ class KubernetesDnsAggregator(
         val queryAnalyzer = KubernetesDnsQueryAnalyzer(knownPods, knownServices)
         val communications = queryAnalyzer.analyze(dnsQueries)
 
-        log.info { "Done aggregating Kubernetes DNS" }
-
         val allComponentNames = (communications.map { it.source.componentName } + communications.map { it.target.componentName }).toSet()
 
         val allPodAndServiceNames = knownPods.map { it.name.value } + knownServices.map { it.name.value }
@@ -56,6 +54,9 @@ class KubernetesDnsAggregator(
             .filter { allPodAndServiceNames.contains(it.value).not() }
             .map { AggregatedComponent.External(name = AggregatedComponent.Name(it.value), domain = Domain(it.value)) }
             .toSet()
+
+        log.info { "Found ${externalComponents.size} components and ${communications.size} communications" }
+        log.info { "Done aggregating Kubernetes DNS" }
 
         return Aggregation(
             components = externalComponents,

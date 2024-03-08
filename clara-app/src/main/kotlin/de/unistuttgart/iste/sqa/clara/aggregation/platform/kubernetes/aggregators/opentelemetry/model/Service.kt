@@ -2,6 +2,7 @@ package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregato
 
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.api.model.Path
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 data class Service(
     val name: Name?,
@@ -11,6 +12,8 @@ data class Service(
     val hostIdentifier: HostIdentifier?,
     val paths: List<Path>,
 ) {
+
+    private val log = KotlinLogging.logger {}
 
     @JvmInline
     value class Name(val value: String)
@@ -52,7 +55,7 @@ data class Service(
                 if (value1 == value2) {
                     value1
                 } else {
-                    println("Clash in $propertyName. Choosing: $value1")
+                    log.debug { "Clash in $propertyName. Choosing: $value1" }
                     value1
                 }
             }

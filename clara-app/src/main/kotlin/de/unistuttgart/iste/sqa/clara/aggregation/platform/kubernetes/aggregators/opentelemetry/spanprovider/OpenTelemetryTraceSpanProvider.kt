@@ -21,7 +21,10 @@ class OpenTelemetryTraceSpanProvider(private val config: Config) : SpanProvider 
 
     private val spans = mutableListOf<Span>()
 
-    private val server = OpenTelemetryProtocolExporterServer(config.toServerConfig()) { spans.addAll(it) }
+    private val server = OpenTelemetryProtocolExporterServer(config.toServerConfig()) {
+        spans.addAll(it)
+        log.debug { "Received ${it.size} spans. Total spans: ${spans.size}" }
+    }
 
     override suspend fun getSpans(): List<Span> {
         log.debug { "Retrieving spans over a time of ${config.listenDuration} ..." }

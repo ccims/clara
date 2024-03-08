@@ -11,6 +11,7 @@ import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.Kub
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -49,13 +50,15 @@ class KubeApiAggregator(
             services.flatMap { it.selectedPods }.contains(pod).not()
         }
 
-        val aggregatedComponents = services.map(KubernetesService::asAggregatedComponent) + podsNotSelectedByAnyService.map(KubernetesPod::asAggregatedComponent)
+        val aggregatedComponents = (services.map(KubernetesService::asAggregatedComponent) + podsNotSelectedByAnyService.map(KubernetesPod::asAggregatedComponent)).toSet()
+        val communications = emptySet<AggregatedCommunication>() // this aggregator is not able to find communications
 
+        log.info { "Found ${aggregatedComponents.size} components and ${communications.size} communications" }
         log.info { "Done aggregating Kubernetes API" }
 
         return Aggregation(
-            components = aggregatedComponents.toSet(),
-            communications = emptySet(),
+            components = aggregatedComponents,
+            communications = communications,
         ).right()
     }
 }

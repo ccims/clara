@@ -46,7 +46,7 @@ class App(private val config: ClaraConfig) {
             log.error { "Errors while merging the results of the different aggregators: \n${mergeFailures.indentedEnumeration { it.format() }}" }
         }
 
-        log.info { "Found ${components.size} components and ${communications.size} communications" }
+        log.info { "Found in total ${components.size} components and ${communications.size} communications" }
 
         if (communications.isEmpty() && components.isEmpty() && !config.export.onEmpty) {
             log.info { "Skipping export" }

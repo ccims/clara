@@ -52,16 +52,17 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
         val components = (internalComponents + externalComponents).toSet()
 
-        val communications = relations.map { relation ->
+        val communications = relations.mapNotNull { relation ->
             val caller = internalComponents.find { component -> component.name.value == relation.caller.name?.value } ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
             val callee = internalComponents.find { component -> component.name.value == relation.callee.name?.value } ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
             if (caller != null && callee != null) {
                 AggregatedCommunication(AggregatedCommunication.Source(caller.name), AggregatedCommunication.Target(callee.name))
             } else {
-                throw UnsupportedOperationException()
+                null
             }
         }.toSet()
 
+        log.info { "Found ${components.size} components and ${communications.size} communications" }
         log.info { "Done aggregating OpenTelemetry" }
 
         return Aggregation(
