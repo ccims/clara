@@ -22,7 +22,7 @@ export:
       output-type: SVG
       output-file: generated/architecture.svg
     gropius:
-      project-id: f803acea-a8c9-4a80-a5a7-881e7e084767
+      project-id: 56735d0c-4838-46c3-aa7e-52d618ce6f31
       graphql-backend-url: http://devonport.informatik.uni-stuttgart.de:8082/graphql
       graphql-backend-authentication:
         authentication-url: http://devonport.informatik.uni-stuttgart.de:3000/authenticate/oauth/da7ea55f-da6a-49f4-8bba-cd8dd29f2ff5/token
