@@ -62,7 +62,7 @@ class DynamicMerger : Merger {
 
         val baseComponents = aggregatedComponents.filter { it::class.java == baseComponentType }
         val compareComponents = aggregatedComponents.filter { it::class.java == compareComponentType }.toMutableList()
-        val externalComponents = aggregatedComponents.filter { it::class.java == Component.ExternalComponent::class.java }
+        val externalComponents = aggregatedComponents.filter { it::class.java == AggregatedComponent.External::class.java }
 
         if (baseComponents.isEmpty() || compareComponents.isEmpty()) {
             return aggregatedComponents.map { it.toComponent() }
