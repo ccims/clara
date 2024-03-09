@@ -6,6 +6,7 @@ import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
+import de.unistuttgart.iste.sqa.clara.api.model.Domain
 
 internal fun KubernetesPod.asAggregatedComponent(): AggregatedComponent {
     return AggregatedComponent.Internal.KubernetesComponent(
@@ -39,5 +40,12 @@ internal fun AggregatedCommunication.toCommunication(): Communication {
     return Communication(
         source = Communication.Source(Component.Name(this.source.componentName.value)),
         target = Communication.Target(Component.Name(this.target.componentName.value)),
+    )
+}
+
+internal fun AggregatedComponent.External.toComponent(): Component {
+    return Component.ExternalComponent(
+        name = Component.Name(name.value),
+        domain = Domain(domain.value),
     )
 }

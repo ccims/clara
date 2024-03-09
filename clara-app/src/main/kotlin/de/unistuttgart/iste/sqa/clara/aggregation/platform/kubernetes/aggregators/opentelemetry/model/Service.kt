@@ -9,7 +9,6 @@ data class Service(
     val hostName: HostName?,
     val ipAddress: IpAddress?,
     val port: Port?,
-    val hostIdentifier: HostIdentifier?,
     val paths: List<Path>,
 ) {
 
@@ -27,16 +26,11 @@ data class Service(
     @JvmInline
     value class Path(val value: String)
 
-    // Combination from hostname and port, used to create keys for maps and differentiate different applications on the same host.
-    @JvmInline
-    value class HostIdentifier(val value: String)
-
     fun mergeWithOtherServiceObject(other: Service): Service {
         val mergedName = mergeProperty(name, other.name, "name")
         val mergedHostName = mergeProperty(hostName, other.hostName, "hostName")
         val mergedIpAddress = mergeProperty(ipAddress, other.ipAddress, "ipAddress")
         val mergedPort = mergeProperty(port, other.port, "port")
-        val mergedHostIdentifier = mergeProperty(hostIdentifier, other.hostIdentifier, "hostIdentifier")
         val mergedEndpoints = mergeEndpoints(paths, other.paths)
 
         return Service(
@@ -45,7 +39,6 @@ data class Service(
             ipAddress = mergedIpAddress,
             port = mergedPort,
             paths = mergedEndpoints,
-            hostIdentifier = mergedHostIdentifier,
         )
     }
 

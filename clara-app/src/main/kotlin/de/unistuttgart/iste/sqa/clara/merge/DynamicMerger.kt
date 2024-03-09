@@ -40,6 +40,7 @@ class DynamicMerger : Merger {
             return Merge(failures = initialFailures, components = emptyList(), communications = emptyList())
         }
 
+        // TODO check what happens with external components, they are probably discarded
         // For now, we only have those two service types.
         val mergedComponents = compareAndMergeComponents(
             components,
@@ -61,6 +62,7 @@ class DynamicMerger : Merger {
 
         val baseComponents = aggregatedComponents.filter { it::class.java == baseComponentType }
         val compareComponents = aggregatedComponents.filter { it::class.java == compareComponentType }.toMutableList()
+        val externalComponents = aggregatedComponents.filter { it::class.java == Component.ExternalComponent::class.java }
 
         if (baseComponents.isEmpty() || compareComponents.isEmpty()) {
             return aggregatedComponents.map { it.toComponent() }
@@ -77,7 +79,7 @@ class DynamicMerger : Merger {
                 compareComponents.remove(compareComponent)
             }
         }
-        return mergedComponents
+        return mergedComponents + externalComponents.map { it.toComponent() }
     }
 
     // TODO more complex comparison based on attributes if names do not match

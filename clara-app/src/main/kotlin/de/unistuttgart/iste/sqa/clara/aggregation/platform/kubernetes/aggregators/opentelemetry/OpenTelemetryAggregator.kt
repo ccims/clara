@@ -25,7 +25,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
     private val serviceMap: MutableMap<Service.Name, Service> = mutableMapOf()
     private val relations: MutableList<Relation> = mutableListOf()
-    private val unnamedServices: MutableMap<Service.HostIdentifier, Service> = mutableMapOf()
+    private val unnamedServices: MutableMap<Service.HostName, Service> = mutableMapOf()
     private val unresolvableServices: MutableList<Service> = mutableListOf()
 
     override fun aggregate(): Either<AggregationFailure, Aggregation> {
@@ -53,8 +53,10 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         val components = (internalComponents + externalComponents).toSet()
 
         val communications = relations.mapNotNull { relation ->
-            val caller = internalComponents.find { component -> component.name.value == relation.caller.name?.value } ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
-            val callee = internalComponents.find { component -> component.name.value == relation.callee.name?.value } ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
+            val caller = internalComponents.find { component -> component.name.value == relation.caller.name?.value }
+                ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
+            val callee = internalComponents.find { component -> component.name.value == relation.callee.name?.value || component.name.value == relation.callee.hostName?.value }
+                ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
             if (caller != null && callee != null) {
                 AggregatedCommunication(AggregatedCommunication.Source(caller.name), AggregatedCommunication.Target(callee.name))
             } else {
@@ -91,16 +93,16 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
     private fun mergeServiceMaps() {
 
         val processedUnnamedService = mutableListOf<Service>()
-        unnamedServices.forEach { (hostIdentifier, unnamedService) ->
-            val serviceViaIdentifier = serviceMap.filter { (_, service) -> service.hostIdentifier == hostIdentifier }.values.firstOrNull()
-            val service = if (serviceViaIdentifier == null && unnamedService.paths.isNotEmpty()) {
+        unnamedServices.forEach { (hostName, unnamedService) ->
+            val serviceViaHostName = serviceMap.filter { (_, service) -> service.hostName == hostName || service.name?.value == hostName.value }.values.firstOrNull()
+            val service = if (serviceViaHostName == null && unnamedService.paths.isNotEmpty()) {
                 // TODO this might be to unsafe
                 serviceMap.filter { (_, service) ->
                     service.paths.isNotEmpty()
                             && (service.paths.containsAll(unnamedService.paths) || unnamedService.paths.containsAll(service.paths))
                 }.values.firstOrNull()
             } else {
-                serviceViaIdentifier
+                serviceViaHostName
             }
             if (service != null) {
                 val mergedService = service.mergeWithOtherServiceObject(unnamedService)
@@ -108,7 +110,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 processedUnnamedService.add(unnamedService)
             }
         }
-        processedUnnamedService.forEach { unnamedServices.remove(it.hostIdentifier) }
+        processedUnnamedService.forEach { unnamedServices.remove(it.hostName) }
     }
 
     private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation = when (span.kind) {
@@ -144,7 +146,6 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         val client = Service(
             name = spanInformation.clientServiceName,
             hostName = null, // For now a client does not have a hostname
-            hostIdentifier = null, // For now a client does not have a hostname
             ipAddress = spanInformation.clientIpAddress,
             port = spanInformation.clientPort,
             paths = emptyList() // For now a client does not have an path
@@ -154,7 +155,6 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         val server = Service(
             name = spanInformation.serverServiceName,
             hostName = spanInformation.serverHostname,
-            hostIdentifier = spanInformation.serverHostIdentifier,
             ipAddress = spanInformation.serverIpAddress,
             port = spanInformation.serverPort,
             paths = if (spanInformation.serverPath != null) {
@@ -179,13 +179,13 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 val updatedService = service.mergeWithOtherServiceObject(oldService)
                 serviceMap[service.name] = updatedService
             }
-        } else if (service.hostIdentifier != null) {
-            if (!unnamedServices.containsKey(service.hostIdentifier)) {
-                unnamedServices[service.hostIdentifier] = service
+        } else if (service.hostName != null) {
+            if (!unnamedServices.containsKey(service.hostName)) {
+                unnamedServices[service.hostName] = service
             } else {
-                val oldService = unnamedServices[service.hostIdentifier]!! // FIXME: save access, this could cause a NullPointerException
+                val oldService = unnamedServices[service.hostName]!! // FIXME: save access, this could cause a NullPointerException
                 val updatedService = service.mergeWithOtherServiceObject(oldService)
-                unnamedServices[service.hostIdentifier] = updatedService
+                unnamedServices[service.hostName] = updatedService
             }
         }
     }
@@ -199,7 +199,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         // filter all values that surely belong to the server side, then try to find more info with reg-exes
         val possibleKeyNamesForServerAttributes = listOf(
             // TODO apparently htt.url can be in some cases the client address
-            "server.address", "server.port", "network.peer.address", "peer.hostname", "peer.address", "db.name", "http.uri", "http.url", "http.target", "uri", "url",
+            "server.address", "server.port", "network.peer.address", "peer.hostname", "peer.address", "net.peer.name", "net.peer.port", "db.connection_string", "http.uri", "http.url", "http.target", "uri", "url",
         )
 
         // filter all values that surely belong to the client side, then try to find more info with reg-exes
@@ -214,19 +214,12 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             it.key.lowercase() in possibleKeyNamesForClientAttributes
         }.values
 
-        // TODO especially take a look for kubernetes internal names
-        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
+        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
         val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value } // TODO not found, regex might not work for fqdns
+        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value } // TODO regex too lazy returns entire url
         val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
 
-        val serverHostIdentifier = if (serverPort != null) {
-            "${serverHostName}:${serverPort}"
-        } else {
-            serverHostName
-        }
-
-        val clientHostName = possibleClientValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
+        val clientHostName = possibleClientValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
         val clientIpAddress = possibleClientValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
         val clientPort = possibleClientValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
 
@@ -234,7 +227,6 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             clientServiceName = clientSpan.serviceName,
             serverServiceName = serverServiceName?.let { Service.Name(serverServiceName) },
             serverHostname = serverHostName?.let { Service.HostName(serverHostName) },
-            serverHostIdentifier = serverHostIdentifier?.let { Service.HostIdentifier(serverHostIdentifier) },
             serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
             serverPath = serverPath?.let { Service.Path(serverPath) },
             serverPort = serverPort?.let { Service.Port(serverPort) },
@@ -246,36 +238,29 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
     private fun extractInformationFromServerSpan(serverSpan: Span): SpanInformation {
         // extract server information: especially service name and the paths if available.
-        // best case would be some FQDN that one could later merge with the hostIdentifiers of the unnamed services
+        // best case would be some FQDN that one could later merge with the hostNames of the unnamed services
         // if not available merging via other attributes such as paths could be tried
 
         // filter all values that surely belong to the server side, then try to find more info with reg-exes
         val possibleKeyNamesForServerAttributes = listOf(
-            "server.address", "server.port", "http.uri", "http.url", "uri", "url",
+            "server.address", "server.port", "http.uri", "http.url", "uri", "url", "http.target", "net.sock.host.addr", "net.sock.host.port",
         )
 
         val possibleServerValues = serverSpan.attributes.filter {
             it.key.lowercase() in possibleKeyNamesForServerAttributes
         }.values
 
-        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.removePrefix("https://")?.removePrefix("http://")
+        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
         val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value } // TODO not found, regex might not work for fqdns
+        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value } // TODO regex too lazy returns entire url
         val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
 
-        val serverHostIdentifier = if (serverPort != null) {
-            "${serverHostName}:${serverPort}"
-        } else {
-            serverHostName
-        }
-
-        // TODO check for possible client attributes
+        // TODO check for possible client attributes "net.sock.peer.addr"
         // TODO ensure it works properly
         return SpanInformation(
             clientServiceName = null,
             serverServiceName = serverSpan.serviceName,
             serverHostname = serverHostName?.let { Service.HostName(serverHostName) },
-            serverHostIdentifier = serverHostIdentifier?.let { Service.HostIdentifier(serverHostIdentifier) },
             serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
             serverPath = serverPath?.let { Service.Path(serverPath) },
             serverPort = serverPort?.let { Service.Port(serverPort) },
@@ -288,7 +273,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
     // For now, we simply add every relation even if it duplicates. In the end a filtering could be done.
     private fun setRelations(spanInformation: SpanInformation) {
         val caller = serviceMap[spanInformation.clientServiceName] ?: throw UnsupportedOperationException()
-        val callee = serviceMap[spanInformation.serverServiceName] ?: unnamedServices[spanInformation.serverHostIdentifier] ?: throw UnsupportedOperationException() // Todo its unlikely we have the serverServiceName often, we need resilience here
+        val callee = serviceMap[spanInformation.serverServiceName] ?: unnamedServices[spanInformation.serverHostname] ?: throw UnsupportedOperationException() // Todo its unlikely we have the serverServiceName often, we need resilience here
         val path = callee.paths.find { it == spanInformation.serverPath }
         val relation = Relation(
             owner = caller, // The caller always owns the call
