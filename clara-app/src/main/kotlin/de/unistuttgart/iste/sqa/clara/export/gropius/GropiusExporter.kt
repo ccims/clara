@@ -212,20 +212,24 @@ class GropiusExporter(private val config: Config) : Exporter {
 
     private fun addRelations(communications: Set<Communication>, gropiusComponents: Set<GropiusComponent>) {
         for (communication in communications) {
-            val start = gropiusComponents.find { it.component.name == communication.source.componentName }?.componentVersionId ?: throw UnsupportedOperationException("TODO")
-            val end = gropiusComponents.find { it.component.name == communication.target.componentName }?.componentVersionId ?: throw UnsupportedOperationException("TODO")
-            runBlocking {
-                graphQLClient.execute(
-                    CreateRelation(
-                        CreateRelation.Variables(
-                            start = start.value,
-                            end = end.value,
-                            relTemplateId = "7bb43192-715b-44db-af2d-3eaba6f846ea" // General Relation Template
+            val start = gropiusComponents.find { it.component.name == communication.source.componentName }?.componentVersionId
+            val end = gropiusComponents.find { it.component.name == communication.target.componentName }?.componentVersionId
+            if (start == null ||  end == null) {
+                log.error { "No relation can be added. Start: ${start?.value} End: ${end?.value}"}
+            } else {
+                runBlocking {
+                    graphQLClient.execute(
+                        CreateRelation(
+                            CreateRelation.Variables(
+                                start = start.value,
+                                end = end.value,
+                                relTemplateId = "7bb43192-715b-44db-af2d-3eaba6f846ea" // General Relation Template
+                            )
                         )
                     )
-                )
-            }.getOrElse {
-                throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
+                }.getOrElse {
+                    throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
+                }
             }
         }
     }
