@@ -29,13 +29,18 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
     private val unnamedServices: MutableMap<Service.HostName, Service> = mutableMapOf()
     private val unresolvableServices: MutableList<Service> = mutableListOf()
 
+    /**
+     * Collects spans for the configured time, then calls process to process them and merge the found information into an Aggregation.
+     *
+     * We assume that internal components that are part of any action send a trace, thus after merging all unnamed services, the leftovers have to be external.
+     * If there are falsely as external labeled internal components, they might be merged in the [de.unistuttgart.iste.sqa.clara.merge.DynamicMerger].
+     */
     override fun aggregate(): Either<AggregationFailure, Aggregation> {
         log.info { "Aggregate OpenTelemetry ..." }
 
         val spans = runBlocking { spanProvider.getSpans() }
         process(spans)
 
-        // We assume that internal components that are part of any action send a trace, thus after merging all unnamed services, the leftovers have to be external
         val internalComponents = serviceMap.values.map {
             AggregatedComponent.Internal.OpenTelemetryComponent(
                 name = AggregatedComponent.Name(it.name?.value!!),
@@ -74,14 +79,15 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         ).right()
     }
 
-    // Proceeding of all ingoing spans via oTel grpc interface
-    // components and relations of them are discovered here
+    /**
+     * Processing of all ingoing spans, collected via oTel grpc interface.
+     *
+     * @param spans the collected spans.
+     */
     private fun process(spans: List<Span>) {
         spans.forEach { span ->
-            //// 1 update services
             runCatching {
                 val relationInformation = extractRelationInformationAndUpdateServices(span)
-                //// 2  Discover relations between services
                 setRelations(relationInformation)
             }.getOrElse {
                 log.error { "Exception encountered during span extraction: $it" }
@@ -122,18 +128,15 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         }
 
         Span.Kind.Consumer -> {
-            log.warn { "Consumer span identified" }
-            throw UnsupportedOperationException()
+            throw UnsupportedOperationException("Consumer span identified")
         }
 
         Span.Kind.Producer -> {
-            log.warn { "Producer span identified" }
-            throw UnsupportedOperationException()
+            throw UnsupportedOperationException("Producer span identified")
         }
 
         Span.Kind.Internal -> {
-            log.warn { "Internal span identified" }
-            throw UnsupportedOperationException()
+            throw UnsupportedOperationException("Internal span identified")
         }
     }
 
@@ -206,7 +209,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 )
             }
 
-            else -> throw UnsupportedOperationException("This message only handles Client and Server Spans")
+            else -> throw UnsupportedOperationException("This method only handles Client and Server Spans")
         }
 
         val possibleServerValues = span.attributes.filter {
@@ -220,7 +223,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         val (clientServiceName, serverServiceName) = when (span.kind) {
             Span.Kind.Server -> null to span.serviceName
             Span.Kind.Client -> span.serviceName to span.attributes.filter { it.key == "peer.service" || it.key == "network.peer.service" }.values.firstOrNull()?.let { serviceName -> Service.Name(serviceName) }
-            else -> throw UnsupportedOperationException("This message only handles Client and Server Spans")
+            else -> throw UnsupportedOperationException("This method only handles Client and Server Spans")
         }
 
         val serverHostName = possibleServerValues.findHostName()
@@ -249,10 +252,9 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         )
     }
 
-    // For now, we simply add every relation even if it duplicates. In the end a filtering could be done.
     private fun setRelations(spanInformation: SpanInformation) {
-        val caller = serviceMap[spanInformation.client.serviceName] ?: throw UnsupportedOperationException()
-        val callee = serviceMap[spanInformation.server.serviceName] ?: unnamedServices[spanInformation.server.hostName] ?: throw UnsupportedOperationException()
+        val caller = serviceMap[spanInformation.client.serviceName] ?: return
+        val callee = serviceMap[spanInformation.server.serviceName] ?: unnamedServices[spanInformation.server.hostName] ?: return
         val path = callee.paths.find { it == spanInformation.server.path }
         val relation = Relation(
             owner = caller, // The caller always owns the call
