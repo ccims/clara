@@ -1,9 +1,9 @@
 package de.unistuttgart.iste.sqa.clara.merge
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toCommunication
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toComponent
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.merge.Merge
-import de.unistuttgart.iste.sqa.clara.api.merge.MergeFailure
 import de.unistuttgart.iste.sqa.clara.api.merge.Merger
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Component
@@ -40,7 +40,6 @@ class DynamicMerger : Merger {
             return Merge(failures = initialFailures, components = emptyList(), communications = emptyList())
         }
 
-        // TODO check what happens with external components, they are probably discarded
         // For now, we only have those two service types.
         val mergedComponents = compareAndMergeComponents(
             components,
@@ -62,7 +61,7 @@ class DynamicMerger : Merger {
 
         val baseComponents = aggregatedComponents.filter { it::class.java == baseComponentType }
         val compareComponents = aggregatedComponents.filter { it::class.java == compareComponentType }.toMutableList()
-        val externalComponents = aggregatedComponents.filter { it::class.java == AggregatedComponent.External::class.java }
+        val externalComponents = aggregatedComponents.filter { it::class.java == AggregatedComponent.External::class.java }.toMutableList()
 
         if (baseComponents.isEmpty() || compareComponents.isEmpty()) {
             return aggregatedComponents.map { it.toComponent() }
@@ -71,15 +70,27 @@ class DynamicMerger : Merger {
         val mergedComponents = mutableListOf<Component>()
 
         baseComponents.forEach { baseComponent ->
-            val compareComponent = compareComponents.find {
-                compareComponents(baseComponent, it)
-            }
-            if (compareComponent != null) {
-                mergedComponents.add(mergeComponents(baseComponent, compareComponent))
-                compareComponents.remove(compareComponent)
+
+            val compareComponent = compareComponents.find { compareComponents(baseComponent, it) }
+            // It is possible that oTel marks components as external when they do not provide traces. If there is a matching k8s component, they will be merged here.
+            val externalCompareComponent = externalComponents.find { compareComponents(baseComponent, it) }
+            when {
+                compareComponent != null -> {
+                    mergedComponents.add(mergeComponents(baseComponent, compareComponent))
+                    compareComponents.remove(compareComponent)
+                }
+
+                externalCompareComponent != null -> {
+                    mergedComponents.add(mergeComponents(baseComponent, externalCompareComponent))
+                    externalComponents.remove(externalCompareComponent)
+                }
+
+                else -> {
+                    mergedComponents.add(baseComponent.toComponent())
+                }
             }
         }
-        return mergedComponents + externalComponents.map { it.toComponent() }
+        return mergedComponents + externalComponents.map { it.toComponent() } + compareComponents.map { it.toComponent() }
     }
 
     // TODO more complex comparison based on attributes if names do not match
@@ -95,11 +106,17 @@ class DynamicMerger : Merger {
                     compareComponent as AggregatedComponent.Internal.OpenTelemetryComponent
                 )
 
+            baseComponent::class.java == AggregatedComponent.Internal.KubernetesComponent::class.java &&
+                    compareComponent::class.java == AggregatedComponent.External::class.java ->
+                mergeKubernetesComponentWithExternalComponent(
+                    baseComponent as AggregatedComponent.Internal.KubernetesComponent,
+                    compareComponent as AggregatedComponent.External
+                )
+
             else -> throw UnsupportedOperationException("We can not merge those components yet (${baseComponent::class.java.name} and ${compareComponent::class.java.name}).")
         }
     }
 
-    // TODO this is very rudimentary yet
     private fun mergeKubernetesComponentWithOpenTelemetryComponent(
         baseComponent: AggregatedComponent.Internal.KubernetesComponent,
         compareComponent: AggregatedComponent.Internal.OpenTelemetryComponent,
@@ -111,27 +128,17 @@ class DynamicMerger : Merger {
             endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, compareComponent.paths),
         )
     }
-}
 
-private fun AggregatedComponent.toComponent(): Component {
-    return when (this) {
-        is AggregatedComponent.External -> Component.ExternalComponent(
-            name = Component.Name(this.name.value),
-            domain = this.domain
-        )
-
-        is AggregatedComponent.Internal.KubernetesComponent -> Component.InternalComponent(
-            name = Component.Name(this.name.value),
-            namespace = this.namespace,
-            ipAddress = this.ipAddress,
-            endpoints = null,
-        )
-
-        is AggregatedComponent.Internal.OpenTelemetryComponent -> Component.InternalComponent(
-            name = Component.Name(this.name.value),
-            namespace = null,
-            ipAddress = null,
-            endpoints = Component.InternalComponent.Endpoints(this.domain, this.paths)
+    private fun mergeKubernetesComponentWithExternalComponent(
+        baseComponent: AggregatedComponent.Internal.KubernetesComponent,
+        compareComponent: AggregatedComponent.External,
+    ): Component.InternalComponent {
+        return Component.InternalComponent(
+            name = Component.Name(baseComponent.name.value),
+            namespace = baseComponent.namespace,
+            ipAddress = baseComponent.ipAddress,
+            endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, emptyList()),
         )
     }
 }
+

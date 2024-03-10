@@ -6,7 +6,6 @@ import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
-import de.unistuttgart.iste.sqa.clara.api.model.Domain
 
 internal fun KubernetesPod.asAggregatedComponent(): AggregatedComponent {
     return AggregatedComponent.Internal.KubernetesComponent(
@@ -43,9 +42,25 @@ internal fun AggregatedCommunication.toCommunication(): Communication {
     )
 }
 
-internal fun AggregatedComponent.External.toComponent(): Component {
-    return Component.ExternalComponent(
-        name = Component.Name(name.value),
-        domain = Domain(domain.value),
-    )
+internal fun AggregatedComponent.toComponent(): Component {
+    return when (this) {
+        is AggregatedComponent.External -> Component.ExternalComponent(
+            name = Component.Name(this.name.value),
+            domain = this.domain
+        )
+
+        is AggregatedComponent.Internal.KubernetesComponent -> Component.InternalComponent(
+            name = Component.Name(this.name.value),
+            namespace = this.namespace,
+            ipAddress = this.ipAddress,
+            endpoints = null,
+        )
+
+        is AggregatedComponent.Internal.OpenTelemetryComponent -> Component.InternalComponent(
+            name = Component.Name(this.name.value),
+            namespace = null,
+            ipAddress = null,
+            endpoints = Component.InternalComponent.Endpoints(this.domain, this.paths)
+        )
+    }
 }
