@@ -14,7 +14,7 @@ class ParallelExportExecutor(
 
     private val log = KotlinLogging.logger {}
 
-    override fun exportAll(components: List<Component>, communications: List<Communication>): List<ExportFailure> {
+    override fun exportAll(components: Set<Component>, communications: Set<Communication>): List<ExportFailure> {
         if (exporterManager.exporters.isEmpty()) {
             log.warn { "No exporters specified and enabled!" }
             return emptyList()

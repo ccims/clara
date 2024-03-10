@@ -5,5 +5,5 @@ import de.unistuttgart.iste.sqa.clara.api.model.Component
 
 fun interface ExportExecutor {
 
-    fun exportAll(components: List<Component>, communications: List<Communication>): List<ExportFailure>
+    fun exportAll(components: Set<Component>, communications: Set<Communication>): List<ExportFailure>
 }

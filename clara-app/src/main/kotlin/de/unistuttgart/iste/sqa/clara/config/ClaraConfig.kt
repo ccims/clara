@@ -6,6 +6,8 @@ import com.sksamuel.hoplite.ExperimentalHoplite
 data class ClaraConfig(
     val app: AppConfig?,
     val aggregation: AggregationConfig,
+    val merge: MergeConfig,
+    val filter: FilterConfig?,
     val export: ExportConfig,
 ) {
 

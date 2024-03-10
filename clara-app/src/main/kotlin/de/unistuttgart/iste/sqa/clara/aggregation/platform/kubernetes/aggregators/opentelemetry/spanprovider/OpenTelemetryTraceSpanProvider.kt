@@ -23,7 +23,7 @@ class OpenTelemetryTraceSpanProvider(private val config: Config) : SpanProvider 
 
     private val server = OpenTelemetryProtocolExporterServer(config.toServerConfig()) {
         spans.addAll(it)
-        log.debug { "Received ${it.size} spans. Total spans: ${spans.size}" }
+        log.trace { "Received ${it.size} spans. Total spans: ${spans.size}" }
     }
 
     override suspend fun getSpans(): List<Span> {
@@ -31,10 +31,13 @@ class OpenTelemetryTraceSpanProvider(private val config: Config) : SpanProvider 
 
         server.use { server ->
             server.start()
-            delay(config.listenDuration)
+            delay(config.listenDuration / 10)
+            repeat(9) { iteration ->
+                log.info { "Total spans: ${spans.size}. Time remaining: ${config.listenDuration * ((9 - iteration) / 10.0)}" }
+                delay(config.listenDuration / 10)
+            }
+            log.debug { "Total spans: ${spans.size}. Finished" }
         }
-
-        log.debug { "Retrieved ${spans.size} spans" }
 
         return spans
     }

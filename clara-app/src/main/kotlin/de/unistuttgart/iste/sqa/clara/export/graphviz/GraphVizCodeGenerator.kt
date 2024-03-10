@@ -72,7 +72,7 @@ private fun Component.label(): String {
 
 private fun Component.attributes(): Map<String, String> {
     return when (this) {
-        is Component.ExternalComponent -> mapOf("shape" to "oval")
+        is Component.ExternalComponent -> mapOf("shape" to "rectangle")
         is Component.InternalComponent -> mapOf("shape" to "octagon")
     }
 }

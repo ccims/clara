@@ -4,11 +4,18 @@ import de.unistuttgart.iste.sqa.clara.aggregation.AggregatorManager
 import de.unistuttgart.iste.sqa.clara.aggregation.ParallelAggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationExecutor
 import de.unistuttgart.iste.sqa.clara.api.export.ExportExecutor
+import de.unistuttgart.iste.sqa.clara.api.filter.Filter
+import de.unistuttgart.iste.sqa.clara.api.filter.Rule
 import de.unistuttgart.iste.sqa.clara.api.merge.Merger
 import de.unistuttgart.iste.sqa.clara.config.ClaraConfig
+import de.unistuttgart.iste.sqa.clara.config.FilterConfig
+import de.unistuttgart.iste.sqa.clara.config.MergeConfig
 import de.unistuttgart.iste.sqa.clara.export.ExporterManager
 import de.unistuttgart.iste.sqa.clara.export.ParallelExportExecutor
-import de.unistuttgart.iste.sqa.clara.merge.DynamicMerger
+import de.unistuttgart.iste.sqa.clara.filter.DefaultFilter
+import de.unistuttgart.iste.sqa.clara.filter.rules.RemoveComponentEndpoints
+import de.unistuttgart.iste.sqa.clara.filter.rules.RemoveComponentsByName
+import de.unistuttgart.iste.sqa.clara.merge.DefaultMerger
 import de.unistuttgart.iste.sqa.clara.utils.list.getLeft
 import de.unistuttgart.iste.sqa.clara.utils.list.getRight
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -28,7 +35,8 @@ class App(private val config: ClaraConfig) {
         log.info { "Start application" }
 
         val aggregationExecutor: AggregationExecutor = ParallelAggregationExecutor(AggregatorManager(config.aggregation))
-        val merger: Merger = DynamicMerger()
+        val merger: Merger = DefaultMerger(config.merge.toDefaultMergerConfig())
+        val filter: Filter = DefaultFilter()
         val exportExecutor: ExportExecutor = ParallelExportExecutor(ExporterManager(config.export))
 
         val aggregationResult = aggregationExecutor.aggregateAll()
@@ -48,10 +56,12 @@ class App(private val config: ClaraConfig) {
 
         log.info { "Found in total ${components.size} components and ${communications.size} communications" }
 
-        if (communications.isEmpty() && components.isEmpty() && !config.export.onEmpty) {
+        val (filteredComponents, filteredCommunications) = filter.filter(components, communications, config.filter.toFilterRules())
+
+        if (filteredComponents.isEmpty() && filteredCommunications.isEmpty() && !config.export.onEmpty) {
             log.info { "Skipping export" }
         } else {
-            val exportFailures = exportExecutor.exportAll(components, communications)
+            val exportFailures = exportExecutor.exportAll(filteredComponents, filteredCommunications)
             if (exportFailures.isNotEmpty()) {
                 log.error { "Errors while exporting: \n${exportFailures.indentedEnumeration { it.format() }}" }
             }
@@ -63,6 +73,34 @@ class App(private val config: ClaraConfig) {
             log.info { "Keeping process alive from now on." }
             while (true) {
             }
+        }
+    }
+}
+
+private fun MergeConfig.toDefaultMergerConfig(): DefaultMerger.Config {
+    return DefaultMerger.Config(
+        comparisonStrategy = when (this.comparisonStrategy) {
+            MergeConfig.ComparisonStrategy.Prefix -> DefaultMerger.Config.ComparisonStrategy.Prefix
+            MergeConfig.ComparisonStrategy.Suffix -> DefaultMerger.Config.ComparisonStrategy.Suffix
+            MergeConfig.ComparisonStrategy.Contains -> DefaultMerger.Config.ComparisonStrategy.Contains
+            MergeConfig.ComparisonStrategy.Equals -> DefaultMerger.Config.ComparisonStrategy.Equals
+        },
+    )
+}
+
+private fun FilterConfig?.toFilterRules(): List<Rule> {
+    if (this == null){
+        return emptyList()
+    }
+
+    return buildList {
+
+        if (this@toFilterRules.removeComponentEndpoints) {
+            add(RemoveComponentEndpoints())
+        }
+
+        this@toFilterRules.removeComponentsByNames.forEach { nameRegex ->
+            add(RemoveComponentsByName(nameRegex))
         }
     }
 }

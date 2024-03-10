@@ -1,14 +1,26 @@
 package de.unistuttgart.iste.sqa.clara.merge
 
-import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toCommunication
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toComponent
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.merge.Merge
 import de.unistuttgart.iste.sqa.clara.api.merge.Merger
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
+import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 
-class DynamicMerger : Merger {
+class DefaultMerger(private val config: Config) : Merger {
+
+    data class Config(
+        val comparisonStrategy: ComparisonStrategy,
+    ) {
+
+        enum class ComparisonStrategy {
+            Prefix,
+            Suffix,
+            Contains,
+            Equals,
+        }
+    }
 
     // First we need to filter the returned component types (oTel, Dns, etc.)
     // Next we define a strict merging hierarchy: 1. DNS 2. oTel, 3. SBOM, 4. ?)
@@ -28,10 +40,10 @@ class DynamicMerger : Merger {
 
         val initialFailures = buildList {
             if (components.isEmpty()) {
-                add(DynamicMergingFailure("No components to merge!"))
+                add(DefaultMergeFailure("No components to merge!"))
             }
             if (communications.isEmpty()) {
-                add(DynamicMergingFailure("No communications to merge!"))
+                add(DefaultMergeFailure("No communications to merge!"))
             }
         }
 
@@ -40,20 +52,30 @@ class DynamicMerger : Merger {
             return Merge(failures = initialFailures, components = emptyList(), communications = emptyList())
         }
 
+        val renamedComponents = mutableMapOf<AggregatedComponent.Name, Component.Name>()
+
         // For now, we only have those two service types.
         val mergedComponents = compareAndMergeComponents(
             components,
+            renamedComponents,
             AggregatedComponent.Internal.KubernetesComponent::class.java,
             AggregatedComponent.Internal.OpenTelemetryComponent::class.java,
         )
 
-        // TODO return merging failures
+        val renamedCommunications = communications.map { component ->
+            Communication(
+                source = Communication.Source(renamedComponents[component.source.componentName] ?: Component.Name(component.source.componentName.value)),
+                target = Communication.Target(renamedComponents[component.target.componentName] ?: Component.Name(component.target.componentName.value)),
+            )
+        }
+
         // TODO filter communications where target/source does not exist anymore / or find a better solution then filtering
-        return Merge(failures = emptyList(), components = mergedComponents, communications = communications.map { it.toCommunication() })
+        return Merge(failures = initialFailures, components = mergedComponents, communications = renamedCommunications)
     }
 
     private fun <B, C> compareAndMergeComponents(
         aggregatedComponents: List<AggregatedComponent>,
+        renamedComponents: MutableMap<AggregatedComponent.Name, Component.Name>,
         baseComponentType: B,
         compareComponentType: C,
     ): List<Component> {
@@ -75,13 +97,17 @@ class DynamicMerger : Merger {
             val externalCompareComponent = externalComponents.find { compareComponents(baseComponent, it) }
             when {
                 compareComponent != null -> {
-                    mergedComponents.add(mergeComponents(baseComponent, compareComponent))
+                    val mergedComponent = mergeComponents(baseComponent, compareComponent)
+                    mergedComponents.add(mergedComponent)
                     compareComponents.remove(compareComponent)
+                    renamedComponents.checkAndAddRenamedComponent(compareComponent, mergedComponent)
                 }
 
                 externalCompareComponent != null -> {
-                    mergedComponents.add(mergeComponents(baseComponent, externalCompareComponent))
+                    val mergedComponent = mergeComponents(baseComponent, externalCompareComponent)
+                    mergedComponents.add(mergedComponent)
                     externalComponents.remove(externalCompareComponent)
+                    renamedComponents.checkAndAddRenamedComponent(externalCompareComponent, mergedComponent)
                 }
 
                 else -> {
@@ -92,9 +118,22 @@ class DynamicMerger : Merger {
         return mergedComponents + externalComponents.map { it.toComponent() } + compareComponents.map { it.toComponent() }
     }
 
+    private fun MutableMap<AggregatedComponent.Name, Component.Name>.checkAndAddRenamedComponent(
+        compareComponent: AggregatedComponent,
+        mergedComponent: Component,
+    ) {
+        if (compareComponent.name.value != mergedComponent.name.value) {
+            this.set(key = compareComponent.name, value = mergedComponent.name)
+        }
+    }
+
     // TODO more complex comparison based on attributes if names do not match
-    private fun compareComponents(baseComponent: AggregatedComponent, compareComponent: AggregatedComponent): Boolean =
-        baseComponent.name == compareComponent.name
+    private fun compareComponents(baseComponent: AggregatedComponent, compareComponent: AggregatedComponent): Boolean = when (config.comparisonStrategy) {
+        DefaultMerger.Config.ComparisonStrategy.Prefix -> baseComponent.name.value.startsWith(compareComponent.name.value) || compareComponent.name.value.startsWith(baseComponent.name.value)
+        DefaultMerger.Config.ComparisonStrategy.Suffix -> baseComponent.name.value.endsWith(compareComponent.name.value) || compareComponent.name.value.endsWith(baseComponent.name.value)
+        DefaultMerger.Config.ComparisonStrategy.Contains -> baseComponent.name.value.contains(compareComponent.name.value) || compareComponent.name.value.contains(baseComponent.name.value)
+        DefaultMerger.Config.ComparisonStrategy.Equals -> baseComponent.name == compareComponent.name
+    }
 
     private fun mergeComponents(baseComponent: AggregatedComponent, compareComponent: AggregatedComponent): Component {
         return when {
