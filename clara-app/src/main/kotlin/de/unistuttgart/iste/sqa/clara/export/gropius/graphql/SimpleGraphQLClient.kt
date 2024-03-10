@@ -32,13 +32,17 @@ class SimpleGraphQLClient(graphQLServerUrl: URL, authorizationToken: Token?) : G
     )
 
     override suspend fun <T : Any> execute(request: GraphQLClientRequest<T>): Either<GraphQLClient.RequestError, T> {
-        val response = graphQLClient.execute(request)
+        val response = runCatching {
+            graphQLClient.execute(request)
+        }.getOrElse { errors ->
+            return Either.Left(GraphQLClient.RequestError.GraphQLRequestFailed(errors.message?.let { listOf(it) } ?: emptyList()))
+        }
 
         val errors = response.errors
         val data = response.data
 
         if (!errors.isNullOrEmpty()) {
-            return Either.Left(GraphQLClient.RequestError.GraphQLRequestFailed(errors))
+            return Either.Left(GraphQLClient.RequestError.GraphQLRequestFailed(errors.map { it.toString() }))
         }
 
         if (data == null) {

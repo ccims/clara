@@ -1,7 +1,6 @@
 package de.unistuttgart.iste.sqa.clara.export.gropius.graphql
 
 import arrow.core.Either
-import com.expediagroup.graphql.client.types.GraphQLClientError
 import com.expediagroup.graphql.client.types.GraphQLClientRequest
 
 interface GraphQLClient {
@@ -19,7 +18,7 @@ interface GraphQLClient {
         value class ConnectionFailed(val message: String) : RequestError
 
         @JvmInline
-        value class GraphQLRequestFailed(val errors: List<GraphQLClientError>) : RequestError
+        value class GraphQLRequestFailed(val errors: List<String>) : RequestError
     }
 
     suspend fun <T : Any> execute(request: GraphQLClientRequest<T>): Either<RequestError, T>

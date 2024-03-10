@@ -90,7 +90,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 val relationInformation = extractRelationInformationAndUpdateServices(span)
                 setRelations(relationInformation)
             }.getOrElse {
-                log.error { "Exception encountered during span extraction: $it" }
+                log.trace { "Exception encountered during span extraction: $it" }
             }
         }
 
@@ -168,7 +168,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         if (service.name == null && service.hostName == null) {
             // TODO If they cannot be resolved we log them and might in the future use them
             unresolvableServices.add(service)
-            log.warn { "Added service $service to unresolvable Services" }
+            log.trace { "Added service $service to unresolvable Services" }
         } else if (service.name != null) {
             val oldService = serviceMap[service.name]
             if (oldService == null) {
