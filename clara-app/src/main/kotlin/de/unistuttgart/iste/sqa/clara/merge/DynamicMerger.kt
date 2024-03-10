@@ -10,8 +10,8 @@ import de.unistuttgart.iste.sqa.clara.api.model.Component
 
 class DynamicMerger : Merger {
 
-    // First we need to filter the returned component types (Otel, Dns, etc)
-    // Next we define a strict merging hierarchy: 1. DNS 2. Otel, 3. SBOM, 4. ?)
+    // First we need to filter the returned component types (oTel, Dns, etc.)
+    // Next we define a strict merging hierarchy: 1. DNS 2. oTel, 3. SBOM, 4. ?)
     // We take the one with the highest hierarchy as baseline
     // then we iterate over the first two service group's components and try to merge.
     // thereby, it is important that we somehow keep the reference of the original objects in the merged ones to merge the communications later.
@@ -48,8 +48,7 @@ class DynamicMerger : Merger {
         )
 
         // TODO return merging failures
-
-        // TODO filter communications where target/source does not exist anymore
+        // TODO filter communications where target/source does not exist anymore / or find a better solution then filtering
         return Merge(failures = emptyList(), components = mergedComponents, communications = communications.map { it.toCommunication() })
     }
 
