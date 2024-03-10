@@ -14,11 +14,12 @@ import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 
-// Services are actual Microservices
-// Activities are entire business activities meaning the whole span of a trace
-// Instances are instances of microservices
-// Hardware is the used hardware (don't know if necessary)
-
+/**
+ * Aggregator that analyzes OpenTelemetry spans and extracts client, server, producer,
+ * and consumer components as well as their communications.
+ *
+ * @property spanProvider The provider for OpenTelemetry spans.
+ */
 class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregator {
 
     private val log = KotlinLogging.logger {}
@@ -73,7 +74,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         ).right()
     }
 
-    // Proceeding of all ingoing spans via otel grpc interface
+    // Proceeding of all ingoing spans via oTel grpc interface
     // components and relations of them are discovered here
     private fun process(spans: List<Span>) {
         spans.forEach { span ->
@@ -114,14 +115,8 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
     }
 
     private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation = when (span.kind) {
-        Span.Kind.Client -> {
-            val spanInformation = extractInformationFromClientSpan(span)
-            updateServices(spanInformation)
-            spanInformation
-        }
-
-        Span.Kind.Server -> {
-            val spanInformation = extractInformationFromServerSpan(span)
+        Span.Kind.Client, Span.Kind.Server -> {
+            val spanInformation = extractInformationFromClientOrServerSpan(span)
             updateServices(spanInformation)
             spanInformation
         }
@@ -144,21 +139,21 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
     private fun updateServices(spanInformation: SpanInformation) {
         val client = Service(
-            name = spanInformation.clientServiceName,
-            hostName = null, // For now a client does not have a hostname
-            ipAddress = spanInformation.clientIpAddress,
-            port = spanInformation.clientPort,
-            paths = emptyList() // For now a client does not have an path
+            name = spanInformation.client.serviceName,
+            hostName = spanInformation.client.hostName, // It is unlikely to find a client hostName in the spans
+            ipAddress = spanInformation.client.ipAddress,
+            port = spanInformation.client.port,
+            paths = emptyList() // Clients don't have paths
         )
         updateService(client)
 
         val server = Service(
-            name = spanInformation.serverServiceName,
-            hostName = spanInformation.serverHostname,
-            ipAddress = spanInformation.serverIpAddress,
-            port = spanInformation.serverPort,
-            paths = if (spanInformation.serverPath != null) {
-                listOf(spanInformation.serverPath)
+            name = spanInformation.server.serviceName,
+            hostName = spanInformation.server.hostName,
+            ipAddress = spanInformation.server.ipAddress,
+            port = spanInformation.server.port,
+            paths = if (spanInformation.server.path != null) {
+                listOf(spanInformation.server.path)
             } else {
                 emptyList()
             },
@@ -168,22 +163,22 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
     private fun updateService(service: Service) {
         if (service.name == null && service.hostName == null) {
-            // TODO based on opentelemetry specification it is highly likely that we do not have the server's service name here in a server span, but the information is
-            // TODO too valuable, therefore we need some sort of hold back list, where we can put the information into, and later on correlate it with the server span
+            // TODO If they cannot be resolved we log them and might in the future use them
             unresolvableServices.add(service)
+            log.warn { "Added service $service to unresolvable Services" }
         } else if (service.name != null) {
-            if (!serviceMap.containsKey(service.name)) {
+            val oldService = serviceMap[service.name]
+            if (oldService == null) {
                 serviceMap[service.name] = service
             } else {
-                val oldService = serviceMap[service.name]!! // FIXME: save access, this could cause a NullPointerException
                 val updatedService = service.mergeWithOtherServiceObject(oldService)
                 serviceMap[service.name] = updatedService
             }
         } else if (service.hostName != null) {
-            if (!unnamedServices.containsKey(service.hostName)) {
+            val oldService = unnamedServices[service.hostName]
+            if (oldService == null) {
                 unnamedServices[service.hostName] = service
             } else {
-                val oldService = unnamedServices[service.hostName]!! // FIXME: save access, this could cause a NullPointerException
                 val updatedService = service.mergeWithOtherServiceObject(oldService)
                 unnamedServices[service.hostName] = updatedService
             }
@@ -191,90 +186,74 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
     }
 
     // Based on https://opentelemetry.io/docs/specs/otel/trace/sdk_exporters/zipkin/ and https://opentelemetry.io/docs/specs/semconv/general/attributes/
-    private fun extractInformationFromClientSpan(clientSpan: Span): SpanInformation {
+    private fun extractInformationFromClientOrServerSpan(span: Span): SpanInformation {
 
-        // First we look for the exact name of the server (might not be available)
-        val serverServiceName = clientSpan.attributes.filter { it.key == "peer.service" || it.key == "network.peer.service" }.values.firstOrNull()
+        val (possibleKeyNamesForServerAttributes, possibleKeyNamesForClientAttributes) = when (span.kind) {
+            Span.Kind.Server -> {
+                listOf(
+                    "server.address", "server.port", "http.uri", "http.url", "uri", "url", "http.target", "net.sock.host.addr", "net.sock.host.port",
+                ) to listOf(
+                    "net.sock.peer.addr", "net.sock.peer.port"
+                )
+            }
 
-        // filter all values that surely belong to the server side, then try to find more info with reg-exes
-        val possibleKeyNamesForServerAttributes = listOf(
-            // TODO apparently htt.url can be in some cases the client address
-            "server.address", "server.port", "network.peer.address", "peer.hostname", "peer.address", "net.peer.name", "net.peer.port", "db.connection_string", "http.uri", "http.url", "http.target", "uri", "url",
-        )
+            Span.Kind.Client -> {
+                listOf(
+                    // Hint: using micrometer apparently htt.url can be in some cases the client address; if so remove it for the time of using micrometer instrumentation.
+                    "server.address", "server.port", "network.peer.address", "peer.hostname", "peer.address", "net.peer.name", "net.peer.port", "db.connection_string", "http.uri", "http.url", "http.target", "uri", "url",
+                ) to listOf(
+                    "client.address", "client.port"
+                )
+            }
 
-        // filter all values that surely belong to the client side, then try to find more info with reg-exes
-        val possibleKeyNamesForClientAttributes = listOf(
-            "client.address", "client.port"
-        )
-        val possibleServerValues = clientSpan.attributes.filter {
+            else -> throw UnsupportedOperationException("This message only handles Client and Server Spans")
+        }
+
+        val possibleServerValues = span.attributes.filter {
             it.key.lowercase() in possibleKeyNamesForServerAttributes
         }.values
 
-        val possibleClientValues = clientSpan.attributes.filter {
+        val possibleClientValues = span.attributes.filter {
             it.key.lowercase() in possibleKeyNamesForClientAttributes
         }.values
 
-        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
-        val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value }?.split("//" )?.last()?.substringAfter("/")
-        val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
+        val (clientServiceName, serverServiceName) = when (span.kind) {
+            Span.Kind.Server -> null to span.serviceName
+            Span.Kind.Client -> span.serviceName to span.attributes.filter { it.key == "peer.service" || it.key == "network.peer.service" }.values.firstOrNull()?.let { serviceName -> Service.Name(serviceName) }
+            else -> throw UnsupportedOperationException("This message only handles Client and Server Spans")
+        }
 
-        val clientHostName = possibleClientValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
-        val clientIpAddress = possibleClientValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val clientPort = possibleClientValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
+        val serverHostName = possibleServerValues.findHostName()
+        val serverIpAddress = possibleServerValues.findIpAddress()
+        val serverPort = possibleServerValues.findPort()
+        val serverPath = possibleServerValues.findPath()
+
+        val clientHostName = possibleClientValues.findHostName()
+        val clientIpAddress = possibleClientValues.findIpAddress()
+        val clientPort = possibleClientValues.findPort()
 
         return SpanInformation(
-            clientServiceName = clientSpan.serviceName,
-            serverServiceName = serverServiceName?.let { Service.Name(serverServiceName) },
-            serverHostname = serverHostName?.let { Service.HostName(serverHostName) },
-            serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
-            serverPath = serverPath?.let { Service.Path(serverPath) },
-            serverPort = serverPort?.let { Service.Port(serverPort) },
-            clientIpAddress = clientIpAddress?.let { IpAddress(clientIpAddress) },
-            clientHostName = clientHostName?.let { Service.HostName(clientHostName) },
-            clientPort = clientPort?.let { Service.Port(clientPort) },
-        )
-    }
-
-    private fun extractInformationFromServerSpan(serverSpan: Span): SpanInformation {
-        // extract server information: especially service name and the paths if available.
-        // best case would be some FQDN that one could later merge with the hostNames of the unnamed services
-        // if not available merging via other attributes such as paths could be tried
-
-        // filter all values that surely belong to the server side, then try to find more info with reg-exes
-        val possibleKeyNamesForServerAttributes = listOf(
-            "server.address", "server.port", "http.uri", "http.url", "uri", "url", "http.target", "net.sock.host.addr", "net.sock.host.port",
-        )
-
-        val possibleServerValues = serverSpan.attributes.filter {
-            it.key.lowercase() in possibleKeyNamesForServerAttributes
-        }.values
-
-        val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
-        val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value }?.split("//" )?.last()?.substringAfter("/")
-        val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
-
-        // TODO check for possible client attributes "net.sock.peer.addr"
-        // TODO ensure it works properly
-        return SpanInformation(
-            clientServiceName = null,
-            serverServiceName = serverSpan.serviceName,
-            serverHostname = serverHostName?.let { Service.HostName(serverHostName) },
-            serverIpAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
-            serverPath = serverPath?.let { Service.Path(serverPath) },
-            serverPort = serverPort?.let { Service.Port(serverPort) },
-            clientIpAddress = null,
-            clientHostName = null,
-            clientPort = null,
+            SpanInformation.Server(
+                serviceName = serverServiceName,
+                hostName = serverHostName?.let { Service.HostName(serverHostName) },
+                ipAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
+                path = serverPath?.let { Service.Path(serverPath) },
+                port = serverPort?.let { Service.Port(serverPort) },
+            ),
+            SpanInformation.Client(
+                serviceName = clientServiceName,
+                ipAddress = clientIpAddress?.let { IpAddress(clientIpAddress) },
+                hostName = clientHostName?.let { Service.HostName(clientHostName) },
+                port = clientPort?.let { Service.Port(clientPort) },
+            )
         )
     }
 
     // For now, we simply add every relation even if it duplicates. In the end a filtering could be done.
     private fun setRelations(spanInformation: SpanInformation) {
-        val caller = serviceMap[spanInformation.clientServiceName] ?: throw UnsupportedOperationException()
-        val callee = serviceMap[spanInformation.serverServiceName] ?: unnamedServices[spanInformation.serverHostname] ?: throw UnsupportedOperationException() // Todo its unlikely we have the serverServiceName often, we need resilience here
-        val path = callee.paths.find { it == spanInformation.serverPath }
+        val caller = serviceMap[spanInformation.client.serviceName] ?: throw UnsupportedOperationException()
+        val callee = serviceMap[spanInformation.server.serviceName] ?: unnamedServices[spanInformation.server.hostName] ?: throw UnsupportedOperationException()
+        val path = callee.paths.find { it == spanInformation.server.path }
         val relation = Relation(
             owner = caller, // The caller always owns the call
             caller = caller,
@@ -284,4 +263,16 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
         relations.add(relation)
     }
+
+    private fun Collection<String>.findHostName(): String? =
+        this.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
+
+    private fun Collection<String>.findIpAddress(): String? =
+        this.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
+
+    private fun Collection<String>.findPort(): Int? =
+        this.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
+
+    private fun Collection<String>.findPath(): String? =
+        this.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value }?.split("//")?.last()?.substringAfter("/")
 }
