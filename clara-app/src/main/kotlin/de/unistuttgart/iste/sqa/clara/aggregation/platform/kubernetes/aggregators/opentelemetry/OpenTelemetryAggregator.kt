@@ -216,7 +216,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
         val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
         val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value } // TODO regex too lazy returns entire url
+        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value }?.split("//" )?.last()?.substringAfter("/")
         val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
 
         val clientHostName = possibleClientValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
@@ -252,7 +252,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
         val serverHostName = possibleServerValues.firstNotNullOfOrNull { Regexes.hostName.find(it)?.value }?.split("://")?.get(1)?.split("/")?.first()?.split(":")?.first()
         val serverIpAddress = possibleServerValues.firstNotNullOfOrNull { Regexes.ipAddressV4.find(it)?.value }
-        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value } // TODO regex too lazy returns entire url
+        val serverPath = possibleServerValues.firstNotNullOfOrNull { Regexes.urlPath.find(it)?.value }?.split("//" )?.last()?.substringAfter("/")
         val serverPort = possibleServerValues.firstNotNullOfOrNull { Regexes.port.find(it)?.value }?.toIntOrNull()
 
         // TODO check for possible client attributes "net.sock.peer.addr"
