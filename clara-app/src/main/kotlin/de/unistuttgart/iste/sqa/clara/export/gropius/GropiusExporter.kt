@@ -131,7 +131,7 @@ class GropiusExporter(private val config: Config) : Exporter {
 
             // TODO: change query to search for object in db
             val searchResult = resultComponents.components.nodes.find { it.name == component.name.value }
-            if (searchResult == null) {
+            val componentId = if (searchResult == null) {
                 val componentResult = runBlocking {
                     val (description, template) = when (component) {
                         is Component.InternalComponent -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "ed79a792-7cd3-40ba-8b75-42bac1fbbede") // microservice template
@@ -151,13 +151,27 @@ class GropiusExporter(private val config: Config) : Exporter {
                     // TODO: is this the correct way of detecting unsuccessful mutations???
                     throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
                 }
-
-                // Add version to component
+                componentResult.createComponent.component.id
+            } else {
+                searchResult.id
+            }
+            val searchVersionResult = runBlocking {
+                graphQLClient.execute(
+                    GetComponentVersionById(
+                        GetComponentVersionById.Variables(
+                            id = componentId
+                        )
+                    )
+                )
+            }.getOrElse {
+                throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
+            }
+            val versionId = if (searchVersionResult.components.nodes.first().versions.nodes.firstOrNull()?.id == null) {
                 val versionResult = runBlocking {
                     graphQLClient.execute(
                         CreateComponentVersion(
                             CreateComponentVersion.Variables(
-                                component = componentResult.createComponent.component.id,
+                                component = componentId,
                                 description = "v1.0", // TODO versioning
                                 name = component.name.value,
                                 version = "1.0",
@@ -167,44 +181,27 @@ class GropiusExporter(private val config: Config) : Exporter {
                 }.getOrElse {
                     throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
                 }
-
-                val componentId = GropiusComponent.ComponentId(componentResult.createComponent.component.id)
-                val versionId = GropiusComponent.ComponentVersionId(versionResult.createComponentVersion.componentVersion.id)
-                createdGropiusComponents.add(GropiusComponent(component, componentId, versionId))
-
-                // Add componentVersion to project
-                runBlocking {
-                    graphQLClient.execute(
-                        AddComponentVersionToProject(
-                            AddComponentVersionToProject.Variables(
-                                project = config.projectId,
-                                componentVersion = versionResult.createComponentVersion.componentVersion.id
-                            )
-                        )
-                    )
-                }.getOrElse {
-                    throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
-                }
+                versionResult.createComponentVersion.componentVersion.id
             } else {
-                val versionResult = runBlocking {
-                    graphQLClient.execute(
-                        GetComponentVersionById(
-                            GetComponentVersionById.Variables(
-                                id = searchResult.id
-                            )
-                        )
-                    )
-                }.getOrElse {
-                    throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
-                }
+                searchVersionResult.components.nodes.first().versions.nodes.first().id
+            }
 
-                createdGropiusComponents.add(
-                    GropiusComponent(
-                        component = component,
-                        componentId = GropiusComponent.ComponentId(searchResult.id),
-                        componentVersionId = GropiusComponent.ComponentVersionId(versionResult.components.nodes.first().versions.nodes.first().id)
+            val gropiusComponentId = GropiusComponent.ComponentId(componentId)
+            val gropiusVersionId = GropiusComponent.ComponentVersionId(versionId)
+            createdGropiusComponents.add(GropiusComponent(component, gropiusComponentId, gropiusVersionId))
+
+            // Add componentVersion to project
+            runBlocking {
+                graphQLClient.execute(
+                    AddComponentVersionToProject(
+                        AddComponentVersionToProject.Variables(
+                            project = config.projectId,
+                            componentVersion = versionId
+                        )
                     )
                 )
+            }.getOrElse {
+                throw UnsupportedOperationException("errors while executing a GraphQL request: $it") // FIXME proper handling
             }
         }
         return createdGropiusComponents
@@ -214,8 +211,8 @@ class GropiusExporter(private val config: Config) : Exporter {
         for (communication in communications) {
             val start = gropiusComponents.find { it.component.name == communication.source.componentName }?.componentVersionId
             val end = gropiusComponents.find { it.component.name == communication.target.componentName }?.componentVersionId
-            if (start == null ||  end == null) {
-                log.error { "No relation can be added. Start: ${start?.value} End: ${end?.value}"}
+            if (start == null || end == null) {
+                log.error { "No relation can be added. Start: ${start?.value} End: ${end?.value}" }
             } else {
                 runBlocking {
                     graphQLClient.execute(
