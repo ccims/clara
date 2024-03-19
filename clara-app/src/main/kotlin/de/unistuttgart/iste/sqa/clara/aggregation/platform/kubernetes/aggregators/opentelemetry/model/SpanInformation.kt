@@ -5,6 +5,7 @@ import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 data class SpanInformation(
     val server: Server,
     val client: Client,
+    val messagingSystem: MessagingSystem? = null
 ) {
     data class Client(
         val serviceName: Service.Name?,
@@ -18,5 +19,11 @@ data class SpanInformation(
         val ipAddress: IpAddress?,
         val port: Service.Port?,
         val path: Service.Path?,
+    )
+    data class MessagingSystem(
+        val serviceName: Service.Name?,
+        val hostName: Service.HostName?,
+        val port: Service.Port?,
+        val ipAddress: IpAddress?,
     )
 }

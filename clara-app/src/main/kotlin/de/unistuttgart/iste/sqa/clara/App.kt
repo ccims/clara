@@ -85,6 +85,7 @@ private fun MergeConfig.toDefaultMergerConfig(): DefaultMerger.Config {
             MergeConfig.ComparisonStrategy.Contains -> DefaultMerger.Config.ComparisonStrategy.Contains
             MergeConfig.ComparisonStrategy.Equals -> DefaultMerger.Config.ComparisonStrategy.Equals
         },
+        showMessagingCommunicationsDirectly = this.showMessagingCommunicationsDirectly
     )
 }
 

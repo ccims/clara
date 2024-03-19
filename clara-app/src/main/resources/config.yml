@@ -17,9 +17,10 @@ aggregation:
 
 merge:
   comparison-strategy: Equals
+  show-messaging-communications-directly: False
 
 filter:
-  remove-component-endpoints: true
+  remove-component-endpoints: false
   remove-components-by-names:
     - my-otel-demo-otelcol
     - my-otel-demo-jaeger-.*
@@ -30,7 +31,7 @@ export:
       output-type: SVG
       output-file: generated/architecture.svg
     gropius:
-      project-id: 56735d0c-4838-46c3-aa7e-52d618ce6f31
+      project-id: 30a47418-2089-4283-8a06-1103aa71f017
       graphql-backend-url: http://devonport.informatik.uni-stuttgart.de:8082/graphql
       graphql-backend-authentication:
         authentication-url: http://devonport.informatik.uni-stuttgart.de:3000/authenticate/oauth/da7ea55f-da6a-49f4-8bba-cd8dd29f2ff5/token

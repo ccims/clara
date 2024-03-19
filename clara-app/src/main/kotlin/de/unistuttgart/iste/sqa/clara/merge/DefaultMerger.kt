@@ -1,9 +1,12 @@
 package de.unistuttgart.iste.sqa.clara.merge
 
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toComponent
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toSource
+import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.toTarget
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.merge.Merge
 import de.unistuttgart.iste.sqa.clara.api.merge.Merger
+import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
@@ -12,6 +15,7 @@ class DefaultMerger(private val config: Config) : Merger {
 
     data class Config(
         val comparisonStrategy: ComparisonStrategy,
+        val showMessagingCommunicationsDirectly: Boolean,
     ) {
 
         enum class ComparisonStrategy {
@@ -62,7 +66,25 @@ class DefaultMerger(private val config: Config) : Merger {
             AggregatedComponent.Internal.OpenTelemetryComponent::class.java,
         )
 
-        val renamedCommunications = communications.map { component ->
+
+        val adjustedCommunications = if (config.showMessagingCommunicationsDirectly) {
+            // TODO we probably should filter the DNS communications where the messaging system is involved out, in this case
+            communications
+        } else {
+            val newCommunications = mutableListOf<AggregatedCommunication>()
+            val (messagingCommunications, otherCommunications) = communications.partition { it.messagingSystem != null }
+
+            if (messagingCommunications.isNotEmpty()) {
+                messagingCommunications.forEach {
+                    val communicationToMessaging = AggregatedCommunication(source = it.source, target = it.messagingSystem!!.toTarget())
+                    val communicationFromMessaging = AggregatedCommunication(source = it.messagingSystem.toSource(), target = it.target)
+                    newCommunications.addAll(listOf(communicationFromMessaging, communicationToMessaging))
+                }
+            }
+            otherCommunications + newCommunications
+        }
+
+        val renamedCommunications = adjustedCommunications.map { component ->
             Communication(
                 source = Communication.Source(renamedComponents[component.source.componentName] ?: Component.Name(component.source.componentName.value)),
                 target = Communication.Target(renamedComponents[component.target.componentName] ?: Component.Name(component.target.componentName.value)),

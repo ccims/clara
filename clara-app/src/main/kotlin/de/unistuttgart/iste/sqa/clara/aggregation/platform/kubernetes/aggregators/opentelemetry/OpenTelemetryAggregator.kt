@@ -66,11 +66,15 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             // TODO this must also follow the ComparisonStrategy
             // val callee = internalComponents.find { component -> relation.callee.name?.value?.endsWith(component.name.value) == true || relation.callee.hostName?.value?.endsWith(component.name.value) == true }
                 ?: externalComponents.find { component -> component.domain.value == relation.callee.hostName?.value }
+
+            val messagingSystem = internalComponents.find { component -> component.name.value == relation.messagingSystem?.name?.value }
             if (caller != null && callee != null) {
-                AggregatedCommunication(AggregatedCommunication.Source(caller.name), AggregatedCommunication.Target(callee.name))
+                // TODO add messaging system
+                AggregatedCommunication(AggregatedCommunication.Source(caller.name), AggregatedCommunication.Target(callee.name), messagingSystem?.let { AggregatedCommunication.MessagingSystem(it.name) })
             } else {
                 null
             }
+
         }.toSet()
 
         log.info { "Found ${components.size} components and ${communications.size} communications" }
@@ -91,9 +95,11 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         spans.forEach { span ->
             runCatching {
                 val relationInformation = extractRelationInformationAndUpdateServices(span)
-                setRelations(relationInformation)
+                if (relationInformation != null) {
+                    setRelations(relationInformation)
+                }
             }.getOrElse {
-                log.trace { "Exception encountered during span extraction: $it" }
+                log.error { "Exception encountered during span extraction: $it" }
             }
         }
 
@@ -134,24 +140,14 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
         processedUnnamedServiceByIpAddress.forEach { unnamedServicesByIpAddress.remove(it.ipAddress) }
     }
 
-    private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation = when (span.kind) {
-        Span.Kind.Client, Span.Kind.Server -> {
-            val spanInformation = extractInformationFromClientOrServerSpan(span)
-            updateServices(spanInformation)
-            spanInformation
+    private fun extractRelationInformationAndUpdateServices(span: Span): SpanInformation? {
+        val spanInformation = when (span.kind) {
+            Span.Kind.Client, Span.Kind.Server -> extractInformationFromClientOrServerSpan(span)
+            Span.Kind.Consumer, Span.Kind.Producer -> extractRelationInformationFromProducerOrConsumerSpan(span)
+            Span.Kind.Internal -> return null
         }
-
-        Span.Kind.Consumer -> {
-            throw UnsupportedOperationException("Consumer span identified")
-        }
-
-        Span.Kind.Producer -> {
-            throw UnsupportedOperationException("Producer span identified")
-        }
-
-        Span.Kind.Internal -> {
-            throw UnsupportedOperationException("Internal span identified")
-        }
+        updateServices(spanInformation)
+        return spanInformation
     }
 
     private fun updateServices(spanInformation: SpanInformation) {
@@ -176,6 +172,17 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             },
         )
         updateService(server)
+
+        if (spanInformation.messagingSystem != null) {
+            val messagingSystem = Service(
+                name = spanInformation.messagingSystem.serviceName,
+                hostName = spanInformation.messagingSystem.hostName,
+                ipAddress = spanInformation.messagingSystem.ipAddress,
+                port = spanInformation.messagingSystem.port,
+                paths = emptyList(),
+            )
+            updateService(messagingSystem)
+        }
     }
 
     private fun updateService(service: Service) {
@@ -208,6 +215,37 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 unnamedServicesByIpAddress[service.ipAddress] = updatedService
             }
         }
+    }
+
+    // Based on https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/
+    private fun extractRelationInformationFromProducerOrConsumerSpan(span: Span): SpanInformation {
+        val (clientServiceName, serverServiceName) = when (span.kind) {
+            Span.Kind.Consumer -> null to span.serviceName
+            Span.Kind.Producer -> span.serviceName to span.attributes["messaging.destination.name"]?.let { Service.Name(it) }
+            else -> throw UnsupportedOperationException("This method only handles Client and Server Spans")
+        }
+        return SpanInformation(
+            SpanInformation.Server(
+                serviceName = serverServiceName,
+                hostName = null,
+                ipAddress = null,
+                path = null, // no URL with paths used in messaging systems
+                port = null,
+            ),
+            SpanInformation.Client(
+                serviceName = clientServiceName,
+                ipAddress = null,
+                hostName = null,
+                port = null,
+            ),
+            // TODO there might be some network information in the span; extract it
+            SpanInformation.MessagingSystem(
+                serviceName = span.attributes["messaging.system"]?.let { Service.Name(it) },
+                ipAddress = null,
+                hostName = null,
+                port = null,
+            )
+        )
     }
 
     // Based on https://opentelemetry.io/docs/specs/otel/trace/sdk_exporters/zipkin/ and https://opentelemetry.io/docs/specs/semconv/general/attributes/
@@ -277,12 +315,14 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
     private fun setRelations(spanInformation: SpanInformation) {
         val caller = serviceMap[spanInformation.client.serviceName] ?: return
         val callee = serviceMap[spanInformation.server.serviceName] ?: unnamedServicesByHostname[spanInformation.server.hostName] ?: unnamedServicesByIpAddress[spanInformation.server.ipAddress] ?: return
+        val messagingSystem = spanInformation.messagingSystem?.let { serviceMap[it.serviceName] }
         val path = callee.paths.find { it == spanInformation.server.path }
         val relation = Relation(
             owner = caller, // The caller always owns the call
             caller = caller,
             callee = callee,
             path = path,
+            messagingSystem = messagingSystem,
         )
 
         relations.add(relation)

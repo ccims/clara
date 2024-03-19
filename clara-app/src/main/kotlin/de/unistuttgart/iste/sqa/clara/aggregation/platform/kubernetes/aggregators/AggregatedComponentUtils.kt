@@ -4,7 +4,6 @@ import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.Kub
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesService
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
-import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 
 internal fun KubernetesPod.asAggregatedComponent(): AggregatedComponent {
@@ -35,12 +34,8 @@ internal fun aggregatedServiceNameFrom(service: KubernetesService): AggregatedCo
     return service.asAggregatedComponent().name
 }
 
-internal fun AggregatedCommunication.toCommunication(): Communication {
-    return Communication(
-        source = Communication.Source(Component.Name(this.source.componentName.value)),
-        target = Communication.Target(Component.Name(this.target.componentName.value)),
-    )
-}
+internal fun AggregatedCommunication.MessagingSystem.toSource(): AggregatedCommunication.Source = AggregatedCommunication.Source(componentName)
+internal fun AggregatedCommunication.MessagingSystem.toTarget(): AggregatedCommunication.Target = AggregatedCommunication.Target(componentName)
 
 internal fun AggregatedComponent.toComponent(): Component {
     return when (this) {

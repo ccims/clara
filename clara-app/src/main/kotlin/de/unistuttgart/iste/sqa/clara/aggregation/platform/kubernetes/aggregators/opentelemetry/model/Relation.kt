@@ -5,4 +5,5 @@ data class Relation(
     val callee: Service,
     val owner: Service,
     val path: Service.Path?,
+    val messagingSystem: Service?,
 )
