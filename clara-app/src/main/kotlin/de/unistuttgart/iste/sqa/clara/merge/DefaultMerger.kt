@@ -66,23 +66,7 @@ class DefaultMerger(private val config: Config) : Merger {
             AggregatedComponent.Internal.OpenTelemetryComponent::class.java,
         )
 
-
-        val adjustedCommunications = if (config.showMessagingCommunicationsDirectly) {
-            // TODO we probably should filter the DNS communications where the messaging system is involved out, in this case
-            communications
-        } else {
-            val newCommunications = mutableListOf<AggregatedCommunication>()
-            val (messagingCommunications, otherCommunications) = communications.partition { it.messagingSystem != null }
-
-            if (messagingCommunications.isNotEmpty()) {
-                messagingCommunications.forEach {
-                    val communicationToMessaging = AggregatedCommunication(source = it.source, target = it.messagingSystem!!.toTarget())
-                    val communicationFromMessaging = AggregatedCommunication(source = it.messagingSystem.toSource(), target = it.target)
-                    newCommunications.addAll(listOf(communicationFromMessaging, communicationToMessaging))
-                }
-            }
-            otherCommunications + newCommunications
-        }
+        val adjustedCommunications = adjustMessagingCommunications(communications)
 
         val renamedCommunications = adjustedCommunications.map { component ->
             Communication(
@@ -93,6 +77,42 @@ class DefaultMerger(private val config: Config) : Merger {
 
         // TODO filter communications where target/source does not exist anymore / or find a better solution then filtering
         return Merge(failures = initialFailures, components = mergedComponents, communications = renamedCommunications)
+    }
+
+    /**
+     * Messaging systems can be displayed in two ways in clara.
+     *
+     * Either, they are the center of communications, which means that communications
+     * going through the messaging system will be displayed as such. Then the discovered communications from OpenTelemetry have to be transformed
+     * into two communications, one from source towards the messaging system and one from the messaging system to the target.
+     *
+     * The other option is that communications are displayed directly between source and target, even if they go through the messaging system.
+     * Then we need to filter out any communications discovered by the DnsAggregator that go towards the messaging system and rely on the discovery
+     * of messaging communications via OpenTelemetry.
+     *
+     * @param communications the communications to transform.
+     */
+    private fun adjustMessagingCommunications(communications: List<AggregatedCommunication>): List<AggregatedCommunication> {
+        val (messagingCommunications, otherCommunications) = communications.partition { it.messagingSystem != null }
+        return if (messagingCommunications.isEmpty()) {
+            otherCommunications
+        } else {
+            if (config.showMessagingCommunicationsDirectly) {
+                val messagingSystems = messagingCommunications.map { it.messagingSystem }.distinct()
+                val filteredCommunications = otherCommunications.filter { communication ->
+                    messagingSystems.none { it?.componentName == communication.source.componentName || it?.componentName == communication.target.componentName }
+                }
+                filteredCommunications + messagingCommunications
+            } else {
+                val newCommunications = mutableListOf<AggregatedCommunication>()
+                messagingCommunications.forEach {
+                    val communicationToMessaging = AggregatedCommunication(source = it.source, target = it.messagingSystem!!.toTarget())
+                    val communicationFromMessaging = AggregatedCommunication(source = it.messagingSystem.toSource(), target = it.target)
+                    newCommunications.addAll(listOf(communicationFromMessaging, communicationToMessaging))
+                }
+                otherCommunications + newCommunications
+            }
+        }
     }
 
     private fun <B, C> compareAndMergeComponents(
