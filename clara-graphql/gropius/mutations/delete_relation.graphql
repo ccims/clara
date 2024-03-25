@@ -1,4 +1,4 @@
-mutation DeleteRelation($id: ID!) {
+mutation DeleteRelation ($id: ID!) {
     deleteRelation(input: {id: $id}) {
         id
     }

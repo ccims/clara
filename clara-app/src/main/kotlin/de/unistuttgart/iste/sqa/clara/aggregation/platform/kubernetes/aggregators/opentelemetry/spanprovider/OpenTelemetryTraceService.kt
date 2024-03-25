@@ -12,7 +12,6 @@ class OpenTelemetryTraceService(private val processSpans: suspend (List<Span>) -
         var numberOfRejectedSpansBecauseOfMissingServiceName = 0L
         var numberOfRejectedSpansBecauseUnsupportedSpanKind = 0L
 
-        // TODO Check: Maybe later we should not flatten entirely -> checked, and we should not :D
         val spans: List<Span> = request.resourceSpansList.flatMap { resourceSpans ->
             val serviceName = resourceSpans
                 .resource

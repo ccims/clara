@@ -28,7 +28,11 @@ class ExporterManager(exportConfig: ExportConfig) {
                     userName = gropiusConfig.graphQLBackendAuthentication.userName.value,
                     password = gropiusConfig.graphQLBackendAuthentication.password.value,
                     clientId = gropiusConfig.graphQLBackendAuthentication.clientId.value,
-                )
+                ),
+                gropiusComponentHandling = when(gropiusConfig.gropiusComponentHandling) {
+                    ExportConfig.Exporters.Gropius.ComponentHandling.Modify -> GropiusExporter.Config.ComponentHandling.Modify
+                    ExportConfig.Exporters.Gropius.ComponentHandling.Delete -> GropiusExporter.Config.ComponentHandling.Delete
+                }
             )
             add(GropiusExporter(config))
             log.info { "Registered exporter: Gropius" }

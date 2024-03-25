@@ -1,10 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.export.graphviz
 
 import arrow.core.Either
-import arrow.core.Option
-import arrow.core.Some
 import arrow.core.getOrElse
-import de.unistuttgart.iste.sqa.clara.api.export.ExportFailure
 import de.unistuttgart.iste.sqa.clara.api.export.Exporter
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
@@ -26,10 +23,10 @@ class GraphVizExporter(private val config: Config) : Exporter {
 
     private val log = KotlinLogging.logger {}
 
-    override fun export(components: Set<Component>, communications: Set<Communication>): Option<ExportFailure> {
+    override fun export(components: Set<Component>, communications: Set<Communication>): Either<GraphVizExportFailure, Unit> {
         log.info { "Export to GraphViz ..." }
 
-        val graphVizVersion = getGraphVizVersion().getOrElse { return Some(it) }
+        val graphVizVersion = getGraphVizVersion().getOrElse { return Either.Left(it) }
         log.info { "Using GraphViz version: $graphVizVersion" }
 
         val graphvizCode = GraphVizCodeGenerator.generateDotCode(components, communications)
@@ -39,9 +36,9 @@ class GraphVizExporter(private val config: Config) : Exporter {
         try {
             Path(config.outputFile).normalize().createParentDirectories()
         } catch (ex: IOException) {
-            return Some(GraphVizExportFailure("Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
+            return Either.Left(GraphVizExportFailure("Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
         } catch (ex: FileSystemException) {
-            return Some(GraphVizExportFailure("Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
+            return Either.Left(GraphVizExportFailure("Cannot create parent directories of output file '${config.outputFile}': ${ex.message}"))
         }
 
         val maybeExportFailure = executeExportProcess(graphvizCode)
@@ -51,7 +48,7 @@ class GraphVizExporter(private val config: Config) : Exporter {
         return maybeExportFailure
     }
 
-    private fun getGraphVizVersion(): Either<ExportFailure, String> {
+    private fun getGraphVizVersion(): Either<GraphVizExportFailure, String> {
         val versionAskProcess = ProcessBuilder("dot", "--version").startChecked()
 
         return versionAskProcess
@@ -61,7 +58,7 @@ class GraphVizExporter(private val config: Config) : Exporter {
             .map { it.substringAfter("version").trim() }
     }
 
-    private fun executeExportProcess(code: String): Option<ExportFailure> {
+    private fun executeExportProcess(code: String): Either<GraphVizExportFailure, Unit> {
         val exportProcess = ProcessBuilder("dot", "-T${config.outputType}", "-o", config.outputFile).startChecked()
 
         return exportProcess
@@ -70,6 +67,8 @@ class GraphVizExporter(private val config: Config) : Exporter {
                 write(System.lineSeparator())
                 flush()
             }
-            .map { GraphVizExportFailure("Cannot export: ${it.description}") }
+            .toEither {}
+            .swap()
+            .mapLeft { GraphVizExportFailure("Cannot export: ${it.description}") }
     }
 }

@@ -1,0 +1,7 @@
+mutation DeleteComponent ($id: ID!){
+    deleteComponent (input: {
+        id: $id
+    }) {
+        id
+    }
+}

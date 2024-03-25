@@ -64,7 +64,14 @@ data class ExportConfig(
             val graphQLBackendUrl: URL,
             @ConfigAlias("graphql-backend-authentication")
             val graphQLBackendAuthentication: Authentication,
+            @ConfigAlias("component-handling")
+            val gropiusComponentHandling: ComponentHandling,
         ) : Enable {
+
+            enum class ComponentHandling {
+                Modify,
+                Delete
+            }
 
             data class Authentication(
                 @ConfigAlias("authentication-url")

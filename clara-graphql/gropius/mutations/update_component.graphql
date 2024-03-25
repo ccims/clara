@@ -1,0 +1,11 @@
+mutation UpdateComponent ($id: ID!, $description: String, $template: ID){
+    updateComponent (input: {
+        id: $id,
+        description: $description,
+        template: $template
+    }) {
+        component {
+            id
+        }
+    }
+}

@@ -36,6 +36,7 @@ class ParallelExportExecutor(
                     async(dispatcher) {
                         exporter
                             .export(uniqueComponents, uniqueCommunications)
+                            .swap()
                             .getOrNull()
                     }
                 }

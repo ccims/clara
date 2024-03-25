@@ -69,7 +69,6 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
             val messagingSystem = internalComponents.find { component -> component.name.value == relation.messagingSystem?.name?.value }
             if (caller != null && callee != null) {
-                // TODO add messaging system
                 AggregatedCommunication(AggregatedCommunication.Source(caller.name), AggregatedCommunication.Target(callee.name), messagingSystem?.let { AggregatedCommunication.MessagingSystem(it.name) })
             } else {
                 null
