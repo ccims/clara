@@ -98,9 +98,9 @@ class DefaultMerger(private val config: Config) : Merger {
             otherCommunications
         } else {
             if (config.showMessagingCommunicationsDirectly) {
-                val messagingSystems = messagingCommunications.map { it.messagingSystem }.distinct()
+                val messagingSystems = messagingCommunications.map { it.messagingSystem!! }.distinct()
                 val filteredCommunications = otherCommunications.filter { communication ->
-                    messagingSystems.none { it?.componentName == communication.source.componentName || it?.componentName == communication.target.componentName }
+                    messagingSystems.none { it.componentName == communication.source.componentName || it.componentName == communication.target.componentName }
                 }
                 filteredCommunications + messagingCommunications
             } else {
@@ -206,6 +206,8 @@ class DefaultMerger(private val config: Config) : Merger {
             namespace = baseComponent.namespace,
             ipAddress = baseComponent.ipAddress,
             endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, compareComponent.paths),
+            type = baseComponent.type,
+            version = baseComponent.version?.value?.let { Component.InternalComponent.Version(it) },
         )
     }
 
@@ -218,6 +220,8 @@ class DefaultMerger(private val config: Config) : Merger {
             namespace = baseComponent.namespace,
             ipAddress = baseComponent.ipAddress,
             endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, emptyList()),
+            type = baseComponent.type,
+            version = baseComponent.version?.value?.let { Component.InternalComponent.Version(it) },
         )
     }
 }

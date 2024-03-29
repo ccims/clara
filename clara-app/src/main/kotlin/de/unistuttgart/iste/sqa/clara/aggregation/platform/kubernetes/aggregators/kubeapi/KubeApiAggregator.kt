@@ -27,7 +27,7 @@ class KubeApiAggregator(
 
     private val log = KotlinLogging.logger {}
 
-    override fun aggregate(): Either<AggregationFailure, Aggregation> {
+    override fun aggregate(): Either<KubeApiAggregationFailure, Aggregation> {
         log.info { "Aggregate Kubernetes API ..." }
 
         val (getPodsResult, getServicesResult) = kubernetesClient.use { client ->

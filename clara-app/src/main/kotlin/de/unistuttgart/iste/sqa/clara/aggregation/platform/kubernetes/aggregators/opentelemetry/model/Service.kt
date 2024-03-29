@@ -1,5 +1,7 @@
 package de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model
 
+import de.unistuttgart.iste.sqa.clara.api.model.Component
+import de.unistuttgart.iste.sqa.clara.api.model.ComponentType
 import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
 import de.unistuttgart.iste.sqa.clara.api.model.Path
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -10,6 +12,7 @@ data class Service(
     val ipAddress: IpAddress?,
     val port: Port?,
     val paths: List<Path>,
+    val type: ComponentType?,
 ) {
 
     private val log = KotlinLogging.logger {}
@@ -31,6 +34,7 @@ data class Service(
         val mergedHostName = mergeProperty(hostName, other.hostName, "hostName")
         val mergedIpAddress = mergeProperty(ipAddress, other.ipAddress, "ipAddress")
         val mergedPort = mergeProperty(port, other.port, "port")
+        val mergedComponentType = mergeProperty(type, other.type, "componentType")
         val mergedEndpoints = mergeEndpoints(paths, other.paths)
 
         return Service(
@@ -38,6 +42,7 @@ data class Service(
             hostName = mergedHostName,
             ipAddress = mergedIpAddress,
             port = mergedPort,
+            type = mergedComponentType ?: ComponentType.Microservice,
             paths = mergedEndpoints,
         )
     }

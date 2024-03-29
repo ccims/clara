@@ -70,7 +70,13 @@ class GropiusExporter(private val config: Config) : Exporter {
 
         return when (projectResult) {
             is Either.Left -> Either.Left(GropiusExportFailure("Cannot validate the existence of the project with the ID ${config.projectId} (${projectResult.value})"))
-            is Either.Right -> if (projectResult.value.projects.nodes.isEmpty()) Either.Left(GropiusExportFailure("The project with the ID ${config.projectId} does not exist!")) else Either.Right(Unit)
+            is Either.Right -> if (projectResult.value.projects.nodes.none { it.id == config.projectId }) {
+                Either.Left(GropiusExportFailure("The project with the ID ${config.projectId} does not exist!"))
+            } else {
+                val project = projectResult.value.projects.nodes.first()
+                log.info { "Using Gropius project ${project.name} (${project.id})" }
+                Either.Right(Unit)
+            }
         }
     }
 
@@ -156,7 +162,7 @@ class GropiusExporter(private val config: Config) : Exporter {
                     description = description,
                     name = component.name.value,
                     template = template,
-                    repositoryURL = "https://example.org" // in the future we might want to add the repo link gathered from the SBOM here
+                    repositoryURL = null // TODO: in the future we might want to add the repo link gathered from the SBOM here
                 )
             )
         ).getOrElse { error ->
@@ -203,13 +209,18 @@ class GropiusExporter(private val config: Config) : Exporter {
     }
 
     private suspend fun createComponentVersion(componentId: ID, component: Component): Either<GropiusExportFailure, ID> {
+        val version = when (component) {
+            is Component.ExternalComponent -> null
+            is Component.InternalComponent -> component.version?.value
+        }
+
         val result = graphQLClient.execute(
             CreateComponentVersion(
                 CreateComponentVersion.Variables(
                     component = componentId,
-                    description = "v1.0", // TODO versioning
+                    description = version?.let { "v$it" } ?: "-",
                     name = component.name.value,
-                    version = "1.0",
+                    version = version ?: "-",
                 )
             )
         ).getOrElse { error ->

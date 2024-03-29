@@ -8,8 +8,15 @@ data class KubernetesPod(
     val name: Name,
     val ipAddress: IpAddress,
     override val namespace: Namespace,
+    val version: Version?,
 ) : Namespaced {
 
     @JvmInline
     value class Name(val value: String)
+
+    @JvmInline
+    value class Version(val value: String) {
+
+        override fun toString() = value
+    }
 }

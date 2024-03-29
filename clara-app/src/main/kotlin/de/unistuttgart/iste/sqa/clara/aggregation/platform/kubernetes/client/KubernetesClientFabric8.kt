@@ -9,6 +9,7 @@ import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.util.stream.Collectors
 
 class KubernetesClientFabric8 : KubernetesClient {
 
@@ -119,10 +120,11 @@ class KubernetesClientFabric8 : KubernetesClient {
                 .inNamespace(namespace)
                 .withLabel(podSelector)
                 .resources()
-                .toList()
                 .map { it.sinceTime(sinceTime).log }
+                .collect(Collectors.toList())
                 .right()
         } catch (ex: KubernetesClientException) {
+            log.debug(ex) { "exception when getting the logs" } // TODO: remove this log
             Either.Left(KubernetesClientError("Cannot get logs from pods with the label '$podSelector' in namespace '$namespace': ${ex.message}"))
         }
     }
@@ -135,15 +137,16 @@ class KubernetesClientFabric8 : KubernetesClient {
 
     private fun fromFabric8Pod(pod: io.fabric8.kubernetes.api.model.Pod): KubernetesPod? {
         return KubernetesPod(
-            name = KubernetesPod.Name(pod.metadata.name ?: return null), // pod.metadata.labels.getOrDefault("app.kubernetes.io/name", pod.metadata.name) ?: return null),
+            name = KubernetesPod.Name(pod.metadata.name ?: return null),
             ipAddress = IpAddress(pod.status.podIP ?: return null),
-            namespace = Namespace(pod.metadata.namespace ?: return null)
+            namespace = Namespace(pod.metadata.namespace ?: return null),
+            version = KubernetesPod.Version(pod.spec.containers.firstOrNull()?.image?.substringAfter(":") ?: return null),
         )
     }
 
     private fun fromFabric8Service(service: io.fabric8.kubernetes.api.model.Service): KubernetesService? {
         return KubernetesService(
-            name = KubernetesService.Name(service.metadata.name ?: return null), // TODO service.metadata.labels.getOrDefault("app.kubernetes.io/name", service.metadata.name) ?: return null),
+            name = KubernetesService.Name(service.metadata.name ?: return null),
             ipAddress = IpAddress(service.spec.clusterIP ?: return null),
             namespace = Namespace(service.metadata.namespace ?: return null),
             selectedPods = client

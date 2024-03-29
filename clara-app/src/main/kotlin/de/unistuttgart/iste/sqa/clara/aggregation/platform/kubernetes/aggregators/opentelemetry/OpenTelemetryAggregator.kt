@@ -6,10 +6,7 @@ import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregator
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
 import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
-import de.unistuttgart.iste.sqa.clara.api.model.AggregatedCommunication
-import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
-import de.unistuttgart.iste.sqa.clara.api.model.Domain
-import de.unistuttgart.iste.sqa.clara.api.model.IpAddress
+import de.unistuttgart.iste.sqa.clara.api.model.*
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -36,7 +33,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
      * We assume that internal components that are part of any action send a trace, thus after merging all unnamed services, the leftovers have to be external.
      * If there are falsely as external labeled internal components, they might be merged in the [de.unistuttgart.iste.sqa.clara.merge.DefaultMerger].
      */
-    override fun aggregate(): Either<AggregationFailure, Aggregation> {
+    override fun aggregate(): Either<OpenTelemetryAggregationFailure, Aggregation> {
         log.info { "Aggregate OpenTelemetry ..." }
 
         val spans = runBlocking { spanProvider.getSpans() }
@@ -47,6 +44,8 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 name = AggregatedComponent.Name(it.name?.value!!),
                 domain = Domain(it.hostName?.value ?: "not-found-domain"),
                 paths = it.paths.toComponentPaths(),
+                type = it.type,
+                version = null,
             )
         }
 
@@ -155,6 +154,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             hostName = spanInformation.client.hostName, // It is unlikely to find a client hostName in the spans
             ipAddress = spanInformation.client.ipAddress,
             port = spanInformation.client.port,
+            type = spanInformation.client.type,
             paths = emptyList() // Clients don't have paths
         )
         updateService(client)
@@ -164,6 +164,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             hostName = spanInformation.server.hostName,
             ipAddress = spanInformation.server.ipAddress,
             port = spanInformation.server.port,
+            type = spanInformation.server.type,
             paths = if (spanInformation.server.path != null) {
                 listOf(spanInformation.server.path)
             } else {
@@ -178,6 +179,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 hostName = spanInformation.messagingSystem.hostName,
                 ipAddress = spanInformation.messagingSystem.ipAddress,
                 port = spanInformation.messagingSystem.port,
+                type = spanInformation.messagingSystem.type,
                 paths = emptyList(),
             )
             updateService(messagingSystem)
@@ -230,12 +232,14 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 ipAddress = null,
                 path = null, // no URL with paths used in messaging systems
                 port = null,
+                type = null,
             ),
             SpanInformation.Client(
                 serviceName = clientServiceName,
                 ipAddress = null,
                 hostName = null,
                 port = null,
+                type = null,
             ),
             // TODO there might be some network information in the span; extract it
             SpanInformation.MessagingSystem(
@@ -243,6 +247,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 ipAddress = null,
                 hostName = null,
                 port = null,
+                type = ComponentType.Broker,
             )
         )
     }
@@ -270,6 +275,8 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
             else -> throw UnsupportedOperationException("This method only handles Client and Server Spans")
         }
+
+        val possibleKeyNamesForDatabases = "db.connection_string, db.url, db.instance.id, db.system, db.name, db.operation, "
 
         val possibleServerValues = span.attributes.filter {
             it.key.lowercase() in possibleKeyNamesForServerAttributes
@@ -301,12 +308,14 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
                 ipAddress = serverIpAddress?.let { IpAddress(serverIpAddress) },
                 path = serverPath?.let { Service.Path(serverPath) },
                 port = serverPort?.let { Service.Port(serverPort) },
+                type = if (span.attributes.keys.any { it in possibleKeyNamesForDatabases }) ComponentType.Database else null
             ),
             SpanInformation.Client(
                 serviceName = clientServiceName,
                 ipAddress = clientIpAddress?.let { IpAddress(clientIpAddress) },
                 hostName = clientHostName?.let { Service.HostName(clientHostName) },
                 port = clientPort?.let { Service.Port(clientPort) },
+                type = null
             )
         )
     }

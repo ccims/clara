@@ -9,15 +9,19 @@ import de.unistuttgart.iste.sqa.clara.api.model.Component
 internal fun KubernetesPod.asAggregatedComponent(): AggregatedComponent {
     return AggregatedComponent.Internal.KubernetesComponent(
         name = AggregatedComponent.Name(this.name.value),
+        type = null,
+        version = this.version?.value?.let { AggregatedComponent.Internal.Version(it) },
         ipAddress = this.ipAddress,
         namespace = this.namespace,
-        pods = listOf(this)
+        pods = listOf(this),
     )
 }
 
 internal fun KubernetesService.asAggregatedComponent(): AggregatedComponent {
     return AggregatedComponent.Internal.KubernetesComponent(
         name = AggregatedComponent.Name(this.name.value),
+        type = null,
+        version = null,
         ipAddress = this.ipAddress,
         namespace = this.namespace,
         pods = this.selectedPods
@@ -46,6 +50,8 @@ internal fun AggregatedComponent.toComponent(): Component {
 
         is AggregatedComponent.Internal.KubernetesComponent -> Component.InternalComponent(
             name = Component.Name(this.name.value),
+            type = this.type,
+            version = this.version?.let { Component.InternalComponent.Version(it.value) },
             namespace = this.namespace,
             ipAddress = this.ipAddress,
             endpoints = null,
@@ -53,6 +59,8 @@ internal fun AggregatedComponent.toComponent(): Component {
 
         is AggregatedComponent.Internal.OpenTelemetryComponent -> Component.InternalComponent(
             name = Component.Name(this.name.value),
+            type = this.type,
+            version = this.version?.let { Component.InternalComponent.Version(it.value) },
             namespace = null,
             ipAddress = null,
             endpoints = Component.InternalComponent.Endpoints(this.domain, this.paths)

@@ -13,16 +13,29 @@ sealed interface AggregatedComponent {
 
     sealed interface Internal : AggregatedComponent {
 
+        val type: ComponentType?
+        val version: Version?
+
+        @JvmInline
+        value class Version(val value: String) {
+
+            override fun toString() = value
+        }
+
         data class OpenTelemetryComponent(
             override val name: Name,
+            override val type: ComponentType?,
+            override val version: Version?,
             val domain: Domain,
             val paths: List<Path>,
         ) : Internal
 
         data class KubernetesComponent(
             override val name: Name,
-            val ipAddress: IpAddress,
+            override val type: ComponentType?,
+            override val version: Version?,
             override val namespace: Namespace,
+            val ipAddress: IpAddress,
             val pods: List<KubernetesPod>,
         ) : Internal, Namespaced
     }
@@ -40,12 +53,20 @@ sealed interface Component {
 
     data class InternalComponent(
         override val name: Name,
+        val type: ComponentType?,
+        val version: Version?,
         val namespace: Namespace?,
         val ipAddress: IpAddress?,
         val endpoints: Endpoints?,
     ) : Component {
 
         data class Endpoints(val domain: Domain, val paths: List<Path>)
+
+        @JvmInline
+        value class Version(val value: String) {
+
+            override fun toString() = value
+        }
     }
 
     data class ExternalComponent(

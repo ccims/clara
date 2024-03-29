@@ -25,7 +25,7 @@ class KubernetesDnsAggregator(
 
     private val log = KotlinLogging.logger {}
 
-    override fun aggregate(): Either<AggregationFailure, Aggregation> {
+    override fun aggregate(): Either<DnsAggregationFailure, Aggregation> {
         log.info { "Aggregate Kubernetes DNS ..." }
 
         val (dnsLogs, knownPods, knownServices) = kubernetesClient.use { client ->

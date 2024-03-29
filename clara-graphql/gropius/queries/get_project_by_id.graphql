@@ -2,6 +2,7 @@ query GetProjectById ($id: ID){
     projects (filter: {id: {eq: $id}}){
         nodes {
             id
+            name
         }
     }
 }
