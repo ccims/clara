@@ -1,7 +1,6 @@
 mutation CreateComponent ($description: String!, $name: String!, $template: ID!, $repositoryURL: URL) {
     createComponent (input: {
         description: $description
-        extensionFields: []
         interfaceSpecifications: []
         name: $name
         repositoryURL: $repositoryURL

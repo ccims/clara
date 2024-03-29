@@ -2,7 +2,6 @@ mutation CreateRelationTemplate ($description: String!, $markerType: MarkerType!
     createRelationTemplate (input: {
         description: $description
         extends: [] #ids of the rel templates, that this template extends
-        extensionFields: []
         markerType: $markerType
         name: $name
         relationConditions: []

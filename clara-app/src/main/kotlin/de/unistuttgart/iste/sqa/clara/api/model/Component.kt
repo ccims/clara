@@ -5,15 +5,16 @@ import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.Kub
 sealed interface AggregatedComponent {
 
     val name: Name
+    val type: ComponentType?
 
     @JvmInline
     value class Name(val value: String)
 
-    data class External(override val name: Name, val domain: Domain) : AggregatedComponent
+    data class External(override val name: Name, override val type: ComponentType?, val domain: Domain) : AggregatedComponent
 
     sealed interface Internal : AggregatedComponent {
 
-        val type: ComponentType?
+        override val type: ComponentType?
         val version: Version?
 
         @JvmInline
@@ -44,6 +45,7 @@ sealed interface AggregatedComponent {
 sealed interface Component {
 
     val name: Name
+    val type: ComponentType?
 
     @JvmInline
     value class Name(val value: String) {
@@ -53,7 +55,7 @@ sealed interface Component {
 
     data class InternalComponent(
         override val name: Name,
-        val type: ComponentType?,
+        override val type: ComponentType?,
         val version: Version?,
         val namespace: Namespace?,
         val ipAddress: IpAddress?,
@@ -71,6 +73,7 @@ sealed interface Component {
 
     data class ExternalComponent(
         override val name: Name,
+        override val type: ComponentType?,
         val domain: Domain,
     ) : Component
 }

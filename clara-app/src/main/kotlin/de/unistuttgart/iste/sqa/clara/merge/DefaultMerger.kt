@@ -206,7 +206,7 @@ class DefaultMerger(private val config: Config) : Merger {
             namespace = baseComponent.namespace,
             ipAddress = baseComponent.ipAddress,
             endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, compareComponent.paths),
-            type = baseComponent.type,
+            type = mergeProperty(baseComponent.type, compareComponent.type),
             version = baseComponent.version?.value?.let { Component.InternalComponent.Version(it) },
         )
     }
@@ -220,9 +220,18 @@ class DefaultMerger(private val config: Config) : Merger {
             namespace = baseComponent.namespace,
             ipAddress = baseComponent.ipAddress,
             endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, emptyList()),
-            type = baseComponent.type,
+            type = mergeProperty(baseComponent.type, compareComponent.type),
             version = baseComponent.version?.value?.let { Component.InternalComponent.Version(it) },
         )
+    }
+
+    private fun <Property> mergeProperty(value1: Property?, value2: Property?): Property? {
+        return when {
+            value1 != null && value2 != null -> value2
+            value1 != null -> value1
+            value2 != null -> value2
+            else -> null
+        }
     }
 }
 

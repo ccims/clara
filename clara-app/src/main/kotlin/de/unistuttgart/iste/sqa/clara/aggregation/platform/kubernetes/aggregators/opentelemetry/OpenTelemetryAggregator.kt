@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.right
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.model.*
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
-import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
 import de.unistuttgart.iste.sqa.clara.api.model.*
 import de.unistuttgart.iste.sqa.clara.utils.regex.Regexes
@@ -53,6 +52,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             AggregatedComponent.External(
                 name = AggregatedComponent.Name(it.hostName?.value!!),
                 domain = Domain(it.hostName.value),
+                type = it.type,
             )
         }
 
@@ -276,7 +276,7 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
             else -> throw UnsupportedOperationException("This method only handles Client and Server Spans")
         }
 
-        val possibleKeyNamesForDatabases = "db.connection_string, db.url, db.instance.id, db.system, db.name, db.operation, "
+        val possibleKeyNamesForDatabases = listOf("db.connection_string", "db.url", "db.instance.id", "db.system", "db.name", "db.operation")
 
         val possibleServerValues = span.attributes.filter {
             it.key.lowercase() in possibleKeyNamesForServerAttributes

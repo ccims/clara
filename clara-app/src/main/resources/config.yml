@@ -10,7 +10,7 @@ aggregation:
       aggregators:
         kube-api:
         dns:
-          logs-since-time: 2024-03-01T00:00:00Z
+          logs-since-time: 2024-03-27T00:00:00Z
         open-telemetry:
           listen-port: 7878
           listen-duration: 60 seconds
@@ -33,10 +33,10 @@ export:
       output-type: SVG
       output-file: generated/architecture.svg
     gropius:
-      project-id: a9d6cca4-4caa-4f0b-a2e0-6dcc7aad4384
+      project-id: d9cc0540-bb2d-4910-b30d-393ae18b84c1
       graphql-backend-url: http://devonport.informatik.uni-stuttgart.de:8082/graphql
       graphql-backend-authentication:
-        authentication-url: http://devonport.informatik.uni-stuttgart.de:3000/authenticate/oauth/da7ea55f-da6a-49f4-8bba-cd8dd29f2ff5/token
+        authentication-url: http://devonport.informatik.uni-stuttgart.de:3000/authenticate/oauth/5590d02a-99b5-4864-be49-e45f426332ab/token
         username: ${CLARA_GROPIUS_GRAPHQL_USERNAME}
         password: ${CLARA_GROPIUS_GRAPHQL_PASSWORD}
         client-id: ${CLARA_GROPIUS_GRAPHQL_CLIENT_ID}

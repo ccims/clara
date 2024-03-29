@@ -21,7 +21,7 @@ internal fun KubernetesService.asAggregatedComponent(): AggregatedComponent {
     return AggregatedComponent.Internal.KubernetesComponent(
         name = AggregatedComponent.Name(this.name.value),
         type = null,
-        version = null,
+        version = this.selectedPods.firstOrNull()?.version?.value?.let { AggregatedComponent.Internal.Version(it) },
         ipAddress = this.ipAddress,
         namespace = this.namespace,
         pods = this.selectedPods
@@ -45,7 +45,8 @@ internal fun AggregatedComponent.toComponent(): Component {
     return when (this) {
         is AggregatedComponent.External -> Component.ExternalComponent(
             name = Component.Name(this.name.value),
-            domain = this.domain
+            domain = this.domain,
+            type = this.type,
         )
 
         is AggregatedComponent.Internal.KubernetesComponent -> Component.InternalComponent(

@@ -27,21 +27,11 @@ directive @specifiedBy(
     url: String!
 ) on SCALAR
 
-interface AbstractTypeChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+interface AbstractTypeChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -64,7 +54,7 @@ Entities that can be affected by an Issue, meaning that this entity is in some r
 impacted by e.g. a bug described by an issue, or the non-present of a feature described by an issue.
 
 """
-interface AffectedByIssue implements ExtensibleNode & Named & NamedNode & Node {
+interface AffectedByIssue implements BaseNode & Named & NamedNode & Node {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -84,16 +74,6 @@ interface AffectedByIssue implements ExtensibleNode & Named & NamedNode & Node {
     ): IssueConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -106,27 +86,17 @@ interface AffectedByIssue implements ExtensibleNode & Named & NamedNode & Node {
 }
 
 """
-ExtensibleNode which provides auditing information, which can e.g. be used for the sync.
+Node which provides auditing information, which can e.g. be used for the sync.
 When it was created and last modified, if the it is already deleted, and by who it was created and last modified.
 A modification is any change of a field on the node itself and a change of a relation (add or removed).
 A change on a related related node is not a modification.
 
 """
-interface AuditedNode implements ExtensibleNode & Node {
+interface AuditedNode implements BaseNode & Node {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -140,11 +110,27 @@ interface AuditedNode implements ExtensibleNode & Node {
     lastModifiedBy: User!
 }
 
-interface BasePermission implements Named & Node {
+"Shared extensions to the node type."
+interface BaseNode implements Node {
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
+    "The unique id of this node"
+    id: ID!
+}
+
+interface BasePermission implements BaseNode & Named & NamedNode & Node {
     "If, the permission is granted to all users. Use with caution."
     allUsers: Boolean!
     "The description of this entity."
     description: String!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "The name of this entity."
@@ -174,19 +160,9 @@ Defines templated fields with specific types (defined using JSON schema).
 READ is always granted.
 
 """
-interface BaseTemplate implements ExtensibleNode & Named & NamedNode & Node {
+interface BaseTemplate implements BaseNode & Named & NamedNode & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -210,7 +186,7 @@ Keeps track when it was last edited and by who, but does not keep track of the c
 READ is granted if READ is granted on `issue`.
 
 """
-interface Comment implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+interface Comment implements AuditedNode & BaseNode & Node & TimelineItem {
     "IssueComments which answer this Comment."
     answeredBy(
         "Get only items after the cursor"
@@ -231,8 +207,8 @@ interface Comment implements AuditedNode & ExtensibleNode & Node & TimelineItem 
     """
     The text of the Comment.
     Supports GFM (GitHub Flavored Markdown).
-    Updates to the body cause lastEditedAt and lastEditedBy to change, while updates to referencedArtefacts
-    do not.
+    Updates cause lastEditedAt and lastEditedBy to change.
+    Empty String if IssueComment is deleted.
 
     """
     body: String!
@@ -252,16 +228,6 @@ interface Comment implements AuditedNode & ExtensibleNode & Node & TimelineItem 
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -277,27 +243,6 @@ interface Comment implements AuditedNode & ExtensibleNode & Node & TimelineItem 
     lastModifiedBy: User!
     "If existing, the parent TimelineItem"
     parentItem: ParentTimelineItem
-}
-
-"Entity which provides dynamic extension fields."
-interface ExtensibleNode implements Node {
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
-    "Checks if the current user has a specific permission on this Node"
-    hasPermission(
-        "The permission to check for"
-        permission: AllPermissionEntry
-    ): Boolean!
-    "The unique id of this node"
-    id: ID!
 }
 
 "Interface for all types which support templates describing user writeable fields."
@@ -334,23 +279,13 @@ interface Named {
 }
 
 "AuditedNode with a name and description"
-interface NamedAuditedNode implements AuditedNode & ExtensibleNode & Named & Node {
+interface NamedAuditedNode implements AuditedNode & BaseNode & Named & Node {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -366,20 +301,10 @@ interface NamedAuditedNode implements AuditedNode & ExtensibleNode & Named & Nod
     name: String!
 }
 
-"ExtensibleNode with a name and description"
-interface NamedNode implements ExtensibleNode & Named & Node {
+"Node with a name and description"
+interface NamedNode implements BaseNode & Named & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -397,12 +322,17 @@ interface Node {
     id: ID!
 }
 
-interface NodePermission implements Named & Node {
+interface NodePermission implements BaseNode & BasePermission & Named & NamedNode & Node {
     "If, the permission is granted to all users. Use with caution."
     allUsers: Boolean!
     "The description of this entity."
     description: String!
     entries: [String!]!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "The name of this entity."
@@ -431,7 +361,7 @@ TimelineItem which can aggregate other TimelineItems.
 READ is granted if READ is granted on `issue`.
 
 """
-interface ParentTimelineItem implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+interface ParentTimelineItem implements AuditedNode & BaseNode & Node & TimelineItem {
     "Child TimelineItems. These are still part of the main timeline."
     childItems(
         "Get only items after the cursor"
@@ -453,16 +383,6 @@ interface ParentTimelineItem implements AuditedNode & ExtensibleNode & Node & Ti
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -481,7 +401,7 @@ interface ParentTimelineItem implements AuditedNode & ExtensibleNode & Node & Ti
 }
 
 "Entity which can be used as start / end of Relations. Can be affected by Issues."
-interface RelationPartner implements AffectedByIssue & ExtensibleNode & Named & NamedNode & Node & TemplatedNode {
+interface RelationPartner implements AffectedByIssue & BaseNode & Named & NamedNode & Node & TemplatedNode {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -518,16 +438,6 @@ interface RelationPartner implements AffectedByIssue & ExtensibleNode & Named & 
     ): AggregatedIssueConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -595,19 +505,9 @@ interface RelationPartner implements AffectedByIssue & ExtensibleNode & Named & 
 }
 
 "Template for RelationPartners."
-interface RelationPartnerTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & Template {
+interface RelationPartnerTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & Template {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Style of the fill"
     fill: FillStyle
     "Checks if the current user has a specific permission on this Node"
@@ -669,21 +569,11 @@ interface RelationPartnerTemplate implements BaseTemplate & ExtensibleNode & Nam
 }
 
 "Event representing that the type of an IssueRelation changed."
-interface RelationTypeChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+interface RelationTypeChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -711,21 +601,11 @@ interface RelationTypeChangedEvent implements AuditedNode & ExtensibleNode & Nod
 Event representing that an outgoing IssueRelation was removed.
 
 """
-interface RemovedRelationEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+interface RemovedRelationEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -751,19 +631,9 @@ Defines templated fields with specific types (defined using JSON schema).
 Does not provide any composition features, as composition is handled by the Template it is part of.
 
 """
-interface SubTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node {
+interface SubTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -780,25 +650,64 @@ interface SubTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNo
     ): [JSONField!]!
 }
 
+"A target where users can configure how the sync should behave."
+interface SyncPermissionTarget implements BaseNode & Named & NamedNode & Node {
+    "The description of this entity."
+    description: String!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
+    "The unique id of this node"
+    id: ID!
+    "The name of this entity."
+    name: String!
+    "The users which allow to sync the data of other users to this target."
+    syncOthersAllowedBy(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: GropiusUserFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: GropiusUserOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): GropiusUserConnection!
+    "The users which allow to sync their data to this target."
+    syncSelfAllowedBy(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: GropiusUserFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: GropiusUserOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): GropiusUserConnection!
+}
+
 """
 BaseTemplate with composition features.
 Can have SubTemplates.
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-interface Template implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node {
+interface Template implements BaseNode & BaseTemplate & Named & NamedNode & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -843,21 +752,11 @@ interface TemplatedNode {
 }
 
 "Supertype of all timeline items. Always part of an Issue."
-interface TimelineItem implements AuditedNode & ExtensibleNode & Node {
+interface TimelineItem implements AuditedNode & BaseNode & Node {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -882,7 +781,7 @@ Can be synced to an IMS by creating an IMSProject.
 Can be affected by Issues.
 
 """
-interface Trackable implements AffectedByIssue & ExtensibleNode & Named & NamedNode & Node {
+interface Trackable implements AffectedByIssue & BaseNode & Named & NamedNode & Node {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -919,16 +818,6 @@ interface Trackable implements AffectedByIssue & ExtensibleNode & Named & NamedN
     ): ArtefactConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1021,7 +910,7 @@ A user can create AuditedNodes, participate in Issues and be assigned to Issues.
 READ is always granted.
 
 """
-interface User implements ExtensibleNode & Node {
+interface User implements BaseNode & Node {
     "Assignments the user is part of, this includes assignments which aren't active."
     assignments(
         "Get only items after the cursor"
@@ -1062,16 +951,6 @@ interface User implements ExtensibleNode & Node {
     displayName: String!
     "The email address of the user."
     email: String
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1164,23 +1043,13 @@ Event representing that an entity is affected by an Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type AddedAffectedEntityEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type AddedAffectedEntityEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The entity affected by the Issue, null if deleted."
     addedAffectedEntity: AffectedByIssue
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1203,23 +1072,13 @@ Event representing that an Artefact was added to an Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type AddedArtefactEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type AddedArtefactEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The Artefact added to the Issue, null if deleted."
     addedArtefact: Artefact
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1242,23 +1101,13 @@ Event representing that a Label was added to an Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type AddedLabelEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type AddedLabelEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The Label added to the Issue, null if deleted."
     addedLabel: Label
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1281,21 +1130,11 @@ Event representing that an Issue was pinned on a Trackable.
 READ is granted if READ is granted on `issue`.
 
 """
-type AddedToPinnedIssuesEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type AddedToPinnedIssuesEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1320,23 +1159,13 @@ Event representing that the Issue was added to a Trackable.
 READ is granted if READ is granted on `issue`.
 
 """
-type AddedToTrackableEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type AddedToTrackableEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The Trackable the Issue was added to, null if deleted."
     addedToTrackable: Trackable
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1387,9 +1216,14 @@ An Issue is aggregated on a Interface if
 - it affects any InterfacePart of the associated InterfaceSpecificationVersion
 
 """
-type AggregatedIssue implements Node {
+type AggregatedIssue implements BaseNode & Node {
     "The amount of Issues of this type on this location."
     count: Int!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "IssueRelations from this aggregated issue to other aggregated issues."
@@ -1476,10 +1310,15 @@ An aggregated IssueRelation.
 IssueRelations are aggregated by both start and end Issue.
 
 """
-type AggregatedIssueRelation implements Node {
+type AggregatedIssueRelation implements BaseNode & Node {
     count: Int!
     "The end of this AggregatedIssueRelation."
     end: AggregatedIssue!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "The IssueRelations aggregated by this AggregatedIssueRelation."
@@ -1534,21 +1373,11 @@ Artefacts are synced to all IMSProjects of the Trackable they are part of.
 READ is granted if READ is granted on `trackable`.
 
 """
-type Artefact implements AuditedNode & ExtensibleNode & MutableTemplatedNode & Node & TemplatedNode {
+type Artefact implements AuditedNode & BaseNode & MutableTemplatedNode & Node & TemplatedNode {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "A URL to the file this Artefact references"
     file: URL!
     "If present, the first line of the file this Artefact references, inclusive"
@@ -1654,7 +1483,7 @@ Template for Artefacts
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type ArtefactTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & Template {
+type ArtefactTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & Template {
     "The description of this entity."
     description: String!
     "Templates that extend this template."
@@ -1691,16 +1520,6 @@ type ArtefactTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNo
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): ArtefactTemplateConnection!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1762,21 +1581,11 @@ An Assignment is only active if it is still in `assignments` on Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type Assignment implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type Assignment implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1823,7 +1632,7 @@ Type for an Assignment, like REVIEWER. Part of an IssueTemplate.
 READ is always granted.
 
 """
-type AssignmentType implements ExtensibleNode & Named & NamedNode & Node {
+type AssignmentType implements BaseNode & Named & NamedNode & Node {
     "Assignments which use this type."
     assignmentsWithType(
         "Get only items after the cursor"
@@ -1843,16 +1652,6 @@ type AssignmentType implements ExtensibleNode & Named & NamedNode & Node {
     ): AssignmentConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1886,23 +1685,13 @@ Event representing that the type of an Assignment changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type AssignmentTypeChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type AssignmentTypeChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The Assignment of which the type was changed"
     assignment: Assignment!
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -1990,7 +1779,7 @@ Each Issue has exactly one Body. Keeps track when it was last edited and by who,
 READ is granted if READ is granted on `issue`.
 
 """
-type Body implements AuditedNode & Comment & ExtensibleNode & Node & TimelineItem {
+type Body implements AuditedNode & BaseNode & Comment & Node & TimelineItem {
     "IssueComments which answer this Comment."
     answeredBy(
         "Get only items after the cursor"
@@ -2011,8 +1800,8 @@ type Body implements AuditedNode & Comment & ExtensibleNode & Node & TimelineIte
     """
     The text of the Comment.
     Supports GFM (GitHub Flavored Markdown).
-    Updates to the body cause lastEditedAt and lastEditedBy to change, while updates to referencedArtefacts
-    do not.
+    Updates cause lastEditedAt and lastEditedBy to change.
+    Empty String if IssueComment is deleted.
 
     """
     body: String!
@@ -2032,16 +1821,6 @@ type Body implements AuditedNode & Comment & ExtensibleNode & Node & TimelineIte
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -2129,7 +1908,7 @@ READ is granted via an associated ComponentPermission or if READ is granted on a
 ComponentVersion in `versions` of this Component.
 
 """
-type Component implements AffectedByIssue & ExtensibleNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode & Trackable {
+type Component implements AffectedByIssue & BaseNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode & Trackable {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -2166,16 +1945,6 @@ type Component implements AffectedByIssue & ExtensibleNode & MutableTemplatedNod
     ): ArtefactConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -2360,13 +2129,18 @@ type ComponentEdge {
 }
 
 "NodePermission to grant specific permissions to a set of Components."
-type ComponentPermission implements Named & Node {
+type ComponentPermission implements BaseNode & BasePermission & Named & NamedNode & Node {
     "If, the permission is granted to all users. Use with caution."
     allUsers: Boolean!
     "The description of this entity."
     description: String!
     "All permissions this Permission grants"
     entries: [ComponentPermissionEntry!]!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "The name of this entity."
@@ -2433,7 +2207,7 @@ Defines templated fields with specific types (defined using JSON schema).
 Defines SubTemplate for ComponentVersions.
 
 """
-type ComponentTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & RelationPartnerTemplate & Template {
+type ComponentTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & RelationPartnerTemplate & Template {
     "SubTemplate applied to all ComponentVersions of Components with this Template"
     componentVersionTemplate: ComponentVersionTemplate!
     "The description of this entity."
@@ -2472,16 +2246,6 @@ type ComponentTemplate implements BaseTemplate & ExtensibleNode & Named & NamedN
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): ComponentTemplateConnection!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Style of the fill"
     fill: FillStyle
     "Checks if the current user has a specific permission on this Node"
@@ -2618,7 +2382,7 @@ Can be used in Relations, affected by issues and included by Projects.
 READ is granted if READ is granted on `component`.
 
 """
-type ComponentVersion implements AffectedByIssue & ExtensibleNode & MutableTemplatedNode & Named & NamedNode & Node & RelationPartner & TemplatedNode & Versioned {
+type ComponentVersion implements AffectedByIssue & BaseNode & MutableTemplatedNode & Named & NamedNode & Node & RelationPartner & TemplatedNode & Versioned {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -2657,16 +2421,6 @@ type ComponentVersion implements AffectedByIssue & ExtensibleNode & MutableTempl
     component: Component!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -2814,19 +2568,9 @@ Part of a ComponentTemplate.
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type ComponentVersionTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type ComponentVersionTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3003,21 +2747,11 @@ Event representing that the due date of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type DueDateChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type DueDateChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3044,21 +2778,11 @@ Event representing that the estimated time of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type EstimatedTimeChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type EstimatedTimeChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3081,9 +2805,14 @@ type EstimatedTimeChangedEvent implements AuditedNode & ExtensibleNode & Node & 
 }
 
 "Fill style of a shape"
-type FillStyle implements Node {
+type FillStyle implements BaseNode & Node {
     "The color of the fill"
     color: String!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
 }
@@ -3094,13 +2823,18 @@ Can have NodePermissions to grant permissions on specific Nodes.
 READ is granted if the global admin is granted.
 
 """
-type GlobalPermission implements Named & Node {
+type GlobalPermission implements BaseNode & BasePermission & Named & NamedNode & Node {
     "If, the permission is granted to all users. Use with caution."
     allUsers: Boolean!
     "The description of this entity."
     description: String!
     "All permissions this Permission grants"
     entries: [PermissionEntry!]!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "The name of this entity."
@@ -3134,7 +2868,7 @@ Therefore, to collect all Assignments, Issue participations etc. it is necessary
 linked IMSUsers and their Assignments etc.
 
 """
-type GropiusUser implements ExtensibleNode & Node & User {
+type GropiusUser implements BaseNode & Node & User {
     "Assignments the user is part of, this includes assignments which aren't active."
     assignments(
         "Get only items after the cursor"
@@ -3154,6 +2888,40 @@ type GropiusUser implements ExtensibleNode & Node & User {
     ): AssignmentConnection!
     "The avatar of the user."
     avatar: URL!
+    "The IMSSyncPermissionTarget this users allow to sync content of other users."
+    canSyncOthers(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: SyncPermissionTargetFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: SyncPermissionTargetOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): SyncPermissionTargetConnection!
+    "The UserSyncPermissionTarget this users allow to sync content of this user."
+    canSyncSelf(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: SyncPermissionTargetFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: SyncPermissionTargetOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): SyncPermissionTargetConnection!
     "AuditedNodes the user created."
     createdNodes(
         "Get only items after the cursor"
@@ -3175,16 +2943,6 @@ type GropiusUser implements ExtensibleNode & Node & User {
     displayName: String!
     "The email address of the user."
     email: String
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3275,19 +3033,9 @@ Trackables can be added to this via an IMSProject, so that their issues are sync
 READ is granted via an associated IMSPermission.
 
 """
-type IMS implements ExtensibleNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode {
+type IMS implements BaseNode & MutableTemplatedNode & Named & NamedNode & Node & SyncPermissionTarget & TemplatedNode {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3331,6 +3079,40 @@ type IMS implements ExtensibleNode & MutableTemplatedNode & Named & NamedNode & 
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): IMSProjectConnection!
+    "The users which allow to sync the data of other users to this target."
+    syncOthersAllowedBy(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: GropiusUserFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: GropiusUserOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): GropiusUserConnection!
+    "The users which allow to sync their data to this target."
+    syncSelfAllowedBy(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: GropiusUserFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: GropiusUserOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): GropiusUserConnection!
     "The Template of this Component."
     template: IMSTemplate!
     "Value of a field defined by the template. Error if such a field is not defined."
@@ -3399,17 +3181,7 @@ The representation of the Issue on the IMS depends on the type of IMS.
 READ is granted if read is granted on `issue`.
 
 """
-type IMSIssue implements ExtensibleNode & Node & TemplatedNode {
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
+type IMSIssue implements BaseNode & Node & TemplatedNode {
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3472,19 +3244,9 @@ Part of a IMSTemplate.
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type IMSIssueTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type IMSIssueTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3521,13 +3283,18 @@ type IMSIssueTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNo
 }
 
 "NodePermission to grant specific permissions to a set of IMSs."
-type IMSPermission implements Named & Node {
+type IMSPermission implements BaseNode & BasePermission & Named & NamedNode & Node {
     "If, the permission is granted to all users. Use with caution."
     allUsers: Boolean!
     "The description of this entity."
     description: String!
     "All permissions this Permission grants"
     entries: [IMSPermissionEntry!]!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "The name of this entity."
@@ -3594,17 +3361,9 @@ The representation on the IMS depends on the type of IMS, e.g. for GitHub, a pro
 READ is granted if READ is granted on `trackable` or `ims`.
 
 """
-type IMSProject implements ExtensibleNode & MutableTemplatedNode & Node & TemplatedNode {
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
+type IMSProject implements BaseNode & MutableTemplatedNode & Named & NamedNode & Node & SyncPermissionTarget & TemplatedNode {
+    "The description of this entity."
+    description: String!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3631,6 +3390,42 @@ type IMSProject implements ExtensibleNode & MutableTemplatedNode & Node & Templa
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): IMSIssueConnection!
+    "The name of this entity."
+    name: String!
+    "The users which allow to sync the data of other users to this target."
+    syncOthersAllowedBy(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: GropiusUserFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: GropiusUserOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): GropiusUserConnection!
+    "The users which allow to sync their data to this target."
+    syncSelfAllowedBy(
+        "Get only items after the cursor"
+        after: String,
+        "Get only items before the cursor"
+        before: String,
+        "Filter for specific items in the connection"
+        filter: GropiusUserFilterInput,
+        "Get the first n items. Must not be used if before is specified"
+        first: Int,
+        "Get the last n items. Must not be used if after is specified"
+        last: Int,
+        "Order in which the items are sorted"
+        orderBy: GropiusUserOrder,
+        "Skips n items. First or last MUST be specified, is otherwise ignored"
+        skip: Int
+    ): GropiusUserConnection!
     "The Template of this Component."
     template: IMSProjectTemplate!
     "Value of a field defined by the template. Error if such a field is not defined."
@@ -3684,19 +3479,9 @@ Part of a IMSTemplate.
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type IMSProjectTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type IMSProjectTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3737,7 +3522,7 @@ Template for imss
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type IMSTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & Template {
+type IMSTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & Template {
     "The description of this entity."
     description: String!
     "Templates that extend this template."
@@ -3774,16 +3559,6 @@ type IMSTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & 
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): IMSTemplateConnection!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -3853,7 +3628,7 @@ The username might not be unique.
 It is possible that this user never heard of Gropius, and is only known to the system due to sync adapters.
 
 """
-type IMSUser implements ExtensibleNode & Node & TemplatedNode & User {
+type IMSUser implements BaseNode & Node & TemplatedNode & User {
     "Assignments the user is part of, this includes assignments which aren't active."
     assignments(
         "Get only items after the cursor"
@@ -3894,16 +3669,6 @@ type IMSUser implements ExtensibleNode & Node & TemplatedNode & User {
     displayName: String!
     "The email address of the user."
     email: String
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "The GropiusUser this IMSUser is linked to. An IMSUser might be linked to no GropiusUser."
     gropiusUser: GropiusUser
     "Checks if the current user has a specific permission on this Node"
@@ -3985,19 +3750,9 @@ Part of an IMSTemplate.
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type IMSUserTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type IMSUserTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4038,21 +3793,11 @@ Event representing that the type of an incoming IssueRelation changed.
 READ is granted if READ is granted on `issueRelation`.
 
 """
-type IncomingRelationTypeChangedEvent implements AuditedNode & ExtensibleNode & Node & RelationTypeChangedEvent & TimelineItem {
+type IncomingRelationTypeChangedEvent implements AuditedNode & BaseNode & Node & RelationTypeChangedEvent & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4083,7 +3828,7 @@ Can be used in Relations and affected by Issues.
 READ is granted if READ is granted on `interfaceDefinition`.
 
 """
-type Interface implements AffectedByIssue & ExtensibleNode & MutableTemplatedNode & Named & NamedNode & Node & RelationPartner & TemplatedNode {
+type Interface implements AffectedByIssue & BaseNode & MutableTemplatedNode & Named & NamedNode & Node & RelationPartner & TemplatedNode {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -4120,16 +3865,6 @@ type Interface implements AffectedByIssue & ExtensibleNode & MutableTemplatedNod
     ): AggregatedIssueConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4236,19 +3971,9 @@ Specifies if it is visible/invisible derived (and by which Relations)
 READ is granted if READ is granted on `componentVersion`
 
 """
-type InterfaceDefinition implements ExtensibleNode & MutableTemplatedNode & Node & TemplatedNode {
+type InterfaceDefinition implements BaseNode & MutableTemplatedNode & Node & TemplatedNode {
     "The ComponentVersion using the InterfaceSpecificationVersion"
     componentVersion: ComponentVersion!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4350,19 +4075,9 @@ Defines templated fields with specific types (defined using JSON schema).
 All templatedFieldSpecifications must allow `null` as value.
 
 """
-type InterfaceDefinitionTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type InterfaceDefinitionTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4415,7 +4130,7 @@ Can be affected by Issues, and be used as start / end of ServiceEffectSpecificat
 READ is granted if READ is granted on `definedOn`.
 
 """
-type InterfacePart implements AffectedByIssue & ExtensibleNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode {
+type InterfacePart implements AffectedByIssue & BaseNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -4435,16 +4150,6 @@ type InterfacePart implements AffectedByIssue & ExtensibleNode & MutableTemplate
     ): IssueConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4558,19 +4263,9 @@ Part of a InterfaceSpecificationTemplate.
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type InterfacePartTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type InterfacePartTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4614,7 +4309,7 @@ Defines InterfaceParts, but active parts depend on the InterfaceSpecificationVer
 READ is granted if READ is granted on `component`, or any InterfaceSpecificationVersion in `versions`.
 
 """
-type InterfaceSpecification implements AffectedByIssue & ExtensibleNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode {
+type InterfaceSpecification implements AffectedByIssue & BaseNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -4636,16 +4331,6 @@ type InterfaceSpecification implements AffectedByIssue & ExtensibleNode & Mutabl
     component: Component!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4715,7 +4400,7 @@ Part of a RelationCondition, which is part of RelationTemplates.
 READ is always granted.
 
 """
-type InterfaceSpecificationDerivationCondition implements ExtensibleNode & Node {
+type InterfaceSpecificationDerivationCondition implements BaseNode & Node {
     "Templates of InterfaceSpecifications which are derived."
     derivableInterfaceSpecifications(
         "Get only items after the cursor"
@@ -4741,16 +4426,6 @@ type InterfaceSpecificationDerivationCondition implements ExtensibleNode & Node 
     derivesVisibleDerived: Boolean!
     "If true, visible self-defined InterfaceSpecifications are derived"
     derivesVisibleSelfDefined: Boolean!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -4801,7 +4476,7 @@ Defines on which Components InterfaceSpecifications with this Template can be (i
 Defines SubTemplates for Interfaces and InterfaceSpecificationVersions.
 
 """
-type InterfaceSpecificationTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & RelationPartnerTemplate & Template {
+type InterfaceSpecificationTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & RelationPartnerTemplate & Template {
     "Templates of Components InterfaceSpecifications with this template can be invisible on."
     canBeInvisibleOnComponents(
         "Get only items after the cursor"
@@ -4892,16 +4567,6 @@ type InterfaceSpecificationTemplate implements BaseTemplate & ExtensibleNode & N
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): InterfaceSpecificationTemplateConnection!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Style of the fill"
     fill: FillStyle
     "Checks if the current user has a specific permission on this Node"
@@ -5027,7 +4692,7 @@ READ is granted if READ is granted on `interfaceSpecification`,
 or any InterfaceDefinition in `definitions`
 
 """
-type InterfaceSpecificationVersion implements AffectedByIssue & ExtensibleNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode & Versioned {
+type InterfaceSpecificationVersion implements AffectedByIssue & BaseNode & MutableTemplatedNode & Named & NamedNode & Node & TemplatedNode & Versioned {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -5047,16 +4712,6 @@ type InterfaceSpecificationVersion implements AffectedByIssue & ExtensibleNode &
     ): IssueConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5158,19 +4813,9 @@ Part of a InterfaceSpecificationTemplate.
 Defines templated fields with specific types (defined using JSON schema).
 
 """
-type InterfaceSpecificationVersionTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type InterfaceSpecificationVersionTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5213,19 +4858,9 @@ Defines templated fields with specific types (defined using JSON schema).
 All templatedFieldSpecifications must allow `null` as value.
 
 """
-type InterfaceTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & SubTemplate {
+type InterfaceTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & SubTemplate {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5267,17 +4902,7 @@ Consists of an Interface it refers to, and optionally a subset of its active Int
 READ is granted if READ is granted on the associated ComponentVersion
 
 """
-type IntraComponentDependencyParticipant implements ExtensibleNode & Node {
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
+type IntraComponentDependencyParticipant implements BaseNode & Node {
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5344,21 +4969,11 @@ This can result in a propagation of Issues, if any location in `in` is in some r
 all locations in `out` are affected by this Issue, too.
 
 """
-type IntraComponentDependencySpecification implements ExtensibleNode & Named & NamedNode & Node {
+type IntraComponentDependencySpecification implements BaseNode & Named & NamedNode & Node {
     "The ComponentVersion this is part of"
     componentVersion: ComponentVersion!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5435,7 +5050,7 @@ and `participants`, however, `lastModifiedAt` and `lastUpdatedAt` is still chang
 The same applies to RelatedByIssueEvent, RemovedIncomingRelationEvent and IncomingRelationTypeChangedEvent.
 
 """
-type Issue implements AuditedNode & ExtensibleNode & MutableTemplatedNode & Node & TemplatedNode {
+type Issue implements AuditedNode & BaseNode & MutableTemplatedNode & Node & TemplatedNode {
     "Entities which are in some regard affected by this Issue."
     affects(
         "Get only items after the cursor"
@@ -5514,16 +5129,6 @@ type Issue implements AuditedNode & ExtensibleNode & MutableTemplatedNode & Node
     dueDate: DateTime
     "Estimated amount of time necessary for this Issue."
     estimatedTime: Duration
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5742,7 +5347,7 @@ Keeps track when it was last edited and by who, but does not keep track of the c
 READ is granted if READ is granted on `issue`.
 
 """
-type IssueComment implements AuditedNode & Comment & ExtensibleNode & Node & TimelineItem {
+type IssueComment implements AuditedNode & BaseNode & Comment & Node & TimelineItem {
     "IssueComments which answer this Comment."
     answeredBy(
         "Get only items after the cursor"
@@ -5765,8 +5370,7 @@ type IssueComment implements AuditedNode & Comment & ExtensibleNode & Node & Tim
     """
     The text of the Comment.
     Supports GFM (GitHub Flavored Markdown).
-    Updates to the body cause lastEditedAt and lastEditedBy to change, while updates to referencedArtefacts
-    do not.
+    Updates cause lastEditedAt and lastEditedBy to change.
     Empty String if IssueComment is deleted.
 
     """
@@ -5787,16 +5391,6 @@ type IssueComment implements AuditedNode & Comment & ExtensibleNode & Node & Tim
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5878,19 +5472,9 @@ Priority of an Issue like HIGH or LOW. Part of an IssueTemplate.
 READ is always granted.
 
 """
-type IssuePriority implements ExtensibleNode & Named & NamedNode & Node {
+type IssuePriority implements BaseNode & Named & NamedNode & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -5964,7 +5548,7 @@ Caution: This is **not** a subtype of Relation.
 READ is granted if READ is granted on `issue`.
 
 """
-type IssueRelation implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type IssueRelation implements AuditedNode & BaseNode & Node & TimelineItem {
     "The AggregatedIssueRelations this IssueRelation is aggregated by."
     aggregatedBy(
         "Get only items after the cursor"
@@ -5986,16 +5570,6 @@ type IssueRelation implements AuditedNode & ExtensibleNode & Node & TimelineItem
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -6042,19 +5616,9 @@ Type for an IssueRelation, like DUPLICATES or DEPENDS_ON. Part of an IssueTempla
 READ is always granted.
 
 """
-type IssueRelationType implements ExtensibleNode & Named & NamedNode & Node {
+type IssueRelationType implements BaseNode & Named & NamedNode & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -6062,6 +5626,8 @@ type IssueRelationType implements ExtensibleNode & Named & NamedNode & Node {
     ): Boolean!
     "The unique id of this node"
     id: ID!
+    "The name of the relation from the inverse (incoming) perspective"
+    inverseName: String!
     "The name of this entity."
     name: String!
     "IssueTemplates this is part of."
@@ -6125,19 +5691,9 @@ State of an Issue like BUG or FEATURE_REQUEST. Part of an IssueTemplate.
 READ is always granted.
 
 """
-type IssueState implements ExtensibleNode & Named & NamedNode & Node {
+type IssueState implements BaseNode & Named & NamedNode & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -6214,7 +5770,7 @@ RelationTypes for outgoing IssueRelations for Issues with this template.
 All those are derived, if this Template extends another IssueTemplate.
 
 """
-type IssueTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & Template {
+type IssueTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & Template {
     "Set of all types Assignments to Issues with this Template can have."
     assignmentTypes(
         "Get only items after the cursor"
@@ -6268,16 +5824,6 @@ type IssueTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode 
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): IssueTemplateConnection!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -6406,19 +5952,9 @@ Type of an Issue like BUG or FEATURE_REQUEST. Part of an IssueTemplate.
 READ is always granted.
 
 """
-type IssueType implements ExtensibleNode & Named & NamedNode & Node {
+type IssueType implements BaseNode & Named & NamedNode & Node {
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -6501,7 +6037,7 @@ Issues may be synced to all IMSProjects of Trackables they are part of.
 READ is granted if READ is granted on any Trackable in `trackables`.
 
 """
-type Label implements AuditedNode & ExtensibleNode & Named & NamedAuditedNode & Node {
+type Label implements AuditedNode & BaseNode & Named & NamedAuditedNode & Node {
     "The color of the Label, used to display the Label."
     color: String!
     "The DateTime this entity was created at."
@@ -6510,16 +6046,6 @@ type Label implements AuditedNode & ExtensibleNode & Named & NamedAuditedNode & 
     createdBy: User!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -6587,35 +6113,6 @@ type LabelEdge {
     cursor: String!
     "The item at the end of the edge."
     node: Label!
-}
-
-"""
-An aggregated IssueRelation.
-IssueRelations are aggregated by both start and end Issue.
-
-"""
-type MetaAggregatedIssueRelation implements Node {
-    count: Int!
-    end: Component!
-    "The unique id of this node"
-    id: ID!
-    issueRelations(
-        "Get only items after the cursor"
-        after: String,
-        "Get only items before the cursor"
-        before: String,
-        "Filter for specific items in the connection"
-        filter: IssueRelationFilterInput,
-        "Get the first n items. Must not be used if before is specified"
-        first: Int,
-        "Get the last n items. Must not be used if after is specified"
-        last: Int,
-        "Order in which the items are sorted"
-        orderBy: IssueRelationOrder,
-        "Skips n items. First or last MUST be specified, is otherwise ignored"
-        skip: Int
-    ): IssueRelationConnection!
-    start: Component!
 }
 
 type Mutation {
@@ -7279,11 +6776,6 @@ type Mutation {
         "Defines which ComponentVersion to update and how to update it"
         input: UpdateComponentVersionInput!
     ): UpdateComponentVersionPayload!
-    "Updates extensionFields of the specified ExtensibleNode. Requires READ"
-    updateExtensionFields(
-        "Defines the ExtensibleNode to update and changed extensionFields"
-        input: UpdateExtensionFieldsInput!
-    ): UpdateExtensionFieldsPayload!
     "Updates a GlobalPermission, requires that the user is an admin"
     updateGlobalPermission(
         "Defines which GlobalPermission to update and how to update it"
@@ -7410,6 +6902,11 @@ type Mutation {
         "Defines which Relation to update and how to update it"
         input: UpdateRelationInput!
     ): UpdateRelationPayload!
+    "Updates whether the current user allows sync self/others on the specified target"
+    updateSyncPermissions(
+        "Defines which SyncPermissionTarget to update and how to update it"
+        input: UpdateSyncPermissionsInput!
+    ): UpdateSyncPermissionsPayload!
     "Updates the deprecation state of the template, requires CAN_CREATE_TEMPLATES"
     updateTemplateDeprecationStatus(
         "Defines the new deprecation status and the Template to update"
@@ -7422,21 +6919,11 @@ Event representing that the type of an incoming IssueRelation changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type OutgoingRelationTypeChangedEvent implements AuditedNode & ExtensibleNode & Node & RelationTypeChangedEvent & TimelineItem {
+type OutgoingRelationTypeChangedEvent implements AuditedNode & BaseNode & Node & RelationTypeChangedEvent & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -7477,21 +6964,11 @@ Event representing that the priority of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type PriorityChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type PriorityChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -7521,7 +6998,7 @@ Can have issues, labels and artefacts as this is a Trackable.
 READ is granted via an associated ProjectPermission.
 
 """
-type Project implements AffectedByIssue & ExtensibleNode & Named & NamedNode & Node & Trackable {
+type Project implements AffectedByIssue & BaseNode & Named & NamedNode & Node & Trackable {
     "The issues which affect this entity"
     affectingIssues(
         "Get only items after the cursor"
@@ -7575,16 +7052,6 @@ type Project implements AffectedByIssue & ExtensibleNode & Named & NamedNode & N
     ): ComponentVersionConnection!
     "The description of this entity."
     description: String!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -7708,13 +7175,18 @@ type ProjectEdge {
 }
 
 "NodePermission to grant specific permissions to a set of Projects."
-type ProjectPermission implements Named & Node {
+type ProjectPermission implements BaseNode & BasePermission & Named & NamedNode & Node {
     "If, the permission is granted to all users. Use with caution."
     allUsers: Boolean!
     "The description of this entity."
     description: String!
     "All permissions this Permission grants"
     entries: [ProjectPermissionEntry!]!
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
     "The name of this entity."
@@ -7963,6 +7435,17 @@ type Query {
         "Skips n items."
         skip: Int
     ): [AssignmentType!]!
+    "Search for nodes of type ComponentPermission"
+    searchComponentPermissions(
+        "Filter for specific items"
+        filter: ComponentPermissionFilterInput,
+        "Get the first n items."
+        first: Int!,
+        "Search query nodes must match"
+        query: String!,
+        "Skips n items."
+        skip: Int
+    ): [ComponentPermission!]!
     "Search for nodes of type ComponentTemplate"
     searchComponentTemplates(
         "Filter for specific items"
@@ -7996,6 +7479,17 @@ type Query {
         "Skips n items."
         skip: Int
     ): [Component!]!
+    "Search for nodes of type GlobalPermission"
+    searchGlobalPermissions(
+        "Filter for specific items"
+        filter: GlobalPermissionFilterInput,
+        "Get the first n items."
+        first: Int!,
+        "Search query nodes must match"
+        query: String!,
+        "Skips n items."
+        skip: Int
+    ): [GlobalPermission!]!
     "Search for nodes of type GropiusUser"
     searchGropiusUsers(
         "Filter for specific items"
@@ -8007,6 +7501,17 @@ type Query {
         "Skips n items."
         skip: Int
     ): [GropiusUser!]!
+    "Search for nodes of type IMSPermission"
+    searchIMSPermissions(
+        "Filter for specific items"
+        filter: IMSPermissionFilterInput,
+        "Get the first n items."
+        first: Int!,
+        "Search query nodes must match"
+        query: String!,
+        "Skips n items."
+        skip: Int
+    ): [IMSPermission!]!
     "Search for nodes of type IssuePriority"
     searchIssuePriorities(
         "Filter for specific items"
@@ -8084,6 +7589,17 @@ type Query {
         "Skips n items."
         skip: Int
     ): [Label!]!
+    "Search for nodes of type ProjectPermission"
+    searchProjectPermissions(
+        "Filter for specific items"
+        filter: ProjectPermissionFilterInput,
+        "Get the first n items."
+        first: Int!,
+        "Search query nodes must match"
+        query: String!,
+        "Skips n items."
+        skip: Int
+    ): [ProjectPermission!]!
     "Search for nodes of type Project"
     searchProjects(
         "Filter for specific items"
@@ -8136,21 +7652,11 @@ The IssueRelation may not be active any more.
 READ is granted if READ is granted on `relation`.
 
 """
-type RelatedByIssueEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type RelatedByIssueEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8181,7 +7687,7 @@ Caution: This is **not** a supertype of IssueRelation.
 READ is granted if READ is granted on `start`.
 
 """
-type Relation implements ExtensibleNode & MutableTemplatedNode & Node & TemplatedNode {
+type Relation implements BaseNode & MutableTemplatedNode & Node & TemplatedNode {
     "InterfaceDefinition this Relation derives invisible"
     derivesInvisible(
         "Get only items after the cursor"
@@ -8235,16 +7741,6 @@ type Relation implements ExtensibleNode & MutableTemplatedNode & Node & Template
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): InterfacePartConnection!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8305,17 +7801,7 @@ Part of a RelationTemplate.
 READ is always granted.
 
 """
-type RelationCondition implements ExtensibleNode & Node {
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
+type RelationCondition implements BaseNode & Node {
     "Templates of allowed start RelationPartners"
     from(
         "Get only items after the cursor"
@@ -8460,7 +7946,7 @@ Defines which Relations can use this Template.
 At least one RelationCondition has to match.
 
 """
-type RelationTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNode & Node & Template {
+type RelationTemplate implements BaseNode & BaseTemplate & Named & NamedNode & Node & Template {
     "The description of this entity."
     description: String!
     "Templates that extend this template."
@@ -8497,16 +7983,6 @@ type RelationTemplate implements BaseTemplate & ExtensibleNode & Named & NamedNo
         "Skips n items. First or last MUST be specified, is otherwise ignored"
         skip: Int
     ): RelationTemplateConnection!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8638,21 +8114,11 @@ Event representing that an entity is no longer affected by an Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedAffectedEntityEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type RemovedAffectedEntityEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8677,21 +8143,11 @@ Event representing that an Artefact was removed from an Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedArtefactEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type RemovedArtefactEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8717,21 +8173,11 @@ meaning an Assignment was removed from an Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedAssignmentEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type RemovedAssignmentEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8756,21 +8202,11 @@ Event representing that an Issue was unpinned on a Trackable.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedFromPinnedIssuesEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type RemovedFromPinnedIssuesEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8795,7 +8231,7 @@ Event representing that an Issue was removed from a Trackable.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedFromTrackableEvent implements AuditedNode & ExtensibleNode & Node & ParentTimelineItem & TimelineItem {
+type RemovedFromTrackableEvent implements AuditedNode & BaseNode & Node & ParentTimelineItem & TimelineItem {
     "Child TimelineItems. These are still part of the main timeline."
     childItems(
         "Get only items after the cursor"
@@ -8817,16 +8253,6 @@ type RemovedFromTrackableEvent implements AuditedNode & ExtensibleNode & Node & 
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8851,21 +8277,11 @@ Event representing that an incoming IssueRelation was removed.
 READ is granted if READ is granted on `removedRelation`.
 
 """
-type RemovedIncomingRelationEvent implements AuditedNode & ExtensibleNode & Node & RemovedRelationEvent & TimelineItem {
+type RemovedIncomingRelationEvent implements AuditedNode & BaseNode & Node & RemovedRelationEvent & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8890,21 +8306,11 @@ Event representing that a Label was removed from an Issue.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedLabelEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type RemovedLabelEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8929,21 +8335,11 @@ Event representing that an outgoing IssueRelation was removed.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedOutgoingRelationEvent implements AuditedNode & ExtensibleNode & Node & RemovedRelationEvent & TimelineItem {
+type RemovedOutgoingRelationEvent implements AuditedNode & BaseNode & Node & RemovedRelationEvent & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -8968,21 +8364,11 @@ Event representing that a templated field was removed.
 READ is granted if READ is granted on `issue`.
 
 """
-type RemovedTemplatedFieldEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type RemovedTemplatedFieldEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "The name of the templated field."
     fieldName: String!
     "Checks if the current user has a specific permission on this Node"
@@ -9009,21 +8395,11 @@ Event representing that the spent time of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type SpentTimeChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type SpentTimeChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -9050,21 +8426,11 @@ Event representing that the start date of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type StartDateChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type StartDateChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -9091,21 +8457,11 @@ Event representing that the state of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type StateChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type StateChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -9128,13 +8484,38 @@ type StateChangedEvent implements AuditedNode & ExtensibleNode & Node & Timeline
 }
 
 "Style of the stroke"
-type StrokeStyle implements Node {
+type StrokeStyle implements BaseNode & Node {
     "The color of the stroke"
     color: String
     "The dash pattern of the stroke"
     dash: [Float!]
+    "Checks if the current user has a specific permission on this Node"
+    hasPermission(
+        "The permission to check for"
+        permission: AllPermissionEntry
+    ): Boolean!
     "The unique id of this node"
     id: ID!
+}
+
+"The connection type for SyncPermissionTarget."
+type SyncPermissionTargetConnection {
+    "A list of all edges of the current page."
+    edges: [SyncPermissionTargetEdge!]!
+    "A list of all nodes of the current page."
+    nodes: [SyncPermissionTarget!]!
+    "Information to aid in pagination."
+    pageInfo: PageInfo!
+    "Identifies the total count of items in the connection."
+    totalCount: Int!
+}
+
+"An edge in a connection."
+type SyncPermissionTargetEdge {
+    "A cursor used in pagination."
+    cursor: String!
+    "The item at the end of the edge."
+    node: SyncPermissionTarget!
 }
 
 """
@@ -9142,7 +8523,7 @@ Event representing the template of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type TemplateChangedEvent implements AuditedNode & ExtensibleNode & Node & ParentTimelineItem & TimelineItem {
+type TemplateChangedEvent implements AuditedNode & BaseNode & Node & ParentTimelineItem & TimelineItem {
     "Child TimelineItems. These are still part of the main timeline."
     childItems(
         "Get only items after the cursor"
@@ -9164,16 +8545,6 @@ type TemplateChangedEvent implements AuditedNode & ExtensibleNode & Node & Paren
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -9200,21 +8571,11 @@ Event representing that the value of a templated field changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type TemplatedFieldChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type TemplatedFieldChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "The name of the templated field."
     fieldName: String!
     "Checks if the current user has a specific permission on this Node"
@@ -9263,21 +8624,11 @@ Event representing that the title of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type TitleChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type TitleChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -9324,21 +8675,11 @@ Event representing that the type of an Issue changed.
 READ is granted if READ is granted on `issue`.
 
 """
-type TypeChangedEvent implements AuditedNode & ExtensibleNode & Node & TimelineItem {
+type TypeChangedEvent implements AuditedNode & BaseNode & Node & TimelineItem {
     "The DateTime this entity was created at."
     createdAt: DateTime!
     "The User who created this entity."
     createdBy: User!
-    "Value of an extension field by name of the extension field. Null if the field does not exist."
-    extensionField(
-        "Name of the extension field"
-        name: String!
-    ): JSON
-    "All extension fields, if a `namePrefix` is provided, only those matching it"
-    extensionFields(
-        "Name of the extension field."
-        namePrefix: String
-    ): [JSONField!]!
     "Checks if the current user has a specific permission on this Node"
     hasPermission(
         "The permission to check for"
@@ -9383,11 +8724,6 @@ type UpdateComponentPermissionPayload {
 type UpdateComponentVersionPayload {
     "The updated ComponentVersion"
     componentVersion: ComponentVersion!
-}
-
-type UpdateExtensionFieldsPayload {
-    "The updated ExtensibleNode"
-    extensibleNode: ExtensibleNode!
 }
 
 type UpdateGlobalPermissionPayload {
@@ -9468,6 +8804,11 @@ type UpdateProjectPermissionPayload {
 type UpdateRelationPayload {
     "The updated Relation"
     relation: Relation!
+}
+
+type UpdateSyncPermissionsPayload {
+    "The updated SyncPermissionTarget"
+    syncPermissionTarget: SyncPermissionTarget!
 }
 
 type UpdateTemplateDeprecationStatusPayload {
@@ -9832,6 +9173,8 @@ enum IMSPermissionOrderField {
 enum IMSProjectOrderField {
     "Order by id"
     ID
+    "Order by name"
+    NAME
 }
 
 "Fields a list of IMSTemplate can be sorted by"
@@ -9984,6 +9327,8 @@ enum IssueRelationOrderField {
 enum IssueRelationTypeOrderField {
     "Order by id"
     ID
+    "Order by inverseName"
+    INVERSE_NAME
     "Order by name"
     NAME
 }
@@ -10192,6 +9537,14 @@ enum ShapeType {
     RECT
     "A Rhombus"
     RHOMBUS
+}
+
+"Fields a list of SyncPermissionTarget can be sorted by"
+enum SyncPermissionTargetOrderField {
+    "Order by id"
+    ID
+    "Order by name"
+    NAME
 }
 
 "Fields a list of TimelineItem can be sorted by"
@@ -10674,8 +10027,6 @@ input AssignmentTypeFilterInput {
 input AssignmentTypeInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
 }
@@ -10780,8 +10131,6 @@ input BodyFilterInput {
     and: [BodyFilterInput!]
     "Filter by answeredBy"
     answeredBy: IssueCommentListFilterInput
-    "Filter by body"
-    body: StringFilterInput
     "Filter by bodyLastEditedAt"
     bodyLastEditedAt: DateTimeFilterInput
     "Filters for nodes where the related node match this filter"
@@ -10932,8 +10281,6 @@ input CommentFilterInput {
     and: [CommentFilterInput!]
     "Filter by answeredBy"
     answeredBy: IssueCommentListFilterInput
-    "Filter by body"
-    body: StringFilterInput
     "Filter by bodyLastEditedAt"
     bodyLastEditedAt: DateTimeFilterInput
     "Filters for nodes where the related node match this filter"
@@ -11154,8 +10501,6 @@ input ComponentVersionFilterInput {
 input ComponentVersionInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "Initial values for all templatedFields"
@@ -11200,8 +10545,6 @@ input ComponentVersionTemplateFilterInput {
 
 "Input for the createArtefact mutation"
 input CreateArtefactInput {
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The initial file of the Artefact"
     file: URL!
     "The initial value of the from field of the Artefact"
@@ -11224,8 +10567,6 @@ input CreateArtefactTemplateInput {
     description: String!
     "IDs of Templates the created template extends. Must be templates of the same type."
     extends: [ID!]
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     """
@@ -11240,8 +10581,6 @@ input CreateArtefactTemplateInput {
 input CreateAssignmentInput {
     "The optional type of the Assignment, must be defined by the Template of the Issue"
     assignmentType: ID
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The id of the Issue to which the User should be assigned"
     issue: ID!
     "The id of the User to assign to the Issue"
@@ -11252,8 +10591,6 @@ input CreateAssignmentInput {
 input CreateComponentInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "Initial InterfaceSpecifications"
     interfaceSpecifications: [InterfaceSpecificationInput!]
     "The name of the NamedNode, must not be blank"
@@ -11292,8 +10629,6 @@ input CreateComponentTemplateInput {
     description: String!
     "IDs of Templates the created template extends. Must be templates of the same type."
     extends: [ID!]
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "Style of the fill"
     fill: FillStyleInput
     "The name of the NamedNode, must not be blank"
@@ -11318,8 +10653,6 @@ input CreateComponentVersionInput {
     component: ID!
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "Initial values for all templatedFields"
@@ -11346,8 +10679,6 @@ input CreateGlobalPermissionInput {
 input CreateIMSInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "The template of the created IMS"
@@ -11374,10 +10705,12 @@ input CreateIMSPermissionInput {
 
 "Input for the createIMSProject mutation"
 input CreateIMSProjectInput {
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
+    "The description of the NamedNode"
+    description: String!
     "The id of the IMS the created project is part of"
     ims: ID!
+    "The name of the NamedNode, must not be blank"
+    name: String!
     "Initial values for all templatedFields"
     templatedFields: [JSONFieldInput!]!
     "The id of the Trackable which is synced"
@@ -11388,8 +10721,6 @@ input CreateIMSProjectInput {
 input CreateInterfacePartInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The id of the InterfaceSpecificationVersion the created InterfacePart is part of"
     interfaceSpecificationVersion: ID!
     "The name of the NamedNode, must not be blank"
@@ -11404,8 +10735,6 @@ input CreateInterfaceSpecificationInput {
     component: ID!
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "The template of the created InterfaceSpecification"
@@ -11426,8 +10755,6 @@ input CreateInterfaceSpecificationTemplateInput {
     description: String!
     "IDs of Templates the created template extends. Must be templates of the same type."
     extends: [ID!]
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "Style of the fill"
     fill: FillStyleInput
     "SubTemplate for all InterfacesDefinitions of a InterfaceSpecification with the created Template"
@@ -11458,8 +10785,6 @@ input CreateInterfaceSpecificationTemplateInput {
 input CreateInterfaceSpecificationVersionInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The id of the InterfaceSpecification the created InterfaceSpecificationVersion is part of"
     interfaceSpecification: ID!
     "The name of the NamedNode, must not be blank"
@@ -11478,8 +10803,6 @@ input CreateIntraComponentDependencySpecificationInput {
     componentVersion: ID!
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "Initial incomingParticipants, must not be empty"
     incomingParticipants: [IntraComponentDependencyParticipantInput!]!
     "The name of the NamedNode, must not be blank"
@@ -11494,8 +10817,6 @@ input CreateIssueCommentInput {
     answers: ID
     "Initial body of the IssueComment"
     body: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The id of the Issue the IssueComment is created on"
     issue: ID!
     "Ids of initially referenced artefacts"
@@ -11506,8 +10827,6 @@ input CreateIssueCommentInput {
 input CreateIssueInput {
     "The body of the created Issue"
     body: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The id of the state of the created Issue, must be compatible with template "
     state: ID!
     "The template of the created Issue"
@@ -11524,8 +10843,6 @@ input CreateIssueInput {
 
 "Input for the createIssueRelation mutation"
 input CreateIssueRelationInput {
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The id of the Issue from which the IssueRelation starts"
     issue: ID!
     "The optional type of the IssueRelation, must be defined by the Template of the Issue"
@@ -11542,8 +10859,6 @@ input CreateIssueTemplateInput {
     description: String!
     "IDs of Templates the created template extends. Must be templates of the same type."
     extends: [ID!]
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "Set of all priorities Issues with the created can have."
     issuePriorities: [IssuePriorityInput!]!
     "Set of all states Issues with the created Template can have"
@@ -11568,8 +10883,6 @@ input CreateLabelInput {
     color: String!
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "IDs of Trackables the Label is added to, at least one required."
@@ -11580,8 +10893,6 @@ input CreateLabelInput {
 input CreateProjectInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "The repositoryURL of the named node"
@@ -11610,8 +10921,6 @@ input CreateRelationInput {
     end: ID!
     "If `end` is an Interface, the parts of the Interface the created Relation includes"
     endParts: [ID!]
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The start RelationPartner of the Relation"
     start: ID!
     "If `start` is an Interface, the parts of the Interface the created Relation includes"
@@ -11628,8 +10937,6 @@ input CreateRelationTemplateInput {
     description: String!
     "IDs of Templates the created template extends. Must be templates of the same type."
     extends: [ID!]
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The type of the marker at the end of the relation."
     markerType: MarkerType!
     "The name of the NamedNode, must not be blank"
@@ -11690,12 +10997,36 @@ input FloatFilterInput {
     lte: Float
 }
 
+"Filter used to filter GlobalPermission"
+input GlobalPermissionFilterInput {
+    "Filter by allUsers"
+    allUsers: BooleanFilterInput
+    "Connects all subformulas via and"
+    and: [GlobalPermissionFilterInput!]
+    "Filter by description"
+    description: StringFilterInput
+    "Filter by id"
+    id: IDFilterInput
+    "Filter by name"
+    name: StringFilterInput
+    "Negates the subformula"
+    not: GlobalPermissionFilterInput
+    "Connects all subformulas via or"
+    or: [GlobalPermissionFilterInput!]
+    "Filter by users"
+    users: GropiusUserListFilterInput
+}
+
 "Filter used to filter GropiusUser"
 input GropiusUserFilterInput {
     "Connects all subformulas via and"
     and: [GropiusUserFilterInput!]
     "Filter by assignments"
     assignments: AssignmentListFilterInput
+    "Filter by canSyncOthers"
+    canSyncOthers: SyncPermissionTargetListFilterInput
+    "Filter by canSyncSelf"
+    canSyncSelf: SyncPermissionTargetListFilterInput
     "Filter by createdNodes"
     createdNodes: AuditedNodeListFilterInput
     "Filter by displayName"
@@ -11764,6 +11095,10 @@ input IMSFilterInput {
     permissions: IMSPermissionListFilterInput
     "Filter by projects"
     projects: IMSProjectListFilterInput
+    "Filter by syncOthersAllowedBy"
+    syncOthersAllowedBy: GropiusUserListFilterInput
+    "Filter by syncSelfAllowedBy"
+    syncSelfAllowedBy: GropiusUserListFilterInput
     "Filters for nodes where the related node match this filter"
     template: IMSTemplateFilterInput
     "Filter for templated fields with matching key and values. Entries are joined by AND"
@@ -11888,16 +11223,24 @@ input IMSPermissionOrder {
 input IMSProjectFilterInput {
     "Connects all subformulas via and"
     and: [IMSProjectFilterInput!]
+    "Filter by description"
+    description: StringFilterInput
     "Filter by id"
     id: IDFilterInput
     "Filters for nodes where the related node match this filter"
     ims: IMSFilterInput
     "Filter by imsIssues"
     imsIssues: IMSIssueListFilterInput
+    "Filter by name"
+    name: StringFilterInput
     "Negates the subformula"
     not: IMSProjectFilterInput
     "Connects all subformulas via or"
     or: [IMSProjectFilterInput!]
+    "Filter by syncOthersAllowedBy"
+    syncOthersAllowedBy: GropiusUserListFilterInput
+    "Filter by syncSelfAllowedBy"
+    syncSelfAllowedBy: GropiusUserListFilterInput
     "Filters for nodes where the related node match this filter"
     template: IMSProjectTemplateFilterInput
     "Filter for templated fields with matching key and values. Entries are joined by AND"
@@ -12206,8 +11549,6 @@ input InterfacePartFilterInput {
 input InterfacePartInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "Initial values for all templatedFields"
@@ -12344,8 +11685,6 @@ input InterfaceSpecificationFilterInput {
 input InterfaceSpecificationInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "The template of the created InterfaceSpecification"
@@ -12460,8 +11799,6 @@ input InterfaceSpecificationVersionFilterInput {
 input InterfaceSpecificationVersionInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "Initial InterfaceParts"
@@ -12544,8 +11881,6 @@ input IntraComponentDependencyParticipantFilterInput {
 
 "Input to create a IntraComponentDependencyParticipant"
 input IntraComponentDependencyParticipantInput {
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The ids of includedParts, must all be activeParts on the InterfaceSpecificationVersion associated with `interface`"
     includedParts: [ID!]
     """
@@ -12622,8 +11957,6 @@ input IssueCommentFilterInput {
     answeredBy: IssueCommentListFilterInput
     "Filters for nodes where the related node match this filter"
     answers: CommentFilterInput
-    "Filter by body"
-    body: StringFilterInput
     "Filter by bodyLastEditedAt"
     bodyLastEditedAt: DateTimeFilterInput
     "Filters for nodes where the related node match this filter"
@@ -12786,8 +12119,6 @@ input IssuePriorityFilterInput {
 input IssuePriorityInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     "The value of the created IssuePriority, used to compare/order different IssuePriorities"
@@ -12870,6 +12201,8 @@ input IssueRelationTypeFilterInput {
     description: StringFilterInput
     "Filter by id"
     id: IDFilterInput
+    "Filter by inverseName"
+    inverseName: StringFilterInput
     "Filter by name"
     name: StringFilterInput
     "Negates the subformula"
@@ -12886,8 +12219,8 @@ input IssueRelationTypeFilterInput {
 input IssueRelationTypeInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
+    "The inverse name of the IssueRelationType, must not be blank"
+    inverseName: String!
     "The name of the NamedNode, must not be blank"
     name: String!
 }
@@ -12936,8 +12269,6 @@ input IssueStateFilterInput {
 input IssueStateInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The value for the isOpen field of the created IssueState"
     isOpen: Boolean!
     "The name of the NamedNode, must not be blank"
@@ -13036,8 +12367,6 @@ input IssueTypeFilterInput {
 input IssueTypeInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "A path that is used as the icon for issues. Used with a 0 0 100 100 viewBox. No stroke, only fill."
     iconPath: String!
     "The name of the NamedNode, must not be blank"
@@ -13209,8 +12538,6 @@ input NullableStringFilterInput {
 input NullableSubTemplateInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     """
@@ -13365,8 +12692,6 @@ input RelationConditionFilterInput {
 
 "Input to create a RelationCondition"
 input RelationConditionInput {
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "IDs of Templates of allowed start RelationPartners"
     from: [ID!]!
     "Defines which InterfaceSpecifications are derived via the relation"
@@ -13667,8 +12992,6 @@ input StrokeStyleInput {
 input SubTemplateInput {
     "The description of the NamedNode"
     description: String!
-    "The initial value of the extension fields"
-    extensionFields: [JSONFieldInput!]
     "The name of the NamedNode, must not be blank"
     name: String!
     """
@@ -13677,6 +13000,44 @@ input SubTemplateInput {
 
     """
     templateFieldSpecifications: [JSONFieldInput!]
+}
+
+"Filter used to filter SyncPermissionTarget"
+input SyncPermissionTargetFilterInput {
+    "Connects all subformulas via and"
+    and: [SyncPermissionTargetFilterInput!]
+    "Filter by description"
+    description: StringFilterInput
+    "Filter by id"
+    id: IDFilterInput
+    "Filter by name"
+    name: StringFilterInput
+    "Negates the subformula"
+    not: SyncPermissionTargetFilterInput
+    "Connects all subformulas via or"
+    or: [SyncPermissionTargetFilterInput!]
+    "Filter by syncOthersAllowedBy"
+    syncOthersAllowedBy: GropiusUserListFilterInput
+    "Filter by syncSelfAllowedBy"
+    syncSelfAllowedBy: GropiusUserListFilterInput
+}
+
+"Used to filter by a connection-based property. Fields are joined by AND"
+input SyncPermissionTargetListFilterInput {
+    "Filters for nodes where all of the related nodes match this filter"
+    all: SyncPermissionTargetFilterInput
+    "Filters for nodes where any of the related nodes match this filter"
+    any: SyncPermissionTargetFilterInput
+    "Filters for nodes where none of the related nodes match this filter"
+    none: SyncPermissionTargetFilterInput
+}
+
+"Defines the order of a SyncPermissionTarget list"
+input SyncPermissionTargetOrder {
+    "The direction to order by, defaults to ASC"
+    direction: OrderDirection = ASC
+    "The field to order by, defaults to ID"
+    field: SyncPermissionTargetOrderField = ID
 }
 
 "Filter used to filter TimelineItem"
@@ -13783,8 +13144,6 @@ input TypeMappingInput {
 
 "Input for the updateArtefact mutation"
 input UpdateArtefactInput {
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The new file of the Artefact"
     file: URL
     "The new value of the from field of the Artefact"
@@ -13810,8 +13169,6 @@ input UpdateArtefactInput {
 input UpdateBodyInput {
     "The body of the Comment"
     body: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
 }
@@ -13829,8 +13186,6 @@ input UpdateComponentInput {
     componentVersionTemplatedFields: [JSONFieldInput!]
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -13863,7 +13218,7 @@ input UpdateComponentPermissionInput {
     addedUsers: [ID!]
     "The new value for allUsers"
     allUsers: Boolean
-    "The description of the BasePermission"
+    "The description of the NamedNode"
     description: String
     "The id of the node to update"
     id: ID!
@@ -13879,8 +13234,6 @@ input UpdateComponentPermissionInput {
 input UpdateComponentVersionInput {
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -13891,14 +13244,6 @@ input UpdateComponentVersionInput {
     version: String
 }
 
-"Input for the updateExtensionFields mutation"
-input UpdateExtensionFieldsInput {
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
-    "The id of the node to update"
-    id: ID!
-}
-
 "Input for the updateGlobalPermission mutation"
 input UpdateGlobalPermissionInput {
     "Permission entries to add, must be disjoint with removedEntries"
@@ -13907,7 +13252,7 @@ input UpdateGlobalPermissionInput {
     addedUsers: [ID!]
     "The new value for allUsers"
     allUsers: Boolean
-    "The description of the BasePermission"
+    "The description of the NamedNode"
     description: String
     "The id of the node to update"
     id: ID!
@@ -13927,8 +13272,6 @@ input UpdateGropiusUserInput {
     displayName: String
     "The new email of the User to update"
     email: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new value for isAdmin of the GropiusUser to update"
@@ -13941,8 +13284,6 @@ input UpdateIMSInput {
     addedPermissions: [ID!]
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -13965,7 +13306,7 @@ input UpdateIMSPermissionInput {
     addedUsers: [ID!]
     "The new value for allUsers"
     allUsers: Boolean
-    "The description of the BasePermission"
+    "The description of the NamedNode"
     description: String
     "The id of the node to update"
     id: ID!
@@ -13979,18 +13320,18 @@ input UpdateIMSPermissionInput {
 
 "Input for the updateIMSProject mutation"
 input UpdateIMSProjectInput {
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
+    "The description of the NamedNode"
+    description: String
     "The id of the node to update"
     id: ID!
+    "The new name of the NamedNode, must not be empty"
+    name: String
     "Values for templatedFields to update"
     templatedFields: [JSONFieldInput!]
 }
 
 "Input for the updateInterfaceDefinition mutation"
 input UpdateInterfaceDefinitionInput {
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "Values for templatedFields to update"
@@ -14001,8 +13342,6 @@ input UpdateInterfaceDefinitionInput {
 input UpdateInterfaceInput {
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -14015,8 +13354,6 @@ input UpdateInterfaceInput {
 input UpdateInterfacePartInput {
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -14029,8 +13366,6 @@ input UpdateInterfacePartInput {
 input UpdateInterfaceSpecificationInput {
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     """
@@ -14078,8 +13413,6 @@ input UpdateInterfaceSpecificationInput {
 input UpdateInterfaceSpecificationVersionInput {
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -14098,8 +13431,6 @@ input UpdateIntraComponentDependencySpecificationInput {
     addedOutgoingParticipants: [IntraComponentDependencyParticipantInput!]
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -14116,8 +13447,6 @@ input UpdateIssueCommentInput {
     addedReferencedArtefacts: [ID!]
     "The body of the Comment"
     body: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "Ids of Artefacts which should be removed from `referencedArtefacts`"
@@ -14130,8 +13459,6 @@ input UpdateLabelInput {
     color: String
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -14144,8 +13471,6 @@ input UpdateProjectInput {
     addedPermissions: [ID!]
     "The description of the NamedNode"
     description: String
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "The new name of the NamedNode, must not be empty"
@@ -14168,7 +13493,7 @@ input UpdateProjectPermissionInput {
     addedUsers: [ID!]
     "The new value for allUsers"
     allUsers: Boolean
-    "The description of the BasePermission"
+    "The description of the NamedNode"
     description: String
     "The id of the node to update"
     id: ID!
@@ -14186,8 +13511,6 @@ input UpdateRelationInput {
     addedEndParts: [ID!]
     "Ids of InterfaceParts of the `start` Interface to add to `startParts`"
     addedStartParts: [ID!]
-    "Extension fields to update. To remove, provide no value"
-    extensionFields: [JSONFieldInput!]
     "The id of the node to update"
     id: ID!
     "Ids of InterfaceParts of the `end` Interface to remove from `endParts`"
@@ -14204,6 +13527,16 @@ input UpdateRelationInput {
     template: ID
     "Values for templatedFields to update"
     templatedFields: [JSONFieldInput!]
+}
+
+"Input for the updateSyncPermissions mutation"
+input UpdateSyncPermissionsInput {
+    "Whether the sync service is allowed to sync content of other users"
+    canSyncOthers: Boolean!
+    "Whether the sync service is allowed to sync content of the user"
+    canSyncSelf: Boolean!
+    "The SyncPermissionTarget to update the sync permissions for the current user"
+    id: ID!
 }
 
 "Input for the updateTemplateDeprecationStatus mutation"

@@ -1,6 +1,5 @@
 mutation CreateProject {
     createProject (input: {
-        extensionFields: []
         description: "my test project"
         name: "test-project 2"
     }) {

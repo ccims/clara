@@ -19,6 +19,12 @@ nav:
           - Kubernetes:
               - DNS:
                   - aggregation/platforms/kubernetes/dns/index.md
+              - opentelemetry:
+                  - aggregation/platforms/kubernetes/opentelemetry/index.md
+  - Merging:
+      - merging/index.md
+  - Filtering:
+      - filtering/index.md
   - Export:
       - export/index.md
       - SVG:

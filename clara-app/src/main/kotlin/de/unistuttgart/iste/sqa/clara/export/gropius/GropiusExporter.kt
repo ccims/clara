@@ -8,6 +8,7 @@ import de.unistuttgart.iste.sqa.clara.api.export.Exporter
 import de.unistuttgart.iste.sqa.clara.api.export.onFailure
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
+import de.unistuttgart.iste.sqa.clara.api.model.ComponentType
 import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GraphQLClient
 import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GropiusGraphQLClient
 import de.unistuttgart.iste.sqa.gropius.*
@@ -150,10 +151,14 @@ class GropiusExporter(private val config: Config) : Exporter {
     }
 
     private suspend fun createComponent(component: Component): Either<GropiusExportFailure, ID> {
-        val (description, template) = when (component) {
+        val (description, template) = when {
             // !!! also update "updateComponent" when changing this ↓ !!!
-            is Component.InternalComponent -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "ed79a792-7cd3-40ba-8b75-42bac1fbbede") // microservice template
-            is Component.ExternalComponent -> Pair("Domain: ${component.domain.value}", "df765fb5-8085-414e-af4b-07cd97161d21") // general template
+            component is Component.InternalComponent && component.type == ComponentType.Broker -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "acb00484-82d3-427d-95dc-ddbf742f943f") // database template
+            component is Component.InternalComponent && component.type == ComponentType.Database -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "c5bda6c5-0e40-471e-95e6-800d546e8641") // database template
+            component is Component.InternalComponent && component.type == ComponentType.Microservice -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "35fa0bff-5d21-463e-8806-0151cfb718d4") // microservice template
+            component is Component.InternalComponent && component.type == null -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "796598e5-60d2-4759-adce-c439b5d4dc92") // general template
+            component is Component.ExternalComponent -> Pair("Domain: ${component.domain.value}", "27c64acc-1bde-4bf8-ab03-d12f5c413dd2") // misc template
+            else -> return Either.Left(GropiusExportFailure("this combination of component and component type should not be possible for '${component.name}'"))
         }
 
         val componentResult = graphQLClient.execute(
@@ -162,7 +167,7 @@ class GropiusExporter(private val config: Config) : Exporter {
                     description = description,
                     name = component.name.value,
                     template = template,
-                    repositoryURL = null // TODO: in the future we might want to add the repo link gathered from the SBOM here
+                    repositoryURL = "https://example.org" // TODO: in the future we might want to add the repo link gathered from the SBOM here
                 )
             )
         ).getOrElse { error ->
@@ -269,7 +274,7 @@ class GropiusExporter(private val config: Config) : Exporter {
                         CreateRelation.Variables(
                             start = start.value,
                             end = end.value,
-                            relTemplateId = "7bb43192-715b-44db-af2d-3eaba6f846ea" // General Relation Template
+                            relTemplateId = "853e1d82-7f62-45ea-8cbe-797c2a2f35f6" // General Relation Template
                         )
                     )
                 ).getOrElse { error ->

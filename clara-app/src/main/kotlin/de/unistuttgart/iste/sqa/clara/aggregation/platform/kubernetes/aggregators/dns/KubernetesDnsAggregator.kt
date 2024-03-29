@@ -52,7 +52,7 @@ class KubernetesDnsAggregator(
         // components whose name is not a known service or pod are considered external
         val externalComponents = allComponentNames
             .filter { allPodAndServiceNames.contains(it.value).not() }
-            .map { AggregatedComponent.External(name = AggregatedComponent.Name(it.value), domain = Domain(it.value)) }
+            .map { AggregatedComponent.External(name = AggregatedComponent.Name(it.value), domain = Domain(it.value), type = null) }
             .toSet()
 
         log.info { "Found ${externalComponents.size} components and ${communications.size} communications" }
