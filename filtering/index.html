@@ -1080,6 +1080,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#filtering-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filtering options
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1105,6 +1122,13 @@
 
 
 <h1 id="filtering">Filtering<a class="headerlink" href="#filtering" title="Permanent link">&para;</a></h1>
+<p>Filtering is applied as third step in the data pipeline, see <a href="../concept/">concept</a>.
+Filters can be added/removed by plug-and-play. For details see the <a href="../configuration/">configurations</a> page.</p>
+<h2 id="filtering-options">Filtering options<a class="headerlink" href="#filtering-options" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Remove Component Endpoints: The attribute "Endpoints" is filtered out (in order to make the <a href="../export/svg/">SVG export</a> more visually appealing). </li>
+<li>Remove Components by Name: Components can be filtered out if they are not directly part of the application (e.g. the OpenTelemetry Collector).</li>
+</ul>
 
 
 

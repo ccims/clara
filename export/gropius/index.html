@@ -20,7 +20,7 @@
     
     
       
-        <title>Gropius export - CLARA</title>
+        <title>Gropius Export - CLARA</title>
       
     
     
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Gropius export
+              Gropius Export
             
           </span>
         </div>
@@ -1082,6 +1082,32 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Model
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#export-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Export Flow
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1106,7 +1132,29 @@
   
 
 
-<h1 id="gropius-export">Gropius export<a class="headerlink" href="#gropius-export" title="Permanent link">&para;</a></h1>
+<h1 id="gropius-export">Gropius Export<a class="headerlink" href="#gropius-export" title="Permanent link">&para;</a></h1>
+<p>Gropius is an open-source cross-component issue management system for component-based architectures.
+In order to enable managing cross-component dependencies, users can model component-based software architectures in a Gropius project, e.g. via the API.
+For more details on Gropius visit the <a href="https://github.com/ccims">GitHub Page</a>.</p>
+<p>For configuration options of the export please check out the <a href="../../configuration/">configurations</a> page.</p>
+<h3 id="data-model">Data Model<a class="headerlink" href="#data-model" title="Permanent link">&para;</a></h3>
+<p>The data model of Gropius consists of components which can be specified with templates as well as relations
+between those components, also configurable via templates.
+A component must have a component and a repository-URL in order to be added to a project, which resembles an architecture.</p>
+<p>CLARA components are mapped to Gropius-components like this:</p>
+<p>TODO when templates are finalized.</p>
+<p>The Gropius GraphQL API is utilized by CLARA in order to export the recovered architectures into a Gropius project.</p>
+<h3 id="export-flow">Export Flow<a class="headerlink" href="#export-flow" title="Permanent link">&para;</a></h3>
+<p>The export works sketched like this based on the respective configuration:
+- TODO TEMPLATES
+- for all components recovered by CLARA:
+  - delete or update component
+  - create or update component version
+  - add component version to project
+- add relations for all components </p>
+<p>For all CRUD operations there are predefined GraphQL queries which are transformed into Kotlin Models using this <a href="https://mvnrepository.com/artifact/com.expediagroup.graphql/com.expediagroup.graphql.gradle.plugin">GraphQl gradle plugin</a> 
+and executed using this <a href="https://mvnrepository.com/artifact/com.expediagroup/graphql-kotlin-spring-client">GraphQL Kotlin Spring client</a>.
+The GraphQL queries are located in the clara-graphql directory.</p>
 
 
 
@@ -1142,7 +1190,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../svg/" class="md-footer__link md-footer__link--prev" aria-label="Previous: SVG export">
+          <a href="../svg/" class="md-footer__link md-footer__link--prev" aria-label="Previous: SVG Export">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1152,7 +1200,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                SVG export
+                SVG Export
               </div>
             </div>
           </a>
