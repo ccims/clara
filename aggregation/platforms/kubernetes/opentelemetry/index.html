@@ -1342,7 +1342,8 @@ Examples for service and deployment configurations can be found in <a href="http
 </span></code></pre></div></td></tr></table></div>
 <h4 id="ktunnel">ktunnel<a class="headerlink" href="#ktunnel" title="Permanent link">&para;</a></h4>
 <p><a href="https://github.com/omrikiei/ktunnel/tree/master">ktunnel</a> is an open-source tool that enables reverse port-forwarding to extract data out of kubernetes clusters.
-In order to use CLARA on a local machine, a ktunnel sidecar can be attached towards the OpenTelemetry collector deployment using <code>ktunnel inject deployment otel-collector-deployment 7878 -n &lt;namespace&gt;</code>.
+In order to use CLARA on a local machine, a ktunnel sidecar can be attached towards the OpenTelemetry collector deployment using <br />
+<code>ktunnel inject deployment otel-collector-deployment 7878 -n &lt;namespace&gt;</code><br />
 For further information see the <a href="https://github.com/omrikiei/ktunnel/blob/master/README.md">ktunnel docs</a>. </p>
 <h4 id="opentelemetry-auto-instrumentation">OpenTelemetry Auto-instrumentation<a class="headerlink" href="#opentelemetry-auto-instrumentation" title="Permanent link">&para;</a></h4>
 <p>OpenTelemetry Auto-instrumentation can be used to generate OpenTelemetry traces on software components that are not instrumented themselves in Kubernetes clusters.
