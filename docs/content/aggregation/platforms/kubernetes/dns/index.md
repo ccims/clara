@@ -3,7 +3,7 @@
 CLARA can analyze the logs of CoreDNS (the default Kubernetes DNS server) to discover communication of components via DNS queries.
 For that feature to work correctly, it is crucial that the DNS server is configured to log DNS queries by enabling the `log` plugin.
 
-```yaml title="An exampple ConfigMap for CoreDNS with the 'log' plugin enabled" hl_lines="9"
+```yaml title="An example ConfigMap for CoreDNS with the 'log' plugin enabled" hl_lines="9"
 apiVersion: v1
 kind: ConfigMap
 metadata:
