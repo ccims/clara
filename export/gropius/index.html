@@ -1201,13 +1201,15 @@ A component must have a component and a repository-URL in order to be added to a
 <p>TODO when templates are finalized.</p>
 <p>The Gropius GraphQL API is utilized by CLARA in order to export the recovered architectures into a Gropius project.</p>
 <h3 id="export-flow">Export Flow<a class="headerlink" href="#export-flow" title="Permanent link">&para;</a></h3>
-<p>The export works sketched like this based on the respective configuration:
-- TODO TEMPLATES
-- for all components recovered by CLARA:
-  - delete or update component
-  - create or update component version
-  - add component version to project
-- add relations for all components </p>
+<p>The export works sketched like this based on the respective configuration:</p>
+<ul>
+<li>TODO TEMPLATES</li>
+<li>for all components recovered by CLARA:</li>
+<li>delete or update component</li>
+<li>create or update component version</li>
+<li>add component version to project</li>
+<li>add relations for all components </li>
+</ul>
 <p>For all CRUD operations there are predefined GraphQL queries which are transformed into Kotlin Models using this <a href="https://mvnrepository.com/artifact/com.expediagroup.graphql/com.expediagroup.graphql.gradle.plugin">GraphQl gradle plugin</a> 
 and executed using this <a href="https://mvnrepository.com/artifact/com.expediagroup/graphql-kotlin-spring-client">GraphQL Kotlin Spring client</a>.
 The GraphQL queries are located in the clara-graphql directory.</p>
