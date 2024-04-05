@@ -3,6 +3,7 @@
 The GraphViz SVG exporter exports a superficial representation of the architecture as displayed in the example image below.
 
 Legend:
+
 - Arrow: Communication from source component to destination component
 - Octagon: Component
   - component-name

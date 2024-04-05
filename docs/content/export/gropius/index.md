@@ -23,6 +23,7 @@ The Gropius GraphQL API is utilized by CLARA in order to export the recovered ar
 
 ### Export Flow
 The export works sketched like this based on the respective configuration:
+
 - TODO TEMPLATES
 - for all components recovered by CLARA:
   - delete or update component
