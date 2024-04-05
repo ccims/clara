@@ -61,7 +61,8 @@ data:
 
 #### ktunnel
 [ktunnel](https://github.com/omrikiei/ktunnel/tree/master) is an open-source tool that enables reverse port-forwarding to extract data out of kubernetes clusters.
-In order to use CLARA on a local machine, a ktunnel sidecar can be attached towards the OpenTelemetry collector deployment using `ktunnel inject deployment otel-collector-deployment 7878 -n <namespace>`.
+In order to use CLARA on a local machine, a ktunnel sidecar can be attached towards the OpenTelemetry collector deployment using   
+```ktunnel inject deployment otel-collector-deployment 7878 -n <namespace>```  
 For further information see the [ktunnel docs](https://github.com/omrikiei/ktunnel/blob/master/README.md). 
 
 #### OpenTelemetry Auto-instrumentation
