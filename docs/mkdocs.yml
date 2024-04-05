@@ -20,7 +20,7 @@ nav:
               - DNS:
                   - aggregation/platforms/kubernetes/dns/index.md
               - API:
-                  - aggregation/platfomrs/kubernetes/api/index.md
+                  - aggregation/platforms/kubernetes/api/index.md
               - opentelemetry:
                   - aggregation/platforms/kubernetes/opentelemetry/index.md
   - Merging:
