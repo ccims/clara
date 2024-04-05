@@ -525,6 +525,8 @@
       
         
       
+        
+      
     
     
     
@@ -617,6 +619,74 @@
     
       
         
+      
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_1_2" id="__nav_4_2_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aggregation/platfomrs/kubernetes/api/index.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    None
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
           
         
       
@@ -627,7 +697,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_1_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_1_3" >
         
           
           
@@ -644,8 +714,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_2_1_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2_1_2">
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_1_3">
             <span class="md-nav__icon md-icon"></span>
             opentelemetry
           </label>
@@ -1080,6 +1150,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#datapipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datapipeline
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1105,7 +1192,15 @@
 
 
 <h1 id="concept">Concept<a class="headerlink" href="#concept" title="Permanent link">&para;</a></h1>
-<p>Datapipeline of CLARA: Aggregations &gt; Merging &gt; Filtering &gt; Export </p>
+<p>CLARA itself is a data pipeline that collects information about an application deployed in a Kubernetes cluster from different data sources (i.e. the Kubernetes API, the Kubernetes internal DNS server and OpenTelemetry traces),
+merges them and exports them to visually display the architecture of the examined application.</p>
+<h3 id="datapipeline">Datapipeline<a class="headerlink" href="#datapipeline" title="Permanent link">&para;</a></h3>
+<p>The datapipeline of CLARA consists of the four main steps:
+* <a href="../aggregation/">Aggregation</a> 
+* <a href="../merging/">Merging</a> 
+* <a href="../filtering/">Filtering</a> 
+* <a href="../export/">Export</a> </p>
+<h1 id="todo-visualization-of-the-datapipeline-eg-uml-diagram">TODO visualization of the datapipeline, e.g. UML diagram<a class="headerlink" href="#todo-visualization-of-the-datapipeline-eg-uml-diagram" title="Permanent link">&para;</a></h1>
 
 
 
