@@ -14,8 +14,8 @@ When using OpenTelemetry for CLARA you first need to ensure your software compon
 If not consider using [OpenTelemetry auto-instrumentation](#opentelemetry-auto-instrumentation).
 
 !!! warning "OpenTelemetry Semantic Conventions"
-Because OpenTelemetry traces' attributes are not standardized, it is recommended to use tracing with the [OpenTelemetry semantic conventions](https://opentelemetry.io/docs/specs/semconv/) for CLARA.
-If your services do not provide them, you can try to set up the [OpenTelemetry auto-instrumentation](#opentelemetry-auto-instrumentation) on top of your system.
+    Because OpenTelemetry traces' attributes are not standardized, it is recommended to use tracing with the [OpenTelemetry semantic conventions](https://opentelemetry.io/docs/specs/semconv/) for CLARA.
+    If your services do not provide them, you can try to set up the [OpenTelemetry auto-instrumentation](#opentelemetry-auto-instrumentation) on top of your system.
 
 Second, ensure that there is an [OpenTelemetry collector](#opentelemetry-collector) with the matching configuration is running in your cluster.
 Third, when you use CLARA on a local machine and do not deploy in the cluster, you need to forward the traces from the OpenTelemetry collector to your local machine.
