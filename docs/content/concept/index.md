@@ -5,9 +5,9 @@ merges them and exports them to visually display the architecture of the examine
 
 ### Datapipeline
 The datapipeline of CLARA consists of the four main steps:
-* [Aggregation](../aggregation/index.md) 
-* [Merging](../merging/index.md) 
-* [Filtering](../filtering/index.md) 
-* [Export](../export/index.md) 
+- [Aggregation](../aggregation/index.md) 
+- [Merging](../merging/index.md) 
+- [Filtering](../filtering/index.md) 
+- [Export](../export/index.md) 
 
 # TODO visualization of the datapipeline, e.g. UML diagram

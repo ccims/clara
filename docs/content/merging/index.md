@@ -7,13 +7,13 @@ Further, duplications are removed. For details on configuration possibilities se
 ### Concept
 The following concepts and data operations are applied in the merging step of CLARA:  
 
-* [Base and Comparison Components](#base-and-comparison-components) 
-* [Comparing](#comparing) 
-* [Merging](#merging-1)
-* [Dealing with Renamed Components](#dealing-with-renamed-components) 
-* [Leftover Components](#leftover-components) 
-* [Communications](#communications) 
-* [Adjusting Messaging Communications](#adjusting-messaging-communications)
+- [Base and Comparison Components](#base-and-comparison-components) 
+- [Comparing](#comparing) 
+- [Merging](#merging-1)
+- [Dealing with Renamed Components](#dealing-with-renamed-components) 
+- [Leftover Components](#leftover-components) 
+- [Communications](#communications) 
+- [Adjusting Messaging Communications](#adjusting-messaging-communications)
 
 #### Base and Comparison Components
 In CLARA the merging of two detected components by different aggregators is defined as merging a comparison object on top of the base object.   
