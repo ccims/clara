@@ -1271,9 +1271,9 @@ CLARA then iterates over the traces and extracts information about components an
 If not consider using <a href="#opentelemetry-auto-instrumentation">OpenTelemetry auto-instrumentation</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">OpenTelemetry Semantic Conventions</p>
-</div>
 <p>Because OpenTelemetry traces' attributes are not standardized, it is recommended to use tracing with the <a href="https://opentelemetry.io/docs/specs/semconv/">OpenTelemetry semantic conventions</a> for CLARA.
 If your services do not provide them, you can try to set up the <a href="#opentelemetry-auto-instrumentation">OpenTelemetry auto-instrumentation</a> on top of your system.</p>
+</div>
 <p>Second, ensure that there is an <a href="#opentelemetry-collector">OpenTelemetry collector</a> with the matching configuration is running in your cluster.
 Third, when you use CLARA on a local machine and do not deploy in the cluster, you need to forward the traces from the OpenTelemetry collector to your local machine.
 The open-source tool <a href="#ktunnel">ktunnel</a> can be used to achieve this.</p>
