@@ -1209,6 +1209,24 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#configuring-the-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring the merge
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-the-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring the filter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuring-the-export" class="md-nav__link">
     <span class="md-ellipsis">
       Configuring the export
@@ -1378,6 +1396,41 @@ There you can also find other ways to set up the configuration to be effective, 
 <ul>
 <li>Type: String (<a href="https://github.com/sksamuel/hoplite?tab=readme-ov-file#duration-formats">format here</a>)</li>
 <li>Description: Amount of time CLARA should listen to incoming spans sent by an OpenTelemetry collector.</li>
+</ul>
+</details>
+<hr />
+<h2 id="configuring-the-merge">Configuring the merge<a class="headerlink" href="#configuring-the-merge" title="Permanent link">&para;</a></h2>
+<details class="config-option">
+<summary><strong><em>merge.comparison-strategy</em></strong></summary>
+<ul>
+<li>Type: String (one of <code>Equals</code>, <code>Prefix</code>, <code>Suffix</code>, <code>Contains</code>)</li>
+<li>Description: Strategy for matching names of components aggregated by different aggregators.
+  <code>Equals</code> needs the same names, <code>Prefix</code> and <code>Suffix</code> need to have matching strings on the start or the end respectively, <code>Contains</code> needs that one string is part of the other.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>merge.show-messaging-communications-directly</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Description: If <code>true</code>, CLARA will define communications that go via a message broker directly between the components and removes the communications to the message broker. If <code>false</code> it show the communications via the message broker. </li>
+</ul>
+</details>
+<hr />
+<h2 id="configuring-the-filter">Configuring the filter<a class="headerlink" href="#configuring-the-filter" title="Permanent link">&para;</a></h2>
+<details class="config-option">
+<summary><strong><em>filter.remove-component-endpoints</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: false</li>
+<li>Description: If <code>true</code>, the endpoints of the components are filtered out before the export, to improve visibility in complex architectures.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>filter.remove-components-by-names</em></strong></summary>
+<ul>
+<li>Type: List of Strings</li>
+<li>Default: empty List</li>
+<li>Description: list of components that should be filtered out before the export (e.g. otel-collector-service).</li>
 </ul>
 </details>
 <hr />
