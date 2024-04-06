@@ -77,3 +77,10 @@ Execute the following command to check the DNS server logs:
 ```shell linenums="0"
 kubectl logs -l k8s-app=kube-dns -n kube-system
 ```
+
+## Concept
+The log DNS analysis uses the obtained information from the Kubernetes API to match the hostnames and ip-addresses in a DNS log to components of the cluster.  
+An example log can look like this and provides disclosure about the source and target of a communication.
+```
+[INFO] 10.244.0.19:35065 - 3179 "A IN kubernetes.default.svc.cluster.local.svc.cluster.local. udp 72 false 512" NXDOMAIN qr,aa,rd 165 0.0000838s
+```
