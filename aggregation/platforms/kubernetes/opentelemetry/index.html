@@ -1227,6 +1227,24 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#merging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mapping
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1350,11 +1368,39 @@ For further information see the <a href="https://github.com/omrikiei/ktunnel/blo
 This works by applying sidecar containers to each yet to be instrumented service that capture the network traffic and generate traces from that.<br />
 For documentation on installation please see the <a href="https://opentelemetry.io/docs/kubernetes/operator/automatic/#">official docs from OpenTelemetry</a>.</p>
 <h3 id="aggregation-algorithms">Aggregation Algorithms<a class="headerlink" href="#aggregation-algorithms" title="Permanent link">&para;</a></h3>
-<p>todo</p>
+<p>After the OpenTelemetry-aggregator finished collecting the traces, the algorithm will iterate over all traces and extract architectural information from it.<br />
+An OpenTelemetry spans can be of one of five <a href="https://opentelemetry.io/docs/concepts/signals/traces/#span-kind">kinds</a>, Producer, Consumer, Client, Server and Internal.<br />
+Internal spans are ignored, Client- and Server-spans as well as Producer- and Consumer- spans are analyzed seperated from each other, as described below.</p>
 <h4 id="client-server">Client-Server<a class="headerlink" href="#client-server" title="Permanent link">&para;</a></h4>
-<p>todo</p>
+<p>Spans of Client and Server kind are analyzed the following way:</p>
+<p>A client as well as a server span can disclose information about the sending component as well as the respective other component in the communication.
+Therefore, from each span two possible components are obtained, that receive all the information available.</p>
+<p>As there is no definitive standard for the naming and the values of span-attributes, the following logic is applied to extract information from span attributes:</p>
+<ul>
+<li>For each seeked information (hostname, port, ip-address, and path) of the server and the client a list of often used key names is provided (e.g. server.address, url.path, etc.). </li>
+<li>The spans attributes are then filtered for those key-names and if they match, regexes are applied in order to find the specific attribute.</li>
+<li>Two component-objects are created and with all available information and simply added to a list of found components.</li>
+<li>A relation (communication) object with the client-name and if available the server-name, otherwise the server hostname or ip-address is added.</li>
+</ul>
 <h4 id="producer-consumer">Producer-Consumer<a class="headerlink" href="#producer-consumer" title="Permanent link">&para;</a></h4>
-<p>todo</p>
+<p>Producers and Consumers of message-oriented communications are specifically tagged, because there is no directly observable communication between the source and the target component.<br />
+Based on the semantic conventions, however, a producer-span contains the messaging-destination which can be used to obtain the communication.
+Therefore, the recovery looks as follows:</p>
+<ul>
+<li>Three components are created, the source, the target and the message-broker </li>
+<li>A Messaging relation (communications) containing the source, the target and the messaging system. </li>
+</ul>
+<h4 id="merging">Merging<a class="headerlink" href="#merging" title="Permanent link">&para;</a></h4>
+<p>As each analyzed span creates at least two component objects, those need to be merged into a consistent pattern.
+The merging is done the following way:</p>
+<ul>
+<li>All component objects without a service name are tried to be matched to component having a service name via the hostname, the ip-address or the endpoint-list.</li>
+<li>Components that can't be matched will be dealt with afterward.</li>
+</ul>
+<h4 id="mapping">Mapping<a class="headerlink" href="#mapping" title="Permanent link">&para;</a></h4>
+<p>The component objects finally need to be mapped to the CLARA-wide internal component and communication representation. 
+Component objects containing a service-name are mapped to an <a href="../../../../concept/datatypes/">"internal"</a> component object, components without a service-name are mapped to an <a href="../../../../concept/datatypes/">"external"</a> one.<br />
+Communications are mapped if a matching component via service-name or hostname for source and target can be found.</p>
 
 
 
