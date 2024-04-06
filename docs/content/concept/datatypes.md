@@ -1,32 +1,42 @@
-# DataTypes
+# DataTypes TODO FINALIZE
 
-## DNS
+# Gropius
+## Aggregation
+### Component
+##### Internal
+###### OpenTelemetry
+###### Kubernetes
+##### External
+### Communication
 
-### Service
+## Merged
+### Component
+#### Internal
+#### External
+### Communication
 
-- ...
-
-### Pod
-
+# Kubernetes
+## Service
+- name
 - ip
+- namespace
+## Pod
+- name
+- ip
+- namespace
+# DNS
+## Relation
 
-### Relation
-
-- Pod calls other ip
-
-
-## OpenTelemetry
-
-### Service
-
+# OpenTelemetry
+## Service
 - serviceName (generic application name)
 - hostname?
 - port?
 - ipAddress?
 - endpoints? List<Path>
+- type
 
-### Relation
+## Relation
 
-- Service calls other Service (if possible the second service's interface can be specified by path)
 
-## Gropius
+
