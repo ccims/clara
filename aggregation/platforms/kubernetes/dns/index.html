@@ -1181,6 +1181,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concept
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1333,6 +1342,11 @@ Just create a dnsutils-pod with the following manifest:</p>
 <p>Execute the following command to check the DNS server logs:</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-l<span class="w"> </span>k8s-app<span class="o">=</span>kube-dns<span class="w"> </span>-n<span class="w"> </span>kube-system
 </span></code></pre></div>
+<h2 id="concept">Concept<a class="headerlink" href="#concept" title="Permanent link">&para;</a></h2>
+<p>The log DNS analysis uses the obtained information from the Kubernetes API to match the hostnames and ip-addresses in a DNS log to components of the cluster.<br />
+An example log can look like this and provides disclosure about the source and target of a communication.
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a>[INFO] 10.244.0.19:35065 - 3179 &quot;A IN kubernetes.default.svc.cluster.local.svc.cluster.local. udp 72 false 512&quot; NXDOMAIN qr,aa,rd 165 0.0000838s
+</span></code></pre></div></td></tr></table></div></p>
 
 
 

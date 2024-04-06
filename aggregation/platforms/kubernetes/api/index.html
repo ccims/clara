@@ -1142,6 +1142,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concept
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1168,6 +1185,10 @@
 
 <h1 id="api">API<a class="headerlink" href="#api" title="Permanent link">&para;</a></h1>
 <p>CLARA utilizes the Kubernetes API to retrieve basic information about the pods, services and deployments running in the cluster.</p>
+<p>The <a href="https://mvnrepository.com/artifact/io.fabric8/kubernetes-client">fabric8 Kubernetes client</a> is used by CLARA to communicate to the Kubernetes API.</p>
+<h3 id="concept">Concept<a class="headerlink" href="#concept" title="Permanent link">&para;</a></h3>
+<p>The Kubernetes API is queried for pods and services from the configured namespace (see <a href="../../../../configuration/">configurations</a>).<br />
+Pods are then matched to a service and all services with their respective pods and all unmatched pods are provided into the datapipeline.</p>
 
 
 
