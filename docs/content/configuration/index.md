@@ -84,6 +84,32 @@ All options with a default value are optional.
 
 ---
 
+## Configuring the merge
+
+??? config-option "**_merge.comparison-strategy_**"
+    - Type: String (one of `Equals`, `Prefix`, `Suffix`, `Contains`)
+    - Description: Strategy for matching names of components aggregated by different aggregators.
+      `Equals` needs the same names, `Prefix` and `Suffix` need to have matching strings on the start or the end respectively, `Contains` needs that one string is part of the other.
+
+??? config-option "**_merge.show-messaging-communications-directly_**"
+    - Type: Boolean
+    - Description: If `true`, CLARA will define communications that go via a message broker directly between the components and removes the communications to the message broker. If `false` it show the communications via the message broker. 
+---
+
+## Configuring the filter
+
+??? config-option "**_filter.remove-component-endpoints_**"
+    - Type: Boolean
+    - Default: false
+    - Description: If `true`, the endpoints of the components are filtered out before the export, to improve visibility in complex architectures.
+
+??? config-option "**_filter.remove-components-by-names_**"
+    - Type: List of Strings
+    - Default: empty List
+    - Description: list of components that should be filtered out before the export (e.g. otel-collector-service).
+
+---
+
 ## Configuring the export
 
 ??? config-option "**_export.on-empty_**"
