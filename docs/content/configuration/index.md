@@ -190,6 +190,15 @@ aggregation:
           listen-port: 7878
           listen-duration: 45 minutes
 
+merge:
+  comparison-strategy: Equals
+  show-messaging-communications-directly: true
+
+filter:
+  remove-component-endpoints: false
+  remove-components-by-names:
+    - otel-collector-service
+
 export:
   on-empty: false
   exporters:
