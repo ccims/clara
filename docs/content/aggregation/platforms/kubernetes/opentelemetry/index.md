@@ -71,10 +71,40 @@ This works by applying sidecar containers to each yet to be instrumented service
 For documentation on installation please see the [official docs from OpenTelemetry](https://opentelemetry.io/docs/kubernetes/operator/automatic/#).
 
 ### Aggregation Algorithms
-todo
+After the OpenTelemetry-aggregator finished collecting the traces, the algorithm will iterate over all traces and extract architectural information from it.  
+An OpenTelemetry spans can be of one of five [kinds](https://opentelemetry.io/docs/concepts/signals/traces/#span-kind), Producer, Consumer, Client, Server and Internal.  
+Internal spans are ignored, Client- and Server-spans as well as Producer- and Consumer- spans are analyzed seperated from each other, as described below.
 
 #### Client-Server
-todo
+Spans of Client and Server kind are analyzed the following way:
+
+A client as well as a server span can disclose information about the sending component as well as the respective other component in the communication.
+Therefore, from each span two possible components are obtained, that receive all the information available.
+
+As there is no definitive standard for the naming and the values of span-attributes, the following logic is applied to extract information from span attributes:
+
+- For each seeked information (hostname, port, ip-address, and path) of the server and the client a list of often used key names is provided (e.g. server.address, url.path, etc.). 
+- The spans attributes are then filtered for those key-names and if they match, regexes are applied in order to find the specific attribute.
+- Two component-objects are created and with all available information and simply added to a list of found components.
+- A relation (communication) object with the client-name and if available the server-name, otherwise the server hostname or ip-address is added.
+ 
 
 #### Producer-Consumer
-todo
+Producers and Consumers of message-oriented communications are specifically tagged, because there is no directly observable communication between the source and the target component.  
+Based on the semantic conventions, however, a producer-span contains the messaging-destination which can be used to obtain the communication.
+Therefore, the recovery looks as follows:
+
+- Three components are created, the source, the target and the message-broker 
+- A Messaging relation (communications) containing the source, the target and the messaging system. 
+
+#### Merging 
+As each analyzed span creates at least two component objects, those need to be merged into a consistent pattern.
+The merging is done the following way:
+
+- All component objects without a service name are tried to be matched to component having a service name via the hostname, the ip-address or the endpoint-list.
+- Components that can't be matched will be dealt with afterward.
+
+#### Mapping
+The component objects finally need to be mapped to the CLARA-wide internal component and communication representation. 
+Component objects containing a service-name are mapped to an ["internal"](../../../../concept/datatypes.md) component object, components without a service-name are mapped to an ["external"](../../../../concept/datatypes.md) one.  
+Communications are mapped if a matching component via service-name or hostname for source and target can be found.
