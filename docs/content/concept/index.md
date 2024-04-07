@@ -11,7 +11,8 @@ The datapipeline of CLARA consists of the four main steps:
 - [Filtering](../filtering/index.md) 
 - [Export](../export/index.md) 
 
-#### TODO visualization of the datapipeline, e.g. UML diagram
+![Architectural overview of CLARA](../_resources/CLARA_architecture.png "Architectural overview of CLARA")
+
 
 ### Dataformat
 For information about the different data types used inside CLARA see the [datatypes](datatypes.md) page.
