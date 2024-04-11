@@ -5,7 +5,7 @@ import de.unistuttgart.iste.sqa.clara.api.filter.Rule
 import de.unistuttgart.iste.sqa.clara.api.model.Communication
 import de.unistuttgart.iste.sqa.clara.api.model.Component
 
-class RemoveVersions : Rule {
+class RemoveComponentVersions : Rule {
 
     override fun apply(components: Iterable<Component>, communications: Iterable<Communication>): Filtered {
         return Filtered(

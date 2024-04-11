@@ -15,7 +15,7 @@ import de.unistuttgart.iste.sqa.clara.export.ParallelExportExecutor
 import de.unistuttgart.iste.sqa.clara.filter.DefaultFilter
 import de.unistuttgart.iste.sqa.clara.filter.rules.RemoveComponentEndpoints
 import de.unistuttgart.iste.sqa.clara.filter.rules.RemoveComponentsByName
-import de.unistuttgart.iste.sqa.clara.filter.rules.RemoveVersions
+import de.unistuttgart.iste.sqa.clara.filter.rules.RemoveComponentVersions
 import de.unistuttgart.iste.sqa.clara.merge.DefaultMerger
 import de.unistuttgart.iste.sqa.clara.utils.list.getLeft
 import de.unistuttgart.iste.sqa.clara.utils.list.getRight
@@ -102,7 +102,7 @@ private fun FilterConfig?.toFilterRules(): List<Rule> {
         }
 
         if (this@toFilterRules.removeComponentVersions) {
-            add(RemoveVersions())
+            add(RemoveComponentVersions())
         }
 
         this@toFilterRules.removeComponentsByNames.forEach { nameRegex ->
