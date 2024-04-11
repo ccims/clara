@@ -101,7 +101,7 @@ private fun FilterConfig?.toFilterRules(): List<Rule> {
             add(RemoveComponentEndpoints())
         }
 
-        if (this@toFilterRules.removeVersions) {
+        if (this@toFilterRules.removeComponentVersions) {
             add(RemoveVersions())
         }
 
