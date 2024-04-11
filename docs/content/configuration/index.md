@@ -103,6 +103,11 @@ All options with a default value are optional.
     - Default: false
     - Description: If `true`, the endpoints of the components are filtered out before the export, to improve visibility in complex architectures.
 
+??? config-option "**_filter.remove-component-versions_**"
+    - Type: Boolean
+    - Default: false
+    - Description: If `true`, the versions of the components are filtered out before the export, to reduce updates when components are often released.
+
 ??? config-option "**_filter.remove-components-by-names_**"
     - Type: List of Strings
     - Default: empty List

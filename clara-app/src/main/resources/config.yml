@@ -20,6 +20,7 @@ merge:
   show-messaging-communications-directly: true
 
 filter:
+  remove-component-versions: false
   remove-component-endpoints: false
   remove-components-by-names:
     - my-otel-demo-otelcol
