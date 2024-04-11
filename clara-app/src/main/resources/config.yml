@@ -13,7 +13,8 @@ aggregation:
           logs-since-time: 2024-03-27T00:00:00Z
         open-telemetry:
           listen-port: 7878
-          listen-duration: 60 seconds
+          listen-duration: 10 seconds
+        syft-sbom:
 
 merge:
   comparison-strategy: Equals

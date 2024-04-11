@@ -1,10 +1,12 @@
 package de.unistuttgart.iste.sqa.clara.aggregation
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.dns.KubernetesDnsAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.kubeapi.KubeApiAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.OpenTelemetryAggregator
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.aggregators.opentelemetry.spanprovider.OpenTelemetryTraceSpanProvider
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClientFabric8
+import de.unistuttgart.iste.sqa.clara.aggregation.sbom.SyftSbomAggregator
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
 import de.unistuttgart.iste.sqa.clara.config.AggregationConfig
 import de.unistuttgart.iste.sqa.clara.config.ifEnabled
@@ -33,6 +35,11 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
                 val config = OpenTelemetryTraceSpanProvider.Config(openTelemetryAggregatorConfig.listenPort, openTelemetryAggregatorConfig.listenDuration)
                 add(OpenTelemetryAggregator(OpenTelemetryTraceSpanProvider(config)))
                 log.info { "Registered aggregator: OpenTelemetry tracing spans" }
+            }
+
+            kubernetesConfig.aggregators.syftSbom?.ifEnabled {
+                add(SyftSbomAggregator(ObjectMapper(), KubernetesClientFabric8()))
+                log.info { "Registered aggregator: Syft SBOM"}
             }
         }
     }

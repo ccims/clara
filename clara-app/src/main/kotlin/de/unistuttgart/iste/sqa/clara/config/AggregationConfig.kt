@@ -21,6 +21,7 @@ data class AggregationConfig(
                 val kubeApi: KubeApiAggregator?,
                 val dns: DnsAggregator?,
                 val openTelemetry: OpenTelemetryAggregator?,
+                val syftSbom: SyftSbomAggregator?,
             ) {
 
                 data class KubeApiAggregator(
@@ -36,6 +37,10 @@ data class AggregationConfig(
                 data class DnsAggregator(
                     override val enable: Boolean = true,
                     val logsSinceTime: String = "",
+                ) : Enable
+
+                data class SyftSbomAggregator(
+                    override val enable: Boolean = true,
                 ) : Enable
             }
         }
