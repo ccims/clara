@@ -106,33 +106,6 @@ class KubernetesClientFabric8 : KubernetesClient {
         }
     }
 
-    override fun getContainerImagesFromPodsFromAllNamespaces(includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<String>> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getContainerImagesFromPodsFromNamespaces(namespaces: List<Namespace>, includeKubeNamespaces: Boolean): Either<KubernetesClientError, List<String>> {
-        return try {
-            return if (namespaces.any { it.value == "*" }) {
-                getContainerImagesFromPodsFromAllNamespaces(includeKubeNamespaces)
-            } else {
-                namespaces
-                    .filterNot { it.value.startsWith("kube-") && !includeKubeNamespaces }
-                    .flatMap { namespace: Namespace ->
-                        client
-                            .pods()
-                            .inNamespace(namespace.value)
-                            .list()
-                            .items
-                            .mapNotNull { it.retrieveImage() }
-                            .toSet()
-                    }
-                    .right()
-            }
-        } catch (ex: KubernetesClientException) {
-            Either.Left(KubernetesClientError("Cannot get services from namespaces $namespaces: ${ex.message}"))
-        }
-    }
-
     override fun getDnsLogs(sinceTime: String): Either<KubernetesClientError, List<String>> {
         val kubeDnsLogs = getLogs("kube-system", "k8s-app=kube-dns", sinceTime).getOrElse { return it.left() }
         val nodeLocalDnsLos = getLogs("kube-system", "k8s-app=node-local-dns", sinceTime).getOrElse { return it.left() }
@@ -168,6 +141,7 @@ class KubernetesClientFabric8 : KubernetesClient {
             ipAddress = IpAddress(pod.status.podIP ?: return null),
             namespace = Namespace(pod.metadata.namespace ?: return null),
             version = KubernetesPod.Version(pod.spec.containers.firstOrNull()?.image?.substringAfter(":") ?: return null),
+            image = KubernetesPod.Image(pod.spec.containers.firstOrNull()?.image ?: return null)
         )
     }
 
@@ -184,9 +158,5 @@ class KubernetesClientFabric8 : KubernetesClient {
                 .items
                 .mapNotNull(::fromFabric8Pod)
         )
-    }
-
-    private fun io.fabric8.kubernetes.api.model.Pod.retrieveImage(): String? {
-        return spec.containers.firstOrNull()?.image
     }
 }

@@ -56,6 +56,7 @@ internal fun AggregatedComponent.toComponent(): Component {
             namespace = this.namespace,
             ipAddress = this.ipAddress,
             endpoints = null,
+            libraries = null,
         )
 
         is AggregatedComponent.Internal.OpenTelemetryComponent -> Component.InternalComponent(
@@ -64,7 +65,18 @@ internal fun AggregatedComponent.toComponent(): Component {
             version = this.version?.let { Component.InternalComponent.Version(it.value) },
             namespace = null,
             ipAddress = null,
-            endpoints = Component.InternalComponent.Endpoints(this.domain, this.paths)
+            endpoints = Component.InternalComponent.Endpoints(this.domain, this.paths),
+            libraries = null,
+        )
+
+        is  AggregatedComponent.Internal.SpdxComponent -> Component.InternalComponent(
+            name = Component.Name(this.name.value),
+            type = this.type,
+            version = this.version?.let { Component.InternalComponent.Version(it.value) },
+            namespace = null,
+            ipAddress = null,
+            endpoints = null,
+            libraries = this.libraries,
         )
     }
 }
