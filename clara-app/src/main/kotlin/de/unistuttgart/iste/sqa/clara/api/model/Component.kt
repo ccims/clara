@@ -19,9 +19,15 @@ sealed interface AggregatedComponent {
 
         @JvmInline
         value class Version(val value: String) {
-
             override fun toString() = value
         }
+
+        data class SpdxComponent(
+            override val name: Name,
+            override val type: ComponentType?,
+            override val version: Version?,
+            val libraries: List<Library>
+        ) : Internal
 
         data class OpenTelemetryComponent(
             override val name: Name,
@@ -60,6 +66,7 @@ sealed interface Component {
         val namespace: Namespace?,
         val ipAddress: IpAddress?,
         val endpoints: Endpoints?,
+        val libraries: List<Library>?,
     ) : Component {
 
         data class Endpoints(val domain: Domain, val paths: List<Path>)

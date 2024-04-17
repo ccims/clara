@@ -141,6 +141,7 @@ class KubernetesClientFabric8 : KubernetesClient {
             ipAddress = IpAddress(pod.status.podIP ?: return null),
             namespace = Namespace(pod.metadata.namespace ?: return null),
             version = KubernetesPod.Version(pod.spec.containers.firstOrNull()?.image?.substringAfter(":") ?: return null),
+            image = KubernetesPod.Image(pod.spec.containers.firstOrNull()?.image ?: return null)
         )
     }
 

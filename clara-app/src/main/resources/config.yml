@@ -13,7 +13,10 @@ aggregation:
           logs-since-time: 2024-03-27T00:00:00Z
         open-telemetry:
           listen-port: 7878
-          listen-duration: 60 seconds
+          listen-duration: 10 seconds
+        syft-sbom:
+          sbom-file-path: /Users/p371728/master/clara/generated/
+          use-stored-sbom-files: false
 
 merge:
   comparison-strategy: Equals

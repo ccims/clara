@@ -9,6 +9,7 @@ data class KubernetesPod(
     val ipAddress: IpAddress,
     override val namespace: Namespace,
     val version: Version?,
+    val image: Image?,
 ) : Namespaced {
 
     @JvmInline
@@ -16,6 +17,12 @@ data class KubernetesPod(
 
     @JvmInline
     value class Version(val value: String) {
+
+        override fun toString() = value
+    }
+
+    @JvmInline
+    value class Image(val value: String) {
 
         override fun toString() = value
     }

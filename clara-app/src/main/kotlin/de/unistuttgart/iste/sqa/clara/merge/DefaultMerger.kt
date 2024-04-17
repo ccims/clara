@@ -62,8 +62,6 @@ class DefaultMerger(private val config: Config) : Merger {
         val mergedComponents = compareAndMergeComponents(
             components,
             renamedComponents,
-            AggregatedComponent.Internal.KubernetesComponent::class.java,
-            AggregatedComponent.Internal.OpenTelemetryComponent::class.java,
         )
 
         val adjustedCommunications = adjustMessagingCommunications(communications)
@@ -115,49 +113,57 @@ class DefaultMerger(private val config: Config) : Merger {
         }
     }
 
-    private fun <B, C> compareAndMergeComponents(
+    private fun compareAndMergeComponents(
         aggregatedComponents: List<AggregatedComponent>,
         renamedComponents: MutableMap<AggregatedComponent.Name, Component.Name>,
-        baseComponentType: B,
-        compareComponentType: C,
     ): List<Component> {
 
-        val baseComponents = aggregatedComponents.filter { it::class.java == baseComponentType }
-        val compareComponents = aggregatedComponents.filter { it::class.java == compareComponentType }.toMutableList()
-        val externalComponents = aggregatedComponents.filter { it::class.java == AggregatedComponent.External::class.java }.toMutableList()
+        val kubernetesComponents = aggregatedComponents.filterIsInstance<AggregatedComponent.Internal.KubernetesComponent>()
+        val internalKubernetesComponents = aggregatedComponents.filterIsInstance<AggregatedComponent.Internal.OpenTelemetryComponent>().toMutableList()
+        val externalKubernetesComponents = aggregatedComponents.filterIsInstance<AggregatedComponent.External>().toMutableList()
+        val spdxComponents = aggregatedComponents.filterIsInstance<AggregatedComponent.Internal.SpdxComponent>().toMutableList()
 
-        if (baseComponents.isEmpty() || compareComponents.isEmpty()) {
+        if (kubernetesComponents.isEmpty() && internalKubernetesComponents.isEmpty() && spdxComponents.isEmpty()) {
             return aggregatedComponents.map { it.toComponent() }
         }
 
         val mergedComponents = mutableListOf<Component>()
 
-        baseComponents.forEach { baseComponent ->
+        kubernetesComponents.forEach { kubernetesComponent ->
 
-            val compareComponent = compareComponents.find { compareComponents(baseComponent, it) }
+            val internalOpenTelemetryComponent = internalKubernetesComponents.find { compareComponents(kubernetesComponent, it) }
             // It is possible that oTel marks components as external when they do not provide traces. If there is a matching k8s component, they will be merged here.
-            val externalCompareComponent = externalComponents.find { compareComponents(baseComponent, it) }
+            val externalOpenTelemetryComponent = externalKubernetesComponents.find { compareComponents(kubernetesComponent, it) }
+            val spdxComponent = spdxComponents.find { compareComponents(kubernetesComponent, it) }
             when {
-                compareComponent != null -> {
-                    val mergedComponent = mergeComponents(baseComponent, compareComponent)
+                internalOpenTelemetryComponent != null -> {
+                    val mergedComponent = mergeKubernetesOpenTelemetrySpdxComponents(kubernetesComponent, internalOpenTelemetryComponent, spdxComponent)
                     mergedComponents.add(mergedComponent)
-                    compareComponents.remove(compareComponent)
-                    renamedComponents.checkAndAddRenamedComponent(compareComponent, mergedComponent)
+                    internalKubernetesComponents.remove(internalOpenTelemetryComponent)
+                    spdxComponents.remove(spdxComponent)
+                    renamedComponents.checkAndAddRenamedComponent(internalOpenTelemetryComponent, mergedComponent)
                 }
 
-                externalCompareComponent != null -> {
-                    val mergedComponent = mergeComponents(baseComponent, externalCompareComponent)
+                externalOpenTelemetryComponent != null -> {
+                    val mergedComponent = mergeKubernetesExternalSpdxComponent(kubernetesComponent, externalOpenTelemetryComponent, spdxComponent)
                     mergedComponents.add(mergedComponent)
-                    externalComponents.remove(externalCompareComponent)
-                    renamedComponents.checkAndAddRenamedComponent(externalCompareComponent, mergedComponent)
+                    externalKubernetesComponents.remove(externalOpenTelemetryComponent)
+                    spdxComponents.remove(spdxComponent)
+                    renamedComponents.checkAndAddRenamedComponent(externalOpenTelemetryComponent, mergedComponent)
+                }
+
+                spdxComponent != null -> {
+                    val mergedComponent = mergeKubernetesSpdxComponent(kubernetesComponent, spdxComponent)
+                    mergedComponents.add(mergedComponent)
+                    spdxComponents.remove(spdxComponent)
                 }
 
                 else -> {
-                    mergedComponents.add(baseComponent.toComponent())
+                    mergedComponents.add(kubernetesComponent.toComponent())
                 }
             }
         }
-        return mergedComponents + externalComponents.map { it.toComponent() } + compareComponents.map { it.toComponent() }
+        return mergedComponents + externalKubernetesComponents.map { it.toComponent() } + internalKubernetesComponents.map { it.toComponent() }
     }
 
     private fun MutableMap<AggregatedComponent.Name, Component.Name>.checkAndAddRenamedComponent(
@@ -177,52 +183,51 @@ class DefaultMerger(private val config: Config) : Merger {
         DefaultMerger.Config.ComparisonStrategy.Equals -> baseComponent.name == compareComponent.name
     }
 
-    private fun mergeComponents(baseComponent: AggregatedComponent, compareComponent: AggregatedComponent): Component {
-        return when {
-            baseComponent::class.java == AggregatedComponent.Internal.KubernetesComponent::class.java &&
-                    compareComponent::class.java == AggregatedComponent.Internal.OpenTelemetryComponent::class.java ->
-                mergeKubernetesComponentWithOpenTelemetryComponent(
-                    baseComponent as AggregatedComponent.Internal.KubernetesComponent,
-                    compareComponent as AggregatedComponent.Internal.OpenTelemetryComponent
-                )
-
-            baseComponent::class.java == AggregatedComponent.Internal.KubernetesComponent::class.java &&
-                    compareComponent::class.java == AggregatedComponent.External::class.java ->
-                mergeKubernetesComponentWithExternalComponent(
-                    baseComponent as AggregatedComponent.Internal.KubernetesComponent,
-                    compareComponent as AggregatedComponent.External
-                )
-
-            else -> throw UnsupportedOperationException("We can not merge those components yet (${baseComponent::class.java.name} and ${compareComponent::class.java.name}).")
-        }
-    }
-
-    private fun mergeKubernetesComponentWithOpenTelemetryComponent(
-        baseComponent: AggregatedComponent.Internal.KubernetesComponent,
-        compareComponent: AggregatedComponent.Internal.OpenTelemetryComponent,
+    private fun mergeKubernetesOpenTelemetrySpdxComponents(
+        kubernetesComponent: AggregatedComponent.Internal.KubernetesComponent,
+        openTelemetryComponent: AggregatedComponent.Internal.OpenTelemetryComponent,
+        spdxComponent: AggregatedComponent.Internal.SpdxComponent?,
     ): Component.InternalComponent {
         return Component.InternalComponent(
-            name = Component.Name(baseComponent.name.value),
-            namespace = baseComponent.namespace,
-            ipAddress = baseComponent.ipAddress,
-            endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, compareComponent.paths),
-            type = mergeProperty(baseComponent.type, compareComponent.type),
-            version = baseComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+            name = Component.Name(kubernetesComponent.name.value),
+            namespace = kubernetesComponent.namespace,
+            ipAddress = kubernetesComponent.ipAddress,
+            endpoints = Component.InternalComponent.Endpoints(openTelemetryComponent.domain, openTelemetryComponent.paths),
+            type = mergeProperty(kubernetesComponent.type, openTelemetryComponent.type),
+            version = kubernetesComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+            libraries = spdxComponent?.libraries,
         )
     }
 
-    private fun mergeKubernetesComponentWithExternalComponent(
-        baseComponent: AggregatedComponent.Internal.KubernetesComponent,
-        compareComponent: AggregatedComponent.External,
+    private fun mergeKubernetesExternalSpdxComponent(
+        kubernetesComponent: AggregatedComponent.Internal.KubernetesComponent,
+        externalComponent: AggregatedComponent.External,
+        spdxComponent: AggregatedComponent.Internal.SpdxComponent?,
     ): Component.InternalComponent {
         return Component.InternalComponent(
-            name = Component.Name(baseComponent.name.value),
-            namespace = baseComponent.namespace,
-            ipAddress = baseComponent.ipAddress,
-            endpoints = Component.InternalComponent.Endpoints(compareComponent.domain, emptyList()),
-            type = mergeProperty(baseComponent.type, compareComponent.type),
-            version = baseComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+            name = Component.Name(kubernetesComponent.name.value),
+            namespace = kubernetesComponent.namespace,
+            ipAddress = kubernetesComponent.ipAddress,
+            endpoints = Component.InternalComponent.Endpoints(externalComponent.domain, emptyList()),
+            type = mergeProperty(kubernetesComponent.type, externalComponent.type),
+            version = kubernetesComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+            libraries = spdxComponent?.libraries,
         )
+    }
+
+    private fun mergeKubernetesSpdxComponent(
+        kubernetesComponent: AggregatedComponent.Internal.KubernetesComponent,
+        spdxComponent: AggregatedComponent.Internal.SpdxComponent,
+        ): Component.InternalComponent {
+            return Component.InternalComponent(
+                name = Component.Name(kubernetesComponent.name.value),
+                namespace = kubernetesComponent.namespace,
+                ipAddress = kubernetesComponent.ipAddress,
+                endpoints = null,
+                type = null,
+                version = kubernetesComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+                libraries = spdxComponent.libraries
+            )
     }
 
     private fun <Property> mergeProperty(value1: Property?, value2: Property?): Property? {
