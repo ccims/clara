@@ -7,6 +7,7 @@ build
 # Ignore files generated / exported by the application
 generated
 logs
+sbom
 
 # Documentation with MkDocs
 docs/venv
@@ -27,6 +28,7 @@ docs/site
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
+.idea/**/modules.xml
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf

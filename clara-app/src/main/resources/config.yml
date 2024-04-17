@@ -15,7 +15,7 @@ aggregation:
           listen-port: 7878
           listen-duration: 10 seconds
         syft-sbom:
-          sbom-file-path: /Users/p371728/master/clara/generated/
+          sbom-file-path: sbom/
           use-stored-sbom-files: false
 
 merge:
