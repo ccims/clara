@@ -41,6 +41,8 @@ data class AggregationConfig(
 
                 data class SyftSbomAggregator(
                     override val enable: Boolean = true,
+                    val sbomFilePath: String,
+                    val useStoredSbomFiles: Boolean = false,
                 ) : Enable
             }
         }

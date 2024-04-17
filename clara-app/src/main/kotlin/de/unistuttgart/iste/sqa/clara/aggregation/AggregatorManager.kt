@@ -37,8 +37,9 @@ class AggregatorManager(aggregationConfig: AggregationConfig) {
                 log.info { "Registered aggregator: OpenTelemetry tracing spans" }
             }
 
-            kubernetesConfig.aggregators.syftSbom?.ifEnabled {
-                add(SyftSbomAggregator(ObjectMapper(), KubernetesClientFabric8()))
+            kubernetesConfig.aggregators.syftSbom?.ifEnabled { sbomAggregatorConfig ->
+                val config = SyftSbomAggregator.Config(kubernetesConfig.namespaces, kubernetesConfig.includeKubeNamespaces, sbomFilePath = sbomAggregatorConfig.sbomFilePath, useStoredSbomFiles = sbomAggregatorConfig.useStoredSbomFiles)
+                add(SyftSbomAggregator(config, ObjectMapper(), KubernetesClientFabric8()))
                 log.info { "Registered aggregator: Syft SBOM"}
             }
         }

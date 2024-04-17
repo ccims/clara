@@ -13,37 +13,35 @@ import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Library
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 class SyftSbomAggregator(
-    // private val config: Config,
+    private val config: Config,
     private val mapper: ObjectMapper,
     private val kubernetesClient: KubernetesClient,
 ) : Aggregator {
-    // Todo always most recent syft version binary is fetched
-    // -> get all images of the components from k8s api;
-    // -> execute syft for all of them
+
+    private val log = KotlinLogging.logger {}
 
     data class Config(
         val namespaces: List<Namespace>,
         val includeKubeNamespaces: Boolean,
+        val sbomFilePath: String,
+        val useStoredSbomFiles: Boolean,
     )
-
-    companion object {
-        const val PATH = "/Users/p371728/master/clara/generated/" //TODO get from config
-    }
 
     override fun aggregate(): Either<AggregationFailure, Aggregation> {
 
-        // TODO namespace configurable
-        val kubernetesServices = kubernetesClient.getServicesFromNamespaces(listOf(Namespace("clara")), false)
+        val kubernetesServices = kubernetesClient.getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
             .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
 
-        // TODO maybe make it possible to load SPDX files if they are already available somewhere
-        runBlocking {
-            kubernetesServices.map { async { it.selectedPods.firstOrNull()?.image?.let { generateJsons(it.value) }} }.awaitAll()
+        if (!config.useStoredSbomFiles) {
+            runBlocking {
+                kubernetesServices.map { async { it.selectedPods.firstOrNull()?.image?.let { generateJsons(it.value) } } }.awaitAll()
+            }
         }
 
         val components = kubernetesServices.mapNotNull { service ->
@@ -51,18 +49,29 @@ class SyftSbomAggregator(
             if (pod == null) {
                 null
             } else {
-                val aggregatedSbom = mapper.readValue(Paths.get("$PATH${pod.image}.json").toFile(), SPDXDocument::class.java)
-                val libraries = aggregatedSbom.packages.filter { pck -> pck.sourceInfo?.notContainsLinuxStuff() ?: false }.map { pck ->
-                    Library(name = AggregatedComponent.Name(pck.name), version = AggregatedComponent.Internal.Version(pck.versionInfo))
+                val aggregatedSbom = kotlin.runCatching {
+                    mapper.readValue(Paths.get("${config.sbomFilePath}${pod.image}.json").toFile(), SPDXDocument::class.java)
+                }.getOrElse {
+                    null
                 }
-                AggregatedComponent.Internal.SpdxComponent(
-                    name = AggregatedComponent.Name(service.name.value),
-                    type = null,
-                    version = service.selectedPods.firstOrNull()?.version?.value?.let { AggregatedComponent.Internal.Version(it) },
-                    libraries = libraries,
-                )
+                if (aggregatedSbom == null) {
+                    null
+                } else {
+                    val libraries = aggregatedSbom.packages.filter { pck -> pck.sourceInfo?.notContainsLinuxStuff() ?: false }.map { pck ->
+                        Library(name = AggregatedComponent.Name(pck.name), version = AggregatedComponent.Internal.Version(pck.versionInfo))
+                    }
+                    AggregatedComponent.Internal.SpdxComponent(
+                        name = AggregatedComponent.Name(service.name.value),
+                        type = null,
+                        version = service.selectedPods.firstOrNull()?.version?.value?.let { AggregatedComponent.Internal.Version(it) },
+                        libraries = libraries,
+                    )
+                }
             }
         }.toSet()
+
+        log.info { "Found ${components.size} components with each on average ${components.map { it.libraries.size }.average()} libraries." }
+        log.info { "Done aggregating SBOM API" }
 
         return Aggregation(
             components = components,
@@ -72,8 +81,9 @@ class SyftSbomAggregator(
 
     private fun String.notContainsLinuxStuff() = !(contains("/usr/share") || contains("/var/lib"))
 
-    // TODO call syft from local binary
+    // TODO: make sure always most recent syft version binary is fetched
     private fun generateJsons(image: String) {
-        Runtime.getRuntime().exec("syft $image -o spdx-json=$PATH$image.json").waitFor(30, TimeUnit.SECONDS)
+        log.info { "Generating SPDX.json files for image $image" }
+        Runtime.getRuntime().exec("clara-app/src/main/resources/syft $image -o spdx-json=${config.sbomFilePath}$image.json").waitFor(30, TimeUnit.SECONDS)
     }
 }

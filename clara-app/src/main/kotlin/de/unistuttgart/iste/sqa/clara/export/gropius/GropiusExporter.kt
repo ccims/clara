@@ -55,6 +55,7 @@ class GropiusExporter(private val config: Config) : Exporter {
 
         checkDatasetTemplates().onFailure { return@runBlocking it }
 
+        // TODO do something with libraries
         val dataSetComponents = addDatasetComponents(components).getOrElse { return@runBlocking Either.Left(it) }
 
         addRelations(communications, dataSetComponents).onFailure { return@runBlocking it }
