@@ -4,4 +4,5 @@ enum class ComponentType {
     Microservice,
     Database,
     Broker,
+    Library,
 }

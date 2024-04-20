@@ -194,7 +194,7 @@ class DefaultMerger(private val config: Config) : Merger {
             ipAddress = kubernetesComponent.ipAddress,
             endpoints = Component.InternalComponent.Endpoints(openTelemetryComponent.domain, openTelemetryComponent.paths),
             type = mergeProperty(kubernetesComponent.type, openTelemetryComponent.type),
-            version = kubernetesComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+            version = kubernetesComponent.version?.value?.let { Component.Version(it) },
             libraries = spdxComponent?.libraries,
         )
     }
@@ -210,7 +210,7 @@ class DefaultMerger(private val config: Config) : Merger {
             ipAddress = kubernetesComponent.ipAddress,
             endpoints = Component.InternalComponent.Endpoints(externalComponent.domain, emptyList()),
             type = mergeProperty(kubernetesComponent.type, externalComponent.type),
-            version = kubernetesComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+            version = kubernetesComponent.version?.value?.let { Component.Version(it) },
             libraries = spdxComponent?.libraries,
         )
     }
@@ -225,7 +225,7 @@ class DefaultMerger(private val config: Config) : Merger {
                 ipAddress = kubernetesComponent.ipAddress,
                 endpoints = null,
                 type = null,
-                version = kubernetesComponent.version?.value?.let { Component.InternalComponent.Version(it) },
+                version = kubernetesComponent.version?.value?.let { Component.Version(it) },
                 libraries = spdxComponent.libraries
             )
     }

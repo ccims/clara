@@ -52,6 +52,7 @@ sealed interface Component {
 
     val name: Name
     val type: ComponentType?
+    val version: Version?
 
     @JvmInline
     value class Name(val value: String) {
@@ -59,10 +60,16 @@ sealed interface Component {
         override fun toString() = value
     }
 
+    @JvmInline
+    value class Version(val value: String) {
+
+        override fun toString() = value
+    }
+
     data class InternalComponent(
         override val name: Name,
         override val type: ComponentType?,
-        val version: Version?,
+        override val version: Version?,
         val namespace: Namespace?,
         val ipAddress: IpAddress?,
         val endpoints: Endpoints?,
@@ -71,16 +78,13 @@ sealed interface Component {
 
         data class Endpoints(val domain: Domain, val paths: List<Path>)
 
-        @JvmInline
-        value class Version(val value: String) {
 
-            override fun toString() = value
-        }
     }
 
     data class ExternalComponent(
         override val name: Name,
         override val type: ComponentType?,
+        override val version: Version?,
         val domain: Domain,
     ) : Component
 }

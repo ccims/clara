@@ -47,12 +47,13 @@ internal fun AggregatedComponent.toComponent(): Component {
             name = Component.Name(this.name.value),
             domain = this.domain,
             type = this.type,
+            version = null,
         )
 
         is AggregatedComponent.Internal.KubernetesComponent -> Component.InternalComponent(
             name = Component.Name(this.name.value),
             type = this.type,
-            version = this.version?.let { Component.InternalComponent.Version(it.value) },
+            version = this.version?.let { Component.Version(it.value) },
             namespace = this.namespace,
             ipAddress = this.ipAddress,
             endpoints = null,
@@ -62,7 +63,7 @@ internal fun AggregatedComponent.toComponent(): Component {
         is AggregatedComponent.Internal.OpenTelemetryComponent -> Component.InternalComponent(
             name = Component.Name(this.name.value),
             type = this.type,
-            version = this.version?.let { Component.InternalComponent.Version(it.value) },
+            version = this.version?.let { Component.Version(it.value) },
             namespace = null,
             ipAddress = null,
             endpoints = Component.InternalComponent.Endpoints(this.domain, this.paths),
@@ -72,7 +73,7 @@ internal fun AggregatedComponent.toComponent(): Component {
         is  AggregatedComponent.Internal.SpdxComponent -> Component.InternalComponent(
             name = Component.Name(this.name.value),
             type = this.type,
-            version = this.version?.let { Component.InternalComponent.Version(it.value) },
+            version = this.version?.let { Component.Version(it.value) },
             namespace = null,
             ipAddress = null,
             endpoints = null,

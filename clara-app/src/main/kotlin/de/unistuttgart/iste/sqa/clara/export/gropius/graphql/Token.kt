@@ -8,6 +8,6 @@ data class Token(
 ) {
 
     fun isExpired(): Boolean {
-        return Instant.now().isAfter(expiresAt)
+        return Instant.now().isAfter(expiresAt.minusSeconds(15))
     }
 }
