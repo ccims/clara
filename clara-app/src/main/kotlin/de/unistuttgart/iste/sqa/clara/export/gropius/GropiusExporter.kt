@@ -151,6 +151,7 @@ class GropiusExporter(private val config: Config) : Exporter {
             }
         }.getOrElse { return Either.Left(it) }
 
+        // TODO add a validation if the version does not match with the aggregated version create a new one
         val componentVersionIdOrNull = getComponentVersionOrNull(componentId).getOrElse { return Either.Left(it) }
         val componentVersionId = componentVersionIdOrNull ?: createComponentVersion(componentId, component).getOrElse { return Either.Left(it) }
 
@@ -239,8 +240,12 @@ class GropiusExporter(private val config: Config) : Exporter {
                     chunks.map { library ->
                         async {
                             val libraryComponent = library.toComponent()
-                            val (_, libraryVersionId) = createOrUpdateComponent(libraryComponent, gropiusComponents).getOrElse { return@async Either.Left(it) }
-                            createRelation(componentVersionId, libraryVersionId, "a9445ed5-594a-432e-a528-b8fec0d88623") // Includes relation template
+                            if (libraryComponent.name != component.name) {
+                                val (_, libraryVersionId) = createOrUpdateComponent(libraryComponent, gropiusComponents).getOrElse { return@async Either.Left(it) }
+                                createRelation(componentVersionId, libraryVersionId, "a9445ed5-594a-432e-a528-b8fec0d88623") // Includes relation template
+                            } else {
+                                Unit
+                            }
                         }
                     }.awaitAll()
                 }
