@@ -8,6 +8,8 @@ mutation CreateComponentVersion ($component: ID!, $description: String!, $name: 
     }) {
         componentVersion {
             id
+            name
+            version
         }
     }
 }

@@ -10,6 +10,9 @@ import de.unistuttgart.iste.sqa.clara.api.model.toComponent
 import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GraphQLClient
 import de.unistuttgart.iste.sqa.clara.export.gropius.graphql.GropiusGraphQLClient
 import de.unistuttgart.iste.sqa.gropius.*
+import de.unistuttgart.iste.sqa.gropius.getallcomponenttemplates.ComponentTemplate
+import de.unistuttgart.iste.sqa.gropius.getallrelationtemplates.RelationTemplate
+import de.unistuttgart.iste.sqa.gropius.getcomponentversionbyid.ComponentVersion
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import java.net.URL
@@ -45,17 +48,19 @@ class GropiusExporter(private val config: Config) : Exporter {
         password = config.graphQLBackendAuthentication.password,
         clientId = config.graphQLBackendAuthentication.clientId,
     )
-
+    companion object {
+        private const val VERSION_DESCRIPTION_FALLBACK = "-"
+    }
     override fun export(components: Set<Component>, communications: Set<Communication>): Either<GropiusExportFailure, Unit> = runBlocking {
         log.info { "Export to Gropius ..." }
 
         checkProject().onFailure { return@runBlocking it }
 
-        checkDatasetTemplates().onFailure { return@runBlocking it }
+        val (componentTemplates, relationTemplates) = getDatasetTemplates().getOrElse { return@runBlocking Either.Left(it) }
 
-        val dataSetComponents = addDatasetComponents(components).getOrElse { return@runBlocking Either.Left(it) }
+        val dataSetComponents = addDatasetComponents(components, componentTemplates, relationTemplates).getOrElse { return@runBlocking Either.Left(it) }
 
-        addRelations(communications, dataSetComponents).onFailure { return@runBlocking it }
+        addRelations(communications, dataSetComponents, relationTemplates).onFailure { return@runBlocking it }
 
         log.info { "Done exporting to Gropius" }
 
@@ -65,9 +70,7 @@ class GropiusExporter(private val config: Config) : Exporter {
     private suspend fun checkProject(): Either<GropiusExportFailure, Unit> {
         log.debug { "Checking that the Gropius project exists" }
 
-        val projectResult = graphQLClient.execute(GetProjectById(GetProjectById.Variables(id = config.projectId)))
-
-        return when (projectResult) {
+        return when (val projectResult = graphQLClient.execute(GetProjectById(GetProjectById.Variables(id = config.projectId)))) {
             is Either.Left -> Either.Left(GropiusExportFailure("Cannot validate the existence of the project with the ID ${config.projectId} (${projectResult.value})"))
             is Either.Right -> if (projectResult.value.projects.nodes.none { it.id == config.projectId }) {
                 Either.Left(GropiusExportFailure("The project with the ID ${config.projectId} does not exist!"))
@@ -79,8 +82,7 @@ class GropiusExporter(private val config: Config) : Exporter {
         }
     }
 
-    private suspend fun checkDatasetTemplates(): Either<GropiusExportFailure, Unit> {
-        // TODO: are the component scoped under the project ID?
+    private suspend fun getDatasetTemplates(): Either<GropiusExportFailure, Pair<List<ComponentTemplate>, List<RelationTemplate>>> {
         val componentTemplatesResult = graphQLClient.execute(GetAllComponentTemplates())
         val relationTemplatesResult = graphQLClient.execute(GetAllRelationTemplates())
 
@@ -94,8 +96,8 @@ class GropiusExporter(private val config: Config) : Exporter {
 
         // TODO: check if required templates exist (see clara config)
 
-        val neededComponentTemplates = emptyList<String>()
-        val neededRelationTemplates = emptyList<String>()
+        // val neededComponentTemplates = emptyList<String>()
+        // val neededRelationTemplates = emptyList<String>()
 
         // TODO: generate required templates from
         /*
@@ -109,20 +111,21 @@ class GropiusExporter(private val config: Config) : Exporter {
             }
         }
          */
-
-        // TODO: error handling
-
-        return Either.Right(Unit)
+        return Either.Right(componentTemplates to relationTemplates)
     }
 
-    private suspend fun addDatasetComponents(components: Set<Component>): Either<GropiusExportFailure, Set<GropiusComponent>> {
+    private suspend fun addDatasetComponents(
+        components: Set<Component>,
+        componentTemplates: List<ComponentTemplate>,
+        relationTemplates: List<RelationTemplate>,
+    ): Either<GropiusExportFailure, Set<GropiusComponent>> {
 
         val gropiusComponents = getAllComponents().getOrElse { return Either.Left(it) }
         val createdGropiusComponents = mutableSetOf<GropiusComponent>()
 
         for (component in components) {
 
-            val (componentId, componentVersionId) = createOrUpdateComponent(component, gropiusComponents).getOrElse { return Either.Left(it) }
+            val (componentId, componentVersionId) = createOrUpdateComponent(component, gropiusComponents, componentTemplates).getOrElse { return Either.Left(it) }
             val gropiusComponentId = GropiusComponent.ComponentId(componentId)
             val gropiusVersionId = GropiusComponent.ComponentVersionId(componentVersionId)
             createdGropiusComponents.add(GropiusComponent(component, gropiusComponentId, gropiusVersionId))
@@ -131,29 +134,39 @@ class GropiusExporter(private val config: Config) : Exporter {
             addComponentVersionToProject(componentVersionId, config.projectId)
 
             // TODO currently commenting this out as it takes ages
-            // addLibrariesToComponent(componentVersionId, component)
+            // addLibrariesToComponent(componentVersionId, component, componentTemplates, relationTemplates)
         }
         return Either.Right(createdGropiusComponents)
     }
 
-    private suspend fun createOrUpdateComponent(component: Component, gropiusComponents: List<de.unistuttgart.iste.sqa.gropius.getallcomponents.Component>): Either<GropiusExportFailure, Pair<ID, ID>> {
+    private suspend fun createOrUpdateComponent(
+        component: Component,
+        gropiusComponents: List<de.unistuttgart.iste.sqa.gropius.getallcomponents.Component>,
+        componentTemplates: List<ComponentTemplate>,
+    ): Either<GropiusExportFailure, Pair<ID, ID>> {
         val searchResult = gropiusComponents.find { it.name == component.name.value }
         val componentId = when {
-            searchResult == null -> createComponent(component)
-            // TODO: decide if and how detected components are congruent with db entries (match by name, ip, id, ...)
+            searchResult == null -> createComponent(component, componentTemplates)
             config.gropiusComponentHandling == Config.ComponentHandling.Modify -> {
-                updateComponent(searchResult.id, component, None)
+                if (searchResult.name != component.name.value || searchResult.description != component.getDescription() || searchResult.template.id != component.getTemplate(componentTemplates)) {
+                    updateComponent(searchResult.id, component, componentTemplates)
+                } else {
+                    Either.Right(searchResult.id)
+                }
             }
 
             else -> {
                 deleteComponent(searchResult.id)
-                createComponent(component)
+                createComponent(component, componentTemplates)
             }
         }.getOrElse { return Either.Left(it) }
 
-        // TODO add a validation if the version does not match with the aggregated version create a new one
-        val componentVersionIdOrNull = getComponentVersionOrNull(componentId).getOrElse { return Either.Left(it) }
-        val componentVersionId = componentVersionIdOrNull ?: createComponentVersion(componentId, component).getOrElse { return Either.Left(it) }
+        val componentVersionSearchResult = getComponentVersionOrNull(componentId).getOrElse { return Either.Left(it) }
+        val componentVersionId = when {
+            component.version == null && componentVersionSearchResult?.version == VERSION_DESCRIPTION_FALLBACK -> componentVersionSearchResult.id
+            component.version?.value == componentVersionSearchResult?.version && componentVersionSearchResult != null-> componentVersionSearchResult.id
+            else -> createComponentVersion(componentId, component).getOrElse { return Either.Left(it) }
+        }
 
         return Either.Right(componentId to componentVersionId)
     }
@@ -165,24 +178,13 @@ class GropiusExporter(private val config: Config) : Exporter {
         return Either.Right(result.components.nodes)
     }
 
-    private suspend fun createComponent(component: Component): Either<GropiusExportFailure, ID> {
-        val (description, template) = when {
-            // !!! also update "updateComponent" when changing this ↓ !!!
-            component is Component.InternalComponent && component.type == ComponentType.Broker -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "acb00484-82d3-427d-95dc-ddbf742f943f") // database template
-            component is Component.InternalComponent && component.type == ComponentType.Database -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "c5bda6c5-0e40-471e-95e6-800d546e8641") // database template
-            component is Component.InternalComponent && component.type == ComponentType.Microservice -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "35fa0bff-5d21-463e-8806-0151cfb718d4") // microservice template
-            component is Component.InternalComponent && component.type == null -> Pair("IP-address: ${component.ipAddress?.value ?: "unknown"}", "796598e5-60d2-4759-adce-c439b5d4dc92") // general template
-            component is Component.ExternalComponent && component.type == ComponentType.Library -> Pair("Library: ${component.name.value}", "7fa09c37-2bf8-4b27-9060-4d3133065fd5") // library template
-            component is Component.ExternalComponent -> Pair("Domain: ${component.domain.value}", "27c64acc-1bde-4bf8-ab03-d12f5c413dd2") // misc template
-            else -> return Either.Left(GropiusExportFailure("this combination of component and component type should not be possible for '${component.name}'"))
-        }
-
+    private suspend fun createComponent(component: Component, componentTemplates: List<ComponentTemplate>): Either<GropiusExportFailure, ID> {
         val componentResult = graphQLClient.execute(
             CreateComponent(
                 CreateComponent.Variables(
-                    description = description,
+                    description = component.getDescription(),
                     name = component.name.value,
-                    template = template,
+                    template = component.getTemplate(componentTemplates),
                     repositoryURL = "https://example.org"
                 )
             )
@@ -207,21 +209,13 @@ class GropiusExporter(private val config: Config) : Exporter {
         return Either.Right(result.deleteComponent.id)
     }
 
-    private suspend fun updateComponent(componentId: ID, component: Component, templateId: Option<String>): Either<GropiusExportFailure, ID> {
-        val description = when {
-            // !!! also update "createComponent" when changing this ↓ !!!
-            component is Component.InternalComponent -> "IP-address: ${component.ipAddress?.value ?: "unknown"}"
-            component is Component.ExternalComponent && component.type == ComponentType.Library -> "Library: ${component.name.value}"
-            component is Component.ExternalComponent -> "Domain: ${component.domain.value}"
-            else -> ""
-        }
-
+    private suspend fun updateComponent(componentId: ID, component: Component, componentTemplates: List<ComponentTemplate>): Either<GropiusExportFailure, ID> {
         val componentResult = graphQLClient.execute(
             UpdateComponent(
                 UpdateComponent.Variables(
                     id = componentId,
-                    description = description,
-                    template = templateId.getOrNull(),
+                    description = component.getDescription(),
+                    template = component.getTemplate(componentTemplates)
                 )
             )
         ).getOrElse { error ->
@@ -231,7 +225,12 @@ class GropiusExporter(private val config: Config) : Exporter {
         return Either.Right(componentResult.updateComponent.component.id)
     }
 
-    private suspend fun addLibrariesToComponent(componentVersionId: ID, component: Component): Either<GropiusExportFailure, Unit> {
+    private suspend fun addLibrariesToComponent(
+        componentVersionId: ID,
+        component: Component,
+        componentTemplates: List<ComponentTemplate>,
+        relationTemplates: List<RelationTemplate>
+    ): Either<GropiusExportFailure, Unit> {
         if (component is Component.InternalComponent) {
             val gropiusComponents = getAllComponents().getOrElse { return Either.Left(it) }
             coroutineScope {
@@ -241,8 +240,8 @@ class GropiusExporter(private val config: Config) : Exporter {
                         async {
                             val libraryComponent = library.toComponent()
                             if (libraryComponent.name != component.name) {
-                                val (_, libraryVersionId) = createOrUpdateComponent(libraryComponent, gropiusComponents).getOrElse { return@async Either.Left(it) }
-                                createRelation(componentVersionId, libraryVersionId, "a9445ed5-594a-432e-a528-b8fec0d88623") // Includes relation template
+                                val (_, libraryVersionId) = createOrUpdateComponent(libraryComponent, gropiusComponents, componentTemplates).getOrElse { return@async Either.Left(it) }
+                                createRelation(componentVersionId, libraryVersionId, relationTemplates.find { it.name == "Includes" }?.id.toString())
                             } else {
                                 Unit
                             }
@@ -255,14 +254,13 @@ class GropiusExporter(private val config: Config) : Exporter {
     }
 
     private suspend fun createComponentVersion(componentId: ID, component: Component): Either<GropiusExportFailure, ID> {
-
         val result = graphQLClient.execute(
             CreateComponentVersion(
                 CreateComponentVersion.Variables(
                     component = componentId,
-                    description = component.version?.let { "v$it" } ?: "-",
+                    description = component.version?.let { "v$it" } ?: VERSION_DESCRIPTION_FALLBACK,
                     name = component.name.value,
-                    version = component.version?.value ?: "-",
+                    version = component.version?.value ?: VERSION_DESCRIPTION_FALLBACK,
                 )
             )
         ).getOrElse { error ->
@@ -272,7 +270,7 @@ class GropiusExporter(private val config: Config) : Exporter {
         return Either.Right(result.createComponentVersion.componentVersion.id)
     }
 
-    private suspend fun getComponentVersionOrNull(componentId: ID): Either<GropiusExportFailure, ID?> {
+    private suspend fun getComponentVersionOrNull(componentId: ID): Either<GropiusExportFailure, ComponentVersion?> {
         val result = graphQLClient.execute(
             GetComponentVersionById(
                 GetComponentVersionById.Variables(
@@ -282,7 +280,7 @@ class GropiusExporter(private val config: Config) : Exporter {
         ).getOrElse { error ->
             return Either.Left(GropiusExportFailure("failed to get component version '$componentId': $error"))
         }
-        return Either.Right(result.components.nodes.first().versions.nodes.firstOrNull()?.id)
+        return Either.Right(result.components.nodes.first().versions.nodes.firstOrNull())
     }
 
     private suspend fun addComponentVersionToProject(componentVersionId: ID, projectId: String): Either<GropiusExportFailure, Unit> {
@@ -299,14 +297,18 @@ class GropiusExporter(private val config: Config) : Exporter {
         return Either.Right(Unit)
     }
 
-    private suspend fun addRelations(communications: Set<Communication>, gropiusComponents: Set<GropiusComponent>): Either<GropiusExportFailure, Unit> {
+    private suspend fun addRelations(
+        communications: Set<Communication>,
+        gropiusComponents: Set<GropiusComponent>,
+        relationTemplates: List<RelationTemplate>,
+    ): Either<GropiusExportFailure, Unit> {
         for (communication in communications) {
             val start = gropiusComponents.find { it.component.name == communication.source.componentName }?.componentVersionId
             val end = gropiusComponents.find { it.component.name == communication.target.componentName }?.componentVersionId
             if (start == null || end == null) {
                 log.warn { "No relation can be added. Start: ${start?.value} End: ${end?.value}" }
             } else {
-                createRelation(start.value, end.value, template = "853e1d82-7f62-45ea-8cbe-797c2a2f35f6") // General Relation Template
+                createRelation(start.value, end.value, template = relationTemplates.find { it.name == "General relation"}?.id.toString())
             }
         }
 
@@ -327,4 +329,23 @@ class GropiusExporter(private val config: Config) : Exporter {
         }
         return Either.Right(Unit)
     }
+}
+
+private fun Component.getDescription(): String {
+    return when {
+        this is Component.InternalComponent -> "IP-address: ${ipAddress?.value ?: "unknown"}"
+        this is Component.ExternalComponent && type == ComponentType.Library -> "Library: ${name.value}"
+        this is Component.ExternalComponent -> "Domain: ${domain.value}"
+        else -> ""
+    }
+}
+
+private fun Component.getTemplate(componentTemplates: List<ComponentTemplate>): String = when {
+    this is Component.InternalComponent && type == null -> componentTemplates.find { it.name == "Base component template" }?.id.toString()
+    this is Component.InternalComponent && type == ComponentType.Broker -> componentTemplates.find { it.name == "Messaging" }?.id.toString()
+    this is Component.InternalComponent && type == ComponentType.Database -> componentTemplates.find { it.name == "Database" }?.id.toString()
+    this is Component.InternalComponent && type == ComponentType.Microservice -> componentTemplates.find { it.name == "Microservice" }?.id.toString()
+    this is Component.ExternalComponent && type == ComponentType.Library -> componentTemplates.find { it.name == "Library" }?.id.toString()
+    this is Component.ExternalComponent -> componentTemplates.find { it.name == "Misc" }?.id.toString()
+    else -> ""
 }

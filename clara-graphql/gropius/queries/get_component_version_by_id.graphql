@@ -5,6 +5,8 @@ query GetComponentVersionById ($id: ID) {
             versions {
                 nodes {
                     id
+                    name
+                    version
                 }
             }
         }

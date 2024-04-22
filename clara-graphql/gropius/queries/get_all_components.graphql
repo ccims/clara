@@ -1,9 +1,13 @@
 query GetAllComponents {
     components {
-        nodes {                     # TODO retrieve more relevant fields
+        nodes {
+            id
             name
             description
-            id
+            template{
+                id
+                name
+            }
         }
     }
 }
