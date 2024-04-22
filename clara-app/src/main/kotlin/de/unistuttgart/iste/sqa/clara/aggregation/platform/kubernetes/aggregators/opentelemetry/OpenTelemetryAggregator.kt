@@ -188,7 +188,6 @@ class OpenTelemetryAggregator(private val spanProvider: SpanProvider) : Aggregat
 
     private fun updateService(service: Service) {
         if (service.name == null && service.hostName == null && service.ipAddress == null) {
-            // TODO If they cannot be resolved we log them and might in the future use them
             unresolvableServices.add(service)
             log.trace { "Added service $service to unresolvable Services" }
         } else if (service.name != null) {

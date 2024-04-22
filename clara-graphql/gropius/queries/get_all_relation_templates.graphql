@@ -1,6 +1,6 @@
 query GetAllRelationTemplates {
     relationTemplates {
-        nodes {                     # TODO retrieve more relevant fields
+        nodes {
             name
             id
         }

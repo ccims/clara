@@ -1,9 +1,8 @@
 mutation CreateComponentTemplate ($description: String!, $shapeType: ShapeType!, $name: String!) {
     createComponentTemplate (input: {
         componentVersionTemplate: {
-            description: $description           # TODO add specific template version description
-            extensionFields: []
-            name: $name                         # TODO add specific template version name
+            description: $description
+            name: $name
             templateFieldSpecifications: []
         }
         description: $description

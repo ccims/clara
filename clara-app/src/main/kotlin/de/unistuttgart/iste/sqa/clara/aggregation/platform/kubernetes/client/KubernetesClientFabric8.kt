@@ -124,7 +124,6 @@ class KubernetesClientFabric8 : KubernetesClient {
                 .collect(Collectors.toList())
                 .right()
         } catch (ex: KubernetesClientException) {
-            log.debug(ex) { "exception when getting the logs" } // TODO: remove this log
             Either.Left(KubernetesClientError("Cannot get logs from pods with the label '$podSelector' in namespace '$namespace': ${ex.message}"))
         }
     }
