@@ -15,16 +15,17 @@ These instructions will walk you through the initial installation and setup of t
     ```sh
     git clone git@github.com:SteveBinary/clara.git 
     ```
-- Make sure you have at least a Java 17 JVM as well as the Kotlin compiler installed and configured on your machine.
+!!! warning "Java Installation"
+    Make sure you have at least a Java 17 JVM installed and configured on your machine.
 
-### 1.2.  kube-api
+### 1.2. kube-api
 
 - Ensure you have administrative rights for your Kubernetes cluster.
 - Ensure you have configured the target namespace you want to analyze, in the context of your local kube-config.
 
 ### 1.3. Install ktunnel:
 
-[ktunnel](https://ktunnel.readthedocs.io/en/stable/) allows CLARA to connect to the cluster/namespace, thus not needing to be deployed inside the cluster.
+[ktunnel](https://ktunnel.readthedocs.io/en/stable/) allows CLARA to stream data from inside the cluster to the outside, thus not needing to be deployed inside the cluster.
 
 Either use homebrew:
 ```sh
@@ -100,11 +101,12 @@ macOS:
    For configuration options see: [configurations page](../configuration/index.md).  
    The config file of CLARA can be found at `<path-to-clara>/clara-app/src/main/resources/config.yml`
 - In this `config.yml` please insert your specific URLs and authorization information for accessing your deployed Gropius instance.
+   Sensitive credentials are prepared to be set as environment variables.
 - To build CLARA run in the clara dictionary:
     ```sh
     ./gradlew clean build standaloneJar
     ```
-- Start CLARA by executing the Kotlin application:
+- Start CLARA by executing the application:
     ```sh
     java -jar clara-app/build/libs/clara-app-*.jar #TODO ENV VARS
     ```
