@@ -11,6 +11,8 @@ nav:
   - Concept:
       - concept/index.md
       - concept/datatypes.md
+  - Setup:
+      - setup/index.md
   - Configuration:
       - configuration/index.md
   - Aggregation:
