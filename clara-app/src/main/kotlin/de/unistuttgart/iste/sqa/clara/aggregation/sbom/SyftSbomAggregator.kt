@@ -84,6 +84,6 @@ class SyftSbomAggregator(
     // TODO: make sure always most recent syft version binary is fetched
     private fun generateJsons(image: String) {
         log.info { "Generating SPDX.json files for image $image" }
-        Runtime.getRuntime().exec("clara-app/src/main/resources/syft $image -o spdx-json=${config.sbomFilePath}$image.json").waitFor(30, TimeUnit.SECONDS)
+        Runtime.getRuntime().exec("syft $image -o spdx-json=${config.sbomFilePath}$image.json").waitFor(30, TimeUnit.SECONDS)
     }
 }
