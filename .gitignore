@@ -13,7 +13,8 @@ sbom
 docs/venv
 docs/site
 
-
+# direnv tool to activate the nix dev shell
+.direnv
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij
