@@ -82,6 +82,21 @@ All options with a default value are optional.
     - Type: String ([format here](https://github.com/sksamuel/hoplite?tab=readme-ov-file#duration-formats))
     - Description: Amount of time CLARA should listen to incoming spans sent by an OpenTelemetry collector.
 
+#### Aggregator: syft-sbom (optional)
+
+??? config-option "**_aggregation.platforms.kubernetes.aggregators.syft-sbom.enable_**"
+    - Type: Boolean
+    - Default: true
+    - Description: Simple way to disable this aggregator without removing all of its associated configuration.
+
+??? config-option "**_aggregation.platforms.kubernetes.aggregators.syft-sbom.sbom-file-path_**"
+    - Type: String (a valid relative or absolute path e.g. "sbom/")
+    - Description: The path where CLARA stores the generated SPDX-JSON files.
+
+??? config-option "**_aggregation.platforms.kubernetes.aggregators.syft-sbom.use-stored-sbom-files_**"
+    - Type: Boolean
+    - Default: false
+    - Description: States if the SPDX-JSON files for aggregating the libraries should be newly generated or not.
 ---
 
 ## Configuring the merge
@@ -194,6 +209,10 @@ aggregation:
           enable: true
           listen-port: 7878
           listen-duration: 45 minutes
+        syft-sbom:
+          enable: true
+          sbom-file-path: sbom/
+          use-stored-sbom-files: false
 
 merge:
   comparison-strategy: Equals

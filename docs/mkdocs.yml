@@ -10,7 +10,6 @@ nav:
   - Home: index.md
   - Concept:
       - concept/index.md
-      - concept/datatypes.md
   - Setup:
       - setup/index.md
   - Configuration:
@@ -26,7 +25,7 @@ nav:
               - OpenTelemetry:
                   - aggregation/platforms/kubernetes/opentelemetry/index.md
               - SBOM:
-                  - aggregation/platforms/kubernetes/sbom/index.md
+                  - aggregation/platforms/kubernetes/syft/index.md
   - Merging:
       - merging/index.md
   - Filtering:

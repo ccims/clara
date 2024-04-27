@@ -40,6 +40,7 @@ class SyftSbomAggregator(
 
         if (!config.useStoredSbomFiles) {
             runBlocking {
+                // TODO even though async is used this is rather iteratively called
                 kubernetesServices.map { async { it.selectedPods.firstOrNull()?.image?.let { generateJsons(it.value) } } }.awaitAll()
             }
         }
@@ -81,7 +82,7 @@ class SyftSbomAggregator(
 
     private fun String.notContainsLinuxStuff() = !(contains("/usr/share") || contains("/var/lib"))
 
-    // TODO: make sure always most recent syft version binary is fetched
+    // TODO: make sure always most recent syft version binary is fetched OR syft is installed locally
     private fun generateJsons(image: String) {
         log.info { "Generating SPDX.json files for image $image" }
         Runtime.getRuntime().exec("syft $image -o spdx-json=${config.sbomFilePath}$image.json").waitFor(30, TimeUnit.SECONDS)
