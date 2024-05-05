@@ -1,0 +1,7 @@
+mutation BulkCreateComponent ($data: BulkCreateComponentInput!) {
+    bulkCreateComponent(input: $data) {
+        components {
+            id
+        }
+    }
+}

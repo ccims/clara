@@ -1838,6 +1838,16 @@ type Body implements AuditedNode & BaseNode & Comment & Node & TimelineItem {
     parentItem: ParentTimelineItem
 }
 
+type BulkCreateComponentPayload {
+    "The created Components"
+    components: [Component!]!
+}
+
+type BulkCreateRelationPayload {
+    "The created Relations"
+    relations: [Relation!]!
+}
+
 type ChangeAssignmentTypePayload {
     "The created event, if present"
     assignmentTypeChangedEvent: AssignmentTypeChangedEvent
@@ -6195,6 +6205,23 @@ type Mutation {
         input: AddLabelToTrackableInput!
     ): AddLabelToTrackablePayload!
     """
+    Creates multiple Components, requires CAN_CREATE_COMPONENTS.
+    Automatically generates a default ComponentPermission which grants the authenticated user READ and ADMIN
+
+    """
+    bulkCreateComponent(
+        "Defines the created Components"
+        input: BulkCreateComponentInput!
+    ): BulkCreateComponentPayload!
+    """
+    Creates multiple Relations, requires RELATE_FROM_COMPONENT on the Component associated with start.
+
+    """
+    bulkCreateRelation(
+        "Defines the created Relations"
+        input: BulkCreateRelationInput!
+    ): BulkCreateRelationPayload!
+    """
     Changes the type of an Assignment, requires MANAGE_ISSUES on any of the Trackables the Issue the Assignment
     is part of is on.
     Additionally, if present, the new type must be compatible with the template of the Issue.
@@ -10163,6 +10190,18 @@ input BooleanFilterInput {
     eq: Boolean
     "Matches values which are equal to any of the provided values"
     in: [Boolean!]
+}
+
+"Input for the bulkCreateComponent mutation"
+input BulkCreateComponentInput {
+    "The input for the createComponent mutation"
+    components: [CreateComponentInput!]!
+}
+
+"Input to create multiple Components"
+input BulkCreateRelationInput {
+    "The input for the createRelation mutation"
+    relations: [CreateRelationInput!]!
 }
 
 "Input for the changeAssignmentType mutation"

@@ -13,6 +13,7 @@ import de.unistuttgart.iste.sqa.gropius.*
 import de.unistuttgart.iste.sqa.gropius.getallcomponenttemplates.ComponentTemplate
 import de.unistuttgart.iste.sqa.gropius.getallrelationtemplates.RelationTemplate
 import de.unistuttgart.iste.sqa.gropius.getcomponentversionbyid.ComponentVersion
+import de.unistuttgart.iste.sqa.gropius.inputs.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import java.net.URL
@@ -133,7 +134,7 @@ class GropiusExporter(private val config: Config) : Exporter {
             // Add componentVersion to project
             addComponentVersionToProject(componentVersionId, config.projectId)
 
-            // TODO currently commenting this out as it takes ages
+            // TODO FIXME
             // addLibrariesToComponent(componentVersionId, component, componentTemplates, relationTemplates)
         }
         return Either.Right(createdGropiusComponents)
@@ -164,7 +165,7 @@ class GropiusExporter(private val config: Config) : Exporter {
         val componentVersionSearchResult = getComponentVersionOrNull(componentId).getOrElse { return Either.Left(it) }
         val componentVersionId = when {
             component.version == null && componentVersionSearchResult?.version == VERSION_DESCRIPTION_FALLBACK -> componentVersionSearchResult.id
-            component.version?.value == componentVersionSearchResult?.version && componentVersionSearchResult != null-> componentVersionSearchResult.id
+            component.version?.value == componentVersionSearchResult?.version && componentVersionSearchResult != null -> componentVersionSearchResult.id
             else -> createComponentVersion(componentId, component).getOrElse { return Either.Left(it) }
         }
 
@@ -225,30 +226,60 @@ class GropiusExporter(private val config: Config) : Exporter {
         return Either.Right(componentResult.updateComponent.component.id)
     }
 
+    private suspend fun createComponents(
+        newComponents: List<Component>,
+        componentTemplates: List<ComponentTemplate>,
+    ): Either<GropiusExportFailure, List<ID>> {
+        val componentResult = graphQLClient.execute(
+            BulkCreateComponent(
+                BulkCreateComponent.Variables(
+                    BulkCreateComponentInput(
+                        newComponents.map { it.toCreateComponentInput(componentTemplates) }
+                    )
+                )
+            )
+        ).getOrElse { error ->
+            return Either.Left(GropiusExportFailure("failed to create bulk components: $error"))
+        }
+
+        return Either.Right(componentResult.bulkCreateComponent.components.map { it.id })
+    }
+
+    private fun Component.toCreateComponentInput(componentTemplates: List<ComponentTemplate>): CreateComponentInput = CreateComponentInput(
+        description = getDescription(),
+        name = name.value,
+        template = getTemplate(componentTemplates),
+        repositoryURL = "https://example.org",
+        templatedFields = emptyList(),
+        versions = listOf(ComponentVersionInput(
+            description = version?.let { "v$it" } ?: VERSION_DESCRIPTION_FALLBACK,
+            name = name.value,
+            version = version?.value ?: VERSION_DESCRIPTION_FALLBACK,
+            templatedFields = emptyList(),
+        ))
+    )
+
     private suspend fun addLibrariesToComponent(
         componentVersionId: ID,
         component: Component,
         componentTemplates: List<ComponentTemplate>,
-        relationTemplates: List<RelationTemplate>
+        relationTemplates: List<RelationTemplate>,
     ): Either<GropiusExportFailure, Unit> {
         if (component is Component.InternalComponent) {
             val gropiusComponents = getAllComponents().getOrElse { return Either.Left(it) }
-            coroutineScope {
-                // Using chunks here as libraries collection can be arbitrarily large and the Gropius API cannot process so many requests at once.
-                component.libraries?.chunked(10)?.map { chunks ->
-                    chunks.map { library ->
-                        async {
-                            val libraryComponent = library.toComponent()
-                            if (libraryComponent.name != component.name) {
-                                val (_, libraryVersionId) = createOrUpdateComponent(libraryComponent, gropiusComponents, componentTemplates).getOrElse { return@async Either.Left(it) }
-                                createRelation(componentVersionId, libraryVersionId, relationTemplates.find { it.name == "Includes" }?.id.toString())
-                            } else {
-                                Unit
-                            }
-                        }
-                    }.awaitAll()
-                }
-            }
+
+            val libraryComponents = component.libraries?.let { libraries -> libraries.map { it.toComponent() } }?.filter { it.name != component.name } ?: emptyList()
+            val filteredComponents = libraryComponents.filter { newComponent -> gropiusComponents.none { existingComponent -> existingComponent.name == newComponent.name.value } }
+            createComponents(newComponents = filteredComponents, componentTemplates = componentTemplates).getOrElse { return Either.Left(it) }
+
+            // It could be that a component is not newly created but needs a relation, so we fetch and filter a second time
+            val updatedGropiusComponents = getAllComponents().getOrElse { return Either.Left(it) }
+
+            // From all components find the one with the matching name and from its versions the one with the matching version and return the ID of version.
+            val libraryComponentVersionIds = updatedGropiusComponents.filter { gropiusComponent -> libraryComponents.any { it.name.value == gropiusComponent.name } }
+                .mapNotNull { it.versions.nodes.find { libraryComponents.any { libraryComponents -> libraryComponents.version?.value == it.version } }?.id }
+
+            createLibraryRelations(start = componentVersionId, ends = libraryComponentVersionIds, relationTemplates.find { it.name == "Includes" }?.id.toString())
         }
         return Either.Right(Unit)
     }
@@ -308,7 +339,7 @@ class GropiusExporter(private val config: Config) : Exporter {
             if (start == null || end == null) {
                 log.warn { "No relation can be added. Start: ${start?.value} End: ${end?.value}" }
             } else {
-                createRelation(start.value, end.value, template = relationTemplates.find { it.name == "General relation"}?.id.toString())
+                createRelation(start.value, end.value, template = relationTemplates.find { it.name == "General relation" }?.id.toString())
             }
         }
 
@@ -326,6 +357,22 @@ class GropiusExporter(private val config: Config) : Exporter {
             )
         ).getOrElse { error ->
             return Either.Left(GropiusExportFailure("failed to create the relation from '$start' to '$end': $error"))
+        }
+        return Either.Right(Unit)
+    }
+
+    private suspend fun createLibraryRelations(start: ID, ends: List<ID>, template: String): Either<GropiusExportFailure, Unit> {
+        val createRelationInputs = ends.map { CreateRelationInput(start = start, end = it, template = template, templatedFields = emptyList()) }
+        graphQLClient.execute(
+            BulkCreateRelation(
+                BulkCreateRelation.Variables(
+                    BulkCreateRelationInput(
+                        createRelationInputs
+                    )
+                )
+            )
+        ).getOrElse { error ->
+            return Either.Left(GropiusExportFailure("failed to create bulk relations: $error"))
         }
         return Either.Right(Unit)
     }

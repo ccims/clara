@@ -1,0 +1,7 @@
+mutation BulkCreateRelation ($data: BulkCreateRelationInput!) {
+    bulkCreateRelation(input: $data) {
+        relations {
+            id
+        }
+    }
+}

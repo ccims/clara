@@ -8,6 +8,13 @@ query GetAllComponents {
                 id
                 name
             }
+            versions{
+                nodes{
+                    id
+                    name
+                    version
+                }
+            }
         }
     }
 }
