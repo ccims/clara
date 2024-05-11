@@ -1644,6 +1644,21 @@ There you can also find other ways to set up the configuration to be effective, 
 </ul>
 </details>
 </details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.component-handling</em></strong></summary>
+<ul>
+<li>Type: String (one of <code>Delete</code> or <code>Modify</code>)</li>
+<li>Description: The mode how should be dealt with already existing components. Delete deletes and re-creates the old one, modify changes attributes.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.export-libraries</em></strong></summary>
+<ul>
+<li>Type: Boolean</li>
+<li>Default: true</li>
+<li>Description: Simple way to disable exporting libraries, as this is a data-intensive process and not always wanted.</li>
+</ul>
+</details>
 <hr />
 <h2 id="a-full-example-config">A full example config<a class="headerlink" href="#a-full-example-config" title="Permanent link">&para;</a></h2>
 <div class="language-yaml highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
