@@ -13,6 +13,22 @@ query GetAllComponents {
                     id
                     name
                     version
+                    outgoingRelations {
+                        nodes {
+                            id
+                            end {
+                                id
+                            }
+                        }
+                    }
+                    incomingRelations {
+                        nodes {
+                            id
+                            start {
+                                id
+                            }
+                        }
+                    }
                 }
             }
         }

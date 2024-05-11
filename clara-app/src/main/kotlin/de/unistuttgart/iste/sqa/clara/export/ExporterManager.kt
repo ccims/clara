@@ -32,7 +32,8 @@ class ExporterManager(exportConfig: ExportConfig) {
                 gropiusComponentHandling = when(gropiusConfig.gropiusComponentHandling) {
                     ExportConfig.Exporters.Gropius.ComponentHandling.Modify -> GropiusExporter.Config.ComponentHandling.Modify
                     ExportConfig.Exporters.Gropius.ComponentHandling.Delete -> GropiusExporter.Config.ComponentHandling.Delete
-                }
+                },
+                exportLibraries = gropiusConfig.exportLibraries
             )
             add(GropiusExporter(config))
             log.info { "Registered exporter: Gropius" }

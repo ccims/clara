@@ -25,6 +25,7 @@ class GropiusExporter(private val config: Config) : Exporter {
         val graphQLBackendUrl: URL,
         val graphQLBackendAuthentication: Authentication,
         val gropiusComponentHandling: ComponentHandling,
+        val exportLibraries: Boolean,
     ) {
 
         enum class ComponentHandling {
@@ -49,9 +50,12 @@ class GropiusExporter(private val config: Config) : Exporter {
         password = config.graphQLBackendAuthentication.password,
         clientId = config.graphQLBackendAuthentication.clientId,
     )
+
     companion object {
+
         private const val VERSION_DESCRIPTION_FALLBACK = "-"
     }
+
     override fun export(components: Set<Component>, communications: Set<Communication>): Either<GropiusExportFailure, Unit> = runBlocking {
         log.info { "Export to Gropius ..." }
 
@@ -134,8 +138,9 @@ class GropiusExporter(private val config: Config) : Exporter {
             // Add componentVersion to project
             addComponentVersionToProject(componentVersionId, config.projectId)
 
-            // TODO FIXME
-            // addLibrariesToComponent(componentVersionId, component, componentTemplates, relationTemplates)
+            if (config.exportLibraries) {
+                addLibrariesToComponent(componentVersionId, component, componentTemplates, relationTemplates)
+            }
         }
         return Either.Right(createdGropiusComponents)
     }
@@ -268,18 +273,24 @@ class GropiusExporter(private val config: Config) : Exporter {
         if (component is Component.InternalComponent) {
             val gropiusComponents = getAllComponents().getOrElse { return Either.Left(it) }
 
+            // If there is a library with the same name as the component itself, don't add it.
             val libraryComponents = component.libraries?.let { libraries -> libraries.map { it.toComponent() } }?.filter { it.name != component.name } ?: emptyList()
+
+            // Ensure that only components which are not already there are created.
             val filteredComponents = libraryComponents.filter { newComponent -> gropiusComponents.none { existingComponent -> existingComponent.name == newComponent.name.value } }
             createComponents(newComponents = filteredComponents, componentTemplates = componentTemplates).getOrElse { return Either.Left(it) }
 
-            // It could be that a component is not newly created but needs a relation, so we fetch and filter a second time
+            // It could be that a component is not newly created but needs a relation, so we fetch and filter a second time.
             val updatedGropiusComponents = getAllComponents().getOrElse { return Either.Left(it) }
 
             // From all components find the one with the matching name and from its versions the one with the matching version and return the ID of version.
             val libraryComponentVersionIds = updatedGropiusComponents.filter { gropiusComponent -> libraryComponents.any { it.name.value == gropiusComponent.name } }
                 .mapNotNull { it.versions.nodes.find { libraryComponents.any { libraryComponents -> libraryComponents.version?.value == it.version } }?.id }
 
-            createLibraryRelations(start = componentVersionId, ends = libraryComponentVersionIds, relationTemplates.find { it.name == "Includes" }?.id.toString())
+            // Ensure that only relations which are not already there are created (take only the ids where there is no component with a version where the version has the parent component version id as start).
+            val filteredLibraryComponentVersionIds =
+                libraryComponentVersionIds.filter { updatedGropiusComponents.none { component -> component.versions.nodes.any { componentVersion -> componentVersion.incomingRelations.nodes.any { relation -> relation.start?.id == componentVersionId } } } }
+            createLibraryRelations(start = componentVersionId, ends = filteredLibraryComponentVersionIds, relationTemplates.find { it.name == "Includes" }?.id.toString())
         }
         return Either.Right(Unit)
     }

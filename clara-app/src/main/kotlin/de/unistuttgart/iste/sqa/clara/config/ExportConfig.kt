@@ -66,6 +66,8 @@ data class ExportConfig(
             val graphQLBackendAuthentication: Authentication,
             @ConfigAlias("component-handling")
             val gropiusComponentHandling: ComponentHandling,
+            @ConfigAlias("export-libraries")
+            val exportLibraries: Boolean = true,
         ) : Enable {
 
             enum class ComponentHandling {

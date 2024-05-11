@@ -183,6 +183,15 @@ All options with a default value are optional.
         - Type: String
         - Description: The OAuth client ID for obtaining an authentication token.
 
+??? config-option "**_export.exporters.gropius.component-handling_**"
+    - Type: String (one of `Delete` or `Modify`)
+    - Description: The mode how should be dealt with already existing components. Delete deletes and re-creates the old one, modify changes attributes.
+
+??? config-option "**_export.exporters.gropius.export-libraries_**"
+    - Type: Boolean
+    - Default: true
+    - Description: Simple way to disable exporting libraries, as this is a data-intensive process and not always wanted.
+
 ---
 
 ## A full example config

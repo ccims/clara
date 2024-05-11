@@ -45,3 +45,4 @@ export:
         password: ${CLARA_GROPIUS_GRAPHQL_PASSWORD}
         client-id: ${CLARA_GROPIUS_GRAPHQL_CLIENT_ID}
       component-handling: Delete
+      export-libraries: false
