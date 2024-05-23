@@ -11,12 +11,14 @@ aggregation:
         kube-api:
         dns:
           logs-since-time: 2024-03-27T00:00:00Z
+          use-logs-from-file: false
+          path-to-dns-logs: "/home/user/clara/dnslogs"
         open-telemetry:
           listen-port: 7878
           listen-duration: 10 seconds
         syft-sbom:
           sbom-file-path: sbom/
-          use-stored-sbom-files: false
+          use-stored-sbom-files: true
 
 merge:
   comparison-strategy: Equals

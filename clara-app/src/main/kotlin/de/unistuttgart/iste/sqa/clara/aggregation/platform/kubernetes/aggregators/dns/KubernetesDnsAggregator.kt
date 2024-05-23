@@ -21,7 +21,8 @@ class KubernetesDnsAggregator(
         val namespaces: List<Namespace>,
         val includeKubeNamespaces: Boolean,
         val sinceTime: String,
-        val useLogsFromFile: Boolean = false
+        val useLogsFromFile: Boolean = false,
+        val pathToDnsLogs: String = "",
     )
 
     private val log = KotlinLogging.logger {}
@@ -35,7 +36,7 @@ class KubernetesDnsAggregator(
                     .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
             else {
                 runCatching {
-                    val logFile = File("/app/resources/dnslogs")
+                    val logFile = File(config.pathToDnsLogs)
                     val logLine = logFile.readLines().joinToString("\n" )
                     listOf(logLine)
                 }.getOrElse { return Either.Left(DnsAggregationFailure("${it.message}")) }

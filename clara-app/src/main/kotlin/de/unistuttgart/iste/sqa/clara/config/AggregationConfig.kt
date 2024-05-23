@@ -37,6 +37,8 @@ data class AggregationConfig(
                 data class DnsAggregator(
                     override val enable: Boolean = true,
                     val logsSinceTime: String = "",
+                    val useLogsFromFile: Boolean = false,
+                    val pathToDnsLogs: String = "",
                 ) : Enable
 
                 data class SyftSbomAggregator(

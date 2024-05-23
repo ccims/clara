@@ -67,6 +67,16 @@ All options with a default value are optional.
       This option defines how recent the logs must be to be considered by CLARA.
       If this option is just an empty String (the default), all available logs will be used, which can lead to unwanted side effects, like old logs from a previous version of the deployment polluting the recovered architecture.
 
+??? config-option "**_aggregation.platforms.kubernetes.aggregators.dns.use-logs-from-file_**"
+    - Type: Boolean
+    - Default: true
+    - Description: Simple way to switch if the DNS logs should be read from a file instead the Kubernetes API directly.
+
+??? config-option "**_aggregation.platforms.kubernetes.aggregators.dns.path-to-dns-logs_**"
+    - Type: String
+    - Default: empty String
+    - Description: The DNS aggregator when used with files instead of the API must obtain an absolute path to the file.
+
 #### Aggregator: OpenTelemetry (optional)
 
 ??? config-option "**_aggregation.platforms.kubernetes.aggregators.open-telemetry.enable_**"
