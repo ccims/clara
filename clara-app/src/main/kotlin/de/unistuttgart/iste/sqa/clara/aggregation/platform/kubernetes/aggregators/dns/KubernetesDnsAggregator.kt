@@ -21,7 +21,7 @@ class KubernetesDnsAggregator(
         val namespaces: List<Namespace>,
         val includeKubeNamespaces: Boolean,
         val sinceTime: String,
-        val useLogsFromFile: Boolean = true
+        val useLogsFromFile: Boolean = false
     )
 
     private val log = KotlinLogging.logger {}
