@@ -5,12 +5,12 @@ import arrow.core.getOrElse
 import arrow.core.right
 import de.unistuttgart.iste.sqa.clara.aggregation.platform.kubernetes.client.KubernetesClient
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregation
-import de.unistuttgart.iste.sqa.clara.api.aggregation.AggregationFailure
 import de.unistuttgart.iste.sqa.clara.api.aggregation.Aggregator
 import de.unistuttgart.iste.sqa.clara.api.model.AggregatedComponent
 import de.unistuttgart.iste.sqa.clara.api.model.Domain
 import de.unistuttgart.iste.sqa.clara.api.model.Namespace
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.io.File
 
 class KubernetesDnsAggregator(
     private val config: Config,
@@ -21,6 +21,7 @@ class KubernetesDnsAggregator(
         val namespaces: List<Namespace>,
         val includeKubeNamespaces: Boolean,
         val sinceTime: String,
+        val useLogsFromFile: Boolean = true
     )
 
     private val log = KotlinLogging.logger {}
@@ -29,8 +30,16 @@ class KubernetesDnsAggregator(
         log.info { "Aggregate Kubernetes DNS ..." }
 
         val (dnsLogs, knownPods, knownServices) = kubernetesClient.use { client ->
-            val dnsLogs = client.getDnsLogs(config.sinceTime)
-                .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
+            val dnsLogs = if (!config.useLogsFromFile)
+                client.getDnsLogs(config.sinceTime)
+                    .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
+            else {
+                runCatching {
+                    val logFile = File("/app/resources/dnslogs")
+                    val logLine = logFile.readLines().joinToString("\n" )
+                    listOf(logLine)
+                }.getOrElse { return Either.Left(DnsAggregationFailure("${it.message}")) }
+            }
             val knownPods = client.getPodsFromNamespaces(config.namespaces, config.includeKubeNamespaces)
                 .getOrElse { return Either.Left(DnsAggregationFailure(it.description)) }
             val knownServices = client.getServicesFromNamespaces(config.namespaces, config.includeKubeNamespaces)
