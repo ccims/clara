@@ -69,7 +69,7 @@ All options with a default value are optional.
 
 ??? config-option "**_aggregation.platforms.kubernetes.aggregators.dns.use-logs-from-file_**"
     - Type: Boolean
-    - Default: true
+    - Default: false
     - Description: Simple way to switch if the DNS logs should be read from a file instead the Kubernetes API directly.
 
 ??? config-option "**_aggregation.platforms.kubernetes.aggregators.dns.path-to-dns-logs_**"
