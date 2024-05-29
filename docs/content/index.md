@@ -8,4 +8,4 @@ For details on the **_functionality_** of CLARA see the [concept page](./concept
 For information on **_configuration options_** of CLARA see the [configurations page](./configuration/index.md).  
 For information on the **_validation_** of CLARA's functionality see the [validation page](./validation/t2-reference-architecture/index.md) for the T2 Reference Architecture.
 
-CLARA is open-sourced under the [MIT License](https://github.com/SteveBinary/clara/tree/main?tab=MIT-1-ov-file).
+CLARA is open-sourced under the [MIT License](https://github.com/ccims/clara/tree/main?tab=MIT-1-ov-file).

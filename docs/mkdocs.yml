@@ -1,7 +1,7 @@
 site_name: CLARA
 
-repo_url: https://github.com/SteveBinary/clara
-repo_name: SteveBinary/clara
+repo_url: https://github.com/ccims/clara
+repo_name: ccims/clara
 
 docs_dir: content
 edit_uri: tree/main/docs/content
@@ -73,7 +73,7 @@ extra:
   social:
     - name: GitHub
       icon: fontawesome/brands/github
-      link: https://github.com/SteveBinary/clara
+      link: https://github.com/ccims/clara
 
 extra_css:
   - _stylesheets/config-option-admonition.css

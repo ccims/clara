@@ -6,14 +6,14 @@ These instructions will walk you through the initial installation and setup of t
 
 ## 1. Prerequisites
 ### 1.1. getting CLARA
-- clone the [CLARA repository](https://github.com/SteveBinary/clara)
+- clone the [CLARA repository](https://github.com/ccims/clara)
 
     ```sh
-    git clone https://github.com/SteveBinary/clara.git
+    git clone https://github.com/ccims/clara.git
     ```
     or
     ```sh
-    git clone git@github.com:SteveBinary/clara.git 
+    git clone git@github.com:ccims/clara.git
     ```
 !!! warning "Java Installation"
     Make sure you have at least a Java 17 JVM installed and configured on your machine.

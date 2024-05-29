@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: clara-app
-          image: ghcr.io/stevebinary/clara-app:v0.5.2-feature-aggregation-via-distributed-tracing
+          image: ghcr.io/ccims/clara-app:v0.5.2-feature-aggregation-via-distributed-tracing
           imagePullPolicy: Always
           ports:
             - containerPort: 7878

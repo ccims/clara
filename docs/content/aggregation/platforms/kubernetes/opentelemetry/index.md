@@ -25,7 +25,7 @@ The open-source tool [ktunnel](#ktunnel) can be used to achieve this.
 The [OpenTelemetry collector](https://opentelemetry.io/docs/collector/) is a default component provided by OpenTelemetry itself.
 For CLARA only traces are used, thus the minimal configuration 
 The image can be used to deploy a container with a suitable configuration as shown below.
-Examples for service and deployment configurations can be found in [clara/deployment/open-telemetry-collector/deployment.yml](https://github.com/SteveBinary/clara/blob/main/deployment/open-telemetry-collector/deployment.yml)
+Examples for service and deployment configurations can be found in [clara/deployment/open-telemetry-collector/deployment.yml](https://github.com/ccims/clara/blob/main/deployment/open-telemetry-collector/deployment.yml)
 
 ```yaml title="An example ConfigMap for the oTel-collector deployment"
 apiVersion: v1

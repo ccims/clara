@@ -25,7 +25,7 @@ version = file("version.txt")
         }
     }
 
-val dockerImageName = "ghcr.io/stevebinary/${project.name}"
+val dockerImageName = "ghcr.io/ccims/${project.name}"
 
 val buildInformation = BuildInformation(project)
 
@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.opentelemetry.api)
     implementation(libs.graphql.client)
-    implementation("io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64") // @SteveBinary, vielleicht weißt du wie man classifier in der KotlinDSL definiert
+    implementation("io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64")
     implementation(libs.bundles.logging)
     implementation(libs.bundles.grpc)
 
@@ -205,8 +205,8 @@ val createDockerfile by tasks.creating(Dockerfile::class) {
             "org.opencontainers.image.created" to "\$CREATION_TIME",
             "org.opencontainers.image.version" to buildInformation.appVersion,
             "org.opencontainers.image.revision" to buildInformation.gitCommit,
-            "org.opencontainers.image.source" to "https://github.com/SteveBinary/clara",
-            "org.opencontainers.image.url" to "https://github.com/SteveBinary/clara",
+            "org.opencontainers.image.source" to "https://github.com/ccims/clara",
+            "org.opencontainers.image.url" to "https://github.com/ccims/clara",
         )
     )
 
