@@ -13,5 +13,3 @@ Legend:
 - Outer Square: Kubernetes Namespace of the collected data
 
 For configuration options please check out the [configurations](../../configuration/index.md) page.
-
-### TODO image

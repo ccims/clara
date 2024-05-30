@@ -106,5 +106,5 @@ The merging is done the following way:
 
 #### Mapping
 The component objects finally need to be mapped to the CLARA-wide internal component and communication representation. 
-Component objects containing a service-name are mapped to an "internal" component object, components without a service-name are mapped to an ["external"](../../../../concept/datatypes.md) one.  
+Component objects containing a service-name are mapped to an "internal" component object, components without a service-name are mapped to an "external" one.  
 Communications are mapped if a matching component via service-name or hostname for source and target can be found.
