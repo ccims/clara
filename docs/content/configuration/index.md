@@ -182,16 +182,13 @@ All options with a default value are optional.
 ??? config-option-multi "**_export.exporters.gropius.graphql-backend-authentication_**"
     ??? config-option "**_export.exporters.gropius.graphql-backend-authentication.authentication-url_**"
         - Type: String (a valid URL)
-        - Description: The URL where CLARA can obtain an authentication token from the Gropius-backend via username and password.
-    ??? config-option "**_export.exporters.gropius.graphql-backend-authentication.username_**"
-        - Type: String
-        - Description: The username for obtaining an authentication token.
-    ??? config-option "**_export.exporters.gropius.graphql-backend-authentication.password_**"
-        - Type: String
-        - Description: The password for obtaining an authentication token.
+        - Description: The URL where CLARA can obtain an authentication token from the Gropius-backend via client credentials.
     ??? config-option "**_export.exporters.gropius.graphql-backend-authentication.client-id_**"
         - Type: String
         - Description: The OAuth client ID for obtaining an authentication token.
+    ??? config-option "**_export.exporters.gropius.graphql-backend-authentication.client-secret_**"
+        - Type: String
+        - Description: The OAuth client ID's secret for obtaining an authentication token.
 
 ??? config-option "**_export.exporters.gropius.component-handling_**"
     - Type: String (one of `Delete` or `Modify`)
@@ -255,7 +252,6 @@ export:
       graphql-backend-url: http://my.backend.com:8080/graphql
       graphql-backend-authentication:
         authentication-url: http://my.backend.com:3000/authenticate/oauth/xxxxxxxx-1111-yyyy-2222-zzzzzzzzzzzz/token
-        username: ${CLARA_GROPIUS_GRAPHQL_USERNAME}
-        password: ${CLARA_GROPIUS_GRAPHQL_PASSWORD}
         client-id: ${CLARA_GROPIUS_GRAPHQL_CLIENT_ID}
+        client-secret: ${CLARA_GROPIUS_GRAPHQL_CLIENT_SECRET}
 ```

@@ -109,8 +109,7 @@ macOS:
 - If you want to use the Gropius exporter, set the Gropius environment variables:
     ```sh
     export CLARA_GROPIUS_GRAPHQL_CLIENT_ID=<your-id>
-    export CLARA_GROPIUS_GRAPHQL_PASSWORD=<your-password>
-    export CLARA_GROPIUS_GRAPHQL_USERNAME=<your-username>
+    export CLARA_GROPIUS_GRAPHQL_CLIENT_SECRET=<your-secret>
     ```
 - Start CLARA by executing the application:
     ```sh
