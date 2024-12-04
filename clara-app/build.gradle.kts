@@ -30,7 +30,7 @@ val dockerImageName = "ghcr.io/ccims/${project.name}"
 val buildInformation = BuildInformation(project)
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.opentelemetry.api)
     implementation(libs.graphql.client)
-    implementation("io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64")
+    implementation("io.netty:netty-resolver-dns-native-macos:4.1.115.Final:osx-aarch_64")
     implementation(libs.bundles.logging)
     implementation(libs.bundles.grpc)
 
@@ -176,7 +176,7 @@ val createDockerfile by tasks.creating(Dockerfile::class) {
 
     // create the minified JRE
 
-    from("eclipse-temurin:17-alpine as jre-build-stage")
+    from("eclipse-temurin:21-alpine as jre-build-stage")
 
     runCommand(
         "\$JAVA_HOME/bin/jlink" +

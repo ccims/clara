@@ -1,7 +1,7 @@
 plugins {
     // Apply the foojay-resolver plugin to allow automatic download of JDKs.
     // This cannot come from the version catalog because it itself is defined in this file.
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
 }
 
 rootProject.name = "clara"
@@ -25,10 +25,10 @@ dependencyResolutionManagement {
 }
 
 fun VersionCatalogBuilder.declaredGradlePlugins() {
-    val gradlePluginKotlinVersion = version("gradle-kotlin-plugin", "1.9.22")
+    val gradlePluginKotlinVersion = version("gradle-kotlin-plugin", "2.1.0")
     val gradlePluginDockerVersion = version("gradle-docker-plugin", "9.4.0")
     val gradlePluginProtobufVersion = version("gradle-protobuf-plugin", "0.9.4")
-    val gradlePluginGraphQLVersion = version("gradle-graphql-plugin", "7.0.2")
+    val gradlePluginGraphQLVersion = version("gradle-graphql-plugin", "8.2.1")
 
     plugin("kotlin", "org.jetbrains.kotlin.jvm").versionRef(gradlePluginKotlinVersion)
     plugin("docker", "com.bmuschko.docker-remote-api").versionRef(gradlePluginDockerVersion)
@@ -37,19 +37,19 @@ fun VersionCatalogBuilder.declaredGradlePlugins() {
 }
 
 fun VersionCatalogBuilder.declaredLibraries() {
-    val hopliteVersion = version("hoplite", "2.8.0.RC3")
-    val arrowVersion = version("arrow", "1.2.1")
-    val kotlinLoggingVersion = version("kotlin-logging", "6.0.1")
-    val logbackClassicVersion = version("logback-classic", "1.4.14")
-    val fabric8Version = version("fabric8", "6.10.0")
-    val kotestVersion = version("kotest", "5.8.0")
-    val kotlinxCoroutineVersion = version("kotlinx-coroutine", "1.8.0-RC2") // TODO: needed because of the support for Kotlin 1.9.22; update to stable when available
-    val opentelemetryVersion = version("opentelemetry", "1.34.0")
-    val graphQLVersion = version("graphql", "7.0.2")
+    val hopliteVersion = version("hoplite", "2.9.0")
+    val arrowVersion = version("arrow", "2.0.0-rc.1")
+    val kotlinLoggingVersion = version("kotlin-logging", "7.0.3")
+    val logbackClassicVersion = version("logback-classic", "1.5.12")
+    val fabric8Version = version("fabric8", "7.0.0")
+    val kotestVersion = version("kotest", "5.9.1")
+    val kotlinxCoroutineVersion = version("kotlinx-coroutine", "1.9.0")
+    val opentelemetryVersion = version("opentelemetry", "1.44.1")
+    val graphQLVersion = version("graphql", "8.2.1")
 
-    val grpcVersion = version("grpc", "1.60.1")
+    val grpcVersion = version("grpc", "1.68.2")
     val grpcKotlinVersion = version("grpc-kotlin", "1.4.1")
-    val protobufVersion = version("protobuf-kotlin", "3.25.2")
+    val protobufVersion = version("protobuf-kotlin", "4.29.0")
 
     library("hoplite.yaml", "com.sksamuel.hoplite", "hoplite-yaml").versionRef(hopliteVersion)
 

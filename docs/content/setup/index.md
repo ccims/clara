@@ -16,7 +16,7 @@ These instructions will walk you through the initial installation and setup of t
     git clone git@github.com:ccims/clara.git
     ```
 !!! warning "Java Installation"
-    Make sure you have at least a Java 17 JVM installed and configured on your machine.
+    Make sure you have at least a Java 21 JVM installed and configured on your machine.
 
 ### 1.2. kube-api
 

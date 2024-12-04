@@ -6,7 +6,7 @@ plugins {
 group = "de.unistuttgart.iste.sqa.clara"
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
