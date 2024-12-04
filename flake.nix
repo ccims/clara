@@ -14,7 +14,7 @@
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
           packages = with pkgs; [
-            temurin-bin-17
+            temurin-bin-21
             graphviz
             ktunnel
             kubectl
