@@ -35,9 +35,8 @@ class GropiusExporter(private val config: Config) : Exporter {
 
         data class Authentication(
             val authenticationUrl: URL,
-            val userName: String,
-            val password: String,
             val clientId: String,
+            val clientSecret: String,
         )
     }
 
@@ -46,9 +45,8 @@ class GropiusExporter(private val config: Config) : Exporter {
     private val graphQLClient: GraphQLClient = GropiusGraphQLClient(
         backendUrl = config.graphQLBackendUrl,
         authenticationUrl = config.graphQLBackendAuthentication.authenticationUrl,
-        userName = config.graphQLBackendAuthentication.userName,
-        password = config.graphQLBackendAuthentication.password,
         clientId = config.graphQLBackendAuthentication.clientId,
+        clientSecret = config.graphQLBackendAuthentication.clientSecret,
     )
 
     companion object {

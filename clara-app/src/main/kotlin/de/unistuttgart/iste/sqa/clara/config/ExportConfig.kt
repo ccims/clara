@@ -78,10 +78,10 @@ data class ExportConfig(
             data class Authentication(
                 @ConfigAlias("authentication-url")
                 val authenticationUrl: URL,
-                @ConfigAlias("username")
-                val userName: Masked,
-                val password: Masked,
+                @ConfigAlias("client-id")
                 val clientId: Masked,
+                @ConfigAlias("client-secret")
+                val clientSecret: Masked,
             )
         }
     }

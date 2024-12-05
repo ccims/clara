@@ -22,9 +22,8 @@ import kotlin.time.toKotlinDuration
 class GropiusGraphQLClient(
     private val backendUrl: URL,
     private val authenticationUrl: URL,
-    private val userName: String,
-    private val password: String,
     private val clientId: String,
+    private val clientSecret: String,
 ) : GraphQLClient {
 
     private val log = KotlinLogging.logger {}
@@ -46,10 +45,9 @@ class GropiusGraphQLClient(
 
     private fun getAuthenticationToken(): Either<GraphQLClient.RequestError, Token> {
         val requestData = mapOf(
-            "grant_type" to "password",
+            "grant_type" to "client_credentials",
             "client_id" to clientId,
-            "password" to password,
-            "username" to userName
+            "client_secret" to clientSecret,
         )
 
         val requestBody = requestData

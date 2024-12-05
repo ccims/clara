@@ -25,9 +25,8 @@ class ExporterManager(exportConfig: ExportConfig) {
                 graphQLBackendUrl = gropiusConfig.graphQLBackendUrl,
                 graphQLBackendAuthentication = GropiusExporter.Config.Authentication(
                     authenticationUrl = gropiusConfig.graphQLBackendAuthentication.authenticationUrl,
-                    userName = gropiusConfig.graphQLBackendAuthentication.userName.value,
-                    password = gropiusConfig.graphQLBackendAuthentication.password.value,
                     clientId = gropiusConfig.graphQLBackendAuthentication.clientId.value,
+                    clientSecret = gropiusConfig.graphQLBackendAuthentication.clientSecret.value,
                 ),
                 gropiusComponentHandling = when(gropiusConfig.gropiusComponentHandling) {
                     ExportConfig.Exporters.Gropius.ComponentHandling.Modify -> GropiusExporter.Config.ComponentHandling.Modify
