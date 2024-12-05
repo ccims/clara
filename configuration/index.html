@@ -1635,21 +1635,7 @@ There you can also find other ways to set up the configuration to be effective, 
 <summary><strong><em>export.exporters.gropius.graphql-backend-authentication.authentication-url</em></strong></summary>
 <ul>
 <li>Type: String (a valid URL)</li>
-<li>Description: The URL where CLARA can obtain an authentication token from the Gropius-backend via username and password.</li>
-</ul>
-</details>
-<details class="config-option">
-<summary><strong><em>export.exporters.gropius.graphql-backend-authentication.username</em></strong></summary>
-<ul>
-<li>Type: String</li>
-<li>Description: The username for obtaining an authentication token.</li>
-</ul>
-</details>
-<details class="config-option">
-<summary><strong><em>export.exporters.gropius.graphql-backend-authentication.password</em></strong></summary>
-<ul>
-<li>Type: String</li>
-<li>Description: The password for obtaining an authentication token.</li>
+<li>Description: The URL where CLARA can obtain an authentication token from the Gropius-backend via client credentials.</li>
 </ul>
 </details>
 <details class="config-option">
@@ -1657,6 +1643,13 @@ There you can also find other ways to set up the configuration to be effective, 
 <ul>
 <li>Type: String</li>
 <li>Description: The OAuth client ID for obtaining an authentication token.</li>
+</ul>
+</details>
+<details class="config-option">
+<summary><strong><em>export.exporters.gropius.graphql-backend-authentication.client-secret</em></strong></summary>
+<ul>
+<li>Type: String</li>
+<li>Description: The OAuth client ID's secret for obtaining an authentication token.</li>
 </ul>
 </details>
 </details>
@@ -1726,8 +1719,7 @@ There you can also find other ways to set up the configuration to be effective, 
 <span class="normal"><a href="#__codelineno-0-47">47</a></span>
 <span class="normal"><a href="#__codelineno-0-48">48</a></span>
 <span class="normal"><a href="#__codelineno-0-49">49</a></span>
-<span class="normal"><a href="#__codelineno-0-50">50</a></span>
-<span class="normal"><a href="#__codelineno-0-51">51</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nt">app</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-50">50</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nt">app</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="w">  </span><span class="nt">log-config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="w">  </span><span class="nt">block-after-finish</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a>
@@ -1775,9 +1767,8 @@ There you can also find other ways to set up the configuration to be effective, 
 </span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="w">      </span><span class="nt">graphql-backend-url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://my.backend.com:8080/graphql</span>
 </span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="w">      </span><span class="nt">graphql-backend-authentication</span><span class="p">:</span>
 </span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="w">        </span><span class="nt">authentication-url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://my.backend.com:3000/authenticate/oauth/xxxxxxxx-1111-yyyy-2222-zzzzzzzzzzzz/token</span>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_USERNAME}</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="w">        </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_PASSWORD}</span>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="w">        </span><span class="nt">client-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_CLIENT_ID}</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="w">        </span><span class="nt">client-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_CLIENT_ID}</span>
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="w">        </span><span class="nt">client-secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${CLARA_GROPIUS_GRAPHQL_CLIENT_SECRET}</span>
 </span></code></pre></div></td></tr></table></div>
 
 
