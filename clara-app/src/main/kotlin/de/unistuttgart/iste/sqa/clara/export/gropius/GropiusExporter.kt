@@ -298,8 +298,6 @@ class GropiusExporter(private val config: Config) : Exporter {
             CreateComponentVersion(
                 CreateComponentVersion.Variables(
                     component = componentId,
-                    description = component.version?.let { "v$it" } ?: VERSION_DESCRIPTION_FALLBACK,
-                    name = component.name.value,
                     version = component.version?.value ?: VERSION_DESCRIPTION_FALLBACK,
                 )
             )
