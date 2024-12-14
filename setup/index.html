@@ -1236,7 +1236,7 @@
           <li class="md-nav__item">
   <a href="#11-getting-clara" class="md-nav__link">
     <span class="md-ellipsis">
-      1.1. getting CLARA
+      1.1. Getting CLARA
     </span>
   </a>
   
@@ -1346,10 +1346,10 @@
 <p>These instructions will walk you through the initial installation and setup of the CLARA project. A deployed instance of the Gropius project as well as access to a kubernetes cluster are required.</p>
 <hr />
 <h2 id="1-prerequisites">1. Prerequisites<a class="headerlink" href="#1-prerequisites" title="Permanent link">&para;</a></h2>
-<h3 id="11-getting-clara">1.1. getting CLARA<a class="headerlink" href="#11-getting-clara" title="Permanent link">&para;</a></h3>
+<h3 id="11-getting-clara">1.1. Getting CLARA<a class="headerlink" href="#11-getting-clara" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
-<p>clone the <a href="https://github.com/ccims/clara">CLARA repository</a></p>
+<p>Clone the <a href="https://github.com/ccims/clara">CLARA repository</a>.</p>
 <p><div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ccims/clara.git
 </span></code></pre></div></td></tr></table></div>
 or
@@ -1385,26 +1385,32 @@ or fetch the binaries from the <a href="https://github.com/omrikiei/ktunnel/rele
 </span></code></pre></div></td></tr></table></div></li>
 <li>Install the OpenTelemetry collector into the target namespace:
     <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span>
-<span class="normal"><a href="#__codelineno-5-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;path-to-clara&gt;/deployment/open-telemetry-collector/configmap.yml
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;path-to-clara&gt;/deployment/open-telemetry-collector/deployment.yml<span class="w"> </span>
+<span class="normal"><a href="#__codelineno-5-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>&lt;target-namespace&gt;<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;path-to-clara&gt;/deployment/open-telemetry-collector/configmap.yml
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>&lt;target-namespace&gt;<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;path-to-clara&gt;/deployment/open-telemetry-collector/deployment.yml<span class="w">   </span>
 </span></code></pre></div></td></tr></table></div></li>
 <li>Add the instrumentation object into the target namespace:
-    <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;path-to-clara&gt;/deployment/open-telemetry-collector/autoinstrumentation.yml
+    <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>&lt;target-namespace&gt;<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;path-to-clara&gt;/deployment/open-telemetry-collector/autoinstrumentation.yml
 </span></code></pre></div></td></tr></table></div></li>
-<li>Instrument all existing deployments (that use below listed frameworks/technology) in the target namespace by configuring the <code>&lt;your-namespace&gt;.yaml</code>:
-    <div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
-<span class="normal"><a href="#__codelineno-7-2">2</a></span>
-<span class="normal"><a href="#__codelineno-7-3">3</a></span>
-<span class="normal"><a href="#__codelineno-7-4">4</a></span>
-<span class="normal"><a href="#__codelineno-7-5">5</a></span>
-<span class="normal"><a href="#__codelineno-7-6">6</a></span>
-<span class="normal"><a href="#__codelineno-7-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1"></a>metadata:
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2"></a>  annotations:
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3"></a>    instrumentation.opentelemetry.io/inject-java: &quot;true&quot;
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4"></a>    instrumentation.opentelemetry.io/inject-dotnet: &quot;true&quot; 
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5"></a>    instrumentation.opentelemetry.io/inject-go: &quot;true&quot; 
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6"></a>    instrumentation.opentelemetry.io/inject-nodejs: &quot;true&quot; 
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7"></a>    instrumentation.opentelemetry.io/inject-python: &quot;true&quot; 
+<li>In the target namespace, instrument all existing deployments with the respective technology/framework of the application by configuring each <code>deployment.yaml</code> individually:
+    <div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-7-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-7-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-7-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-7-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-7-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-7-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-7-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1"></a>spec:
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2"></a>  template:
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3"></a>    metadata:
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4"></a>      annotations: 
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5"></a>        # choose one or more of the following for each deployment
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6"></a>        instrumentation.opentelemetry.io/inject-java: &quot;true&quot;
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7"></a>        instrumentation.opentelemetry.io/inject-dotnet: &quot;true&quot; 
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8"></a>        instrumentation.opentelemetry.io/inject-go: &quot;true&quot; 
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9"></a>        instrumentation.opentelemetry.io/inject-nodejs: &quot;true&quot; 
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10"></a>        instrumentation.opentelemetry.io/inject-python: &quot;true&quot; 
 </span></code></pre></div></td></tr></table></div></li>
 </ul>
 <h3 id="22-coredns">2.2. CoreDNS<a class="headerlink" href="#22-coredns" title="Permanent link">&para;</a></h3>
@@ -1418,7 +1424,8 @@ Please consult the documentation of your respective provider.</p>
 <li>Ensure you see logs of this format:
     <div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1"></a>[INFO] 10.244.0.19:35065 - 3179 &quot;A IN kubernetes.default.svc.cluster.local.svc.cluster.local. udp 72 false 512&quot; NXDOMAIN qr,aa,rd 165 0.0000838s
 </span></code></pre></div></td></tr></table></div></li>
-<li>If you don't see such logs, configure your kube-dns accordingly, based on your service-provider.</li>
+<li>If you don't see such logs, configure your kube-dns accordingly, based on your service-provider (you can check <a href="../aggregation/platforms/kubernetes/dns/">this docs page</a>, too).</li>
+<li>Note, that if there is zero traffic in the cluster probably no DNS resolution logs will be there.</li>
 </ul>
 <h3 id="23-install-anchoresyft">2.3. Install anchore/syft<a class="headerlink" href="#23-install-anchoresyft" title="Permanent link">&para;</a></h3>
 <p>CLARA uses syft to generate SBOMs from container images.</p>
@@ -1444,13 +1451,15 @@ macOS:
 </span></code></pre></div></td></tr></table></div></li>
 <li>If you want to use the Gropius exporter, set the Gropius environment variables:
     <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span>
-<span class="normal"><a href="#__codelineno-13-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLARA_GROPIUS_GRAPHQL_CLIENT_ID</span><span class="o">=</span>&lt;your-id&gt;
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLARA_GROPIUS_GRAPHQL_CLIENT_SECRET</span><span class="o">=</span>&lt;your-secret&gt;
+<span class="normal"><a href="#__codelineno-13-2">2</a></span>
+<span class="normal"><a href="#__codelineno-13-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLARA_GROPIUS_GRAPHQL_CLIENT_ID</span><span class="o">=</span>&lt;your-client-id&gt;
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLARA_GROPIUS_GRAPHQL_CLIENT_SECRET</span><span class="o">=</span>&lt;your-client-secret&gt;
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLARA_GROPIUS_PROJECT_ID</span><span class="o">=</span>&lt;your-project-id&gt;
 </span></code></pre></div></td></tr></table></div></li>
 <li>Start CLARA by executing the application:
     <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>clara-app/build/libs/clara-app-*.jar
 </span></code></pre></div></td></tr></table></div></li>
-<li>Run ktunnel: 
+<li>Run ktunnel in parallel to ensure spans are forwarded to CLARA: 
     <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1"></a>ktunnel<span class="w"> </span>inject<span class="w"> </span>deployment<span class="w"> </span>otel-collector-deployment<span class="w"> </span><span class="m">7878</span><span class="w"> </span>-n<span class="w"> </span>&lt;your-namespace&gt;
 </span></code></pre></div></td></tr></table></div></li>
 </ul>
