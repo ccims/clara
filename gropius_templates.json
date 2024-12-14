@@ -1,0 +1,475 @@
+[
+  {
+    "type": "IssueTemplate",
+    "name": "IssueTemplate",
+    "description": "The default issue template",
+    "issueTypes": [
+      {
+        "name": "Bug",
+        "description": "A bug in the system",
+        "iconPath": "M 50 15.625 C 58.6294 15.625 65.625 22.6206 65.625 31.25 C 65.625 32.3199 65.5175 33.3648 65.3126 34.3742 C 65.7837 34.7252 66.2367 35.107 66.6666 35.513 L 77.6114 25.7893 L 81.7636 30.4607 L 70.2836 40.6668 C 71.1084 42.5697 71.5656 44.669 71.5656 46.875 C 71.5656 47.6383 71.5096 48.4002 71.3984 49.1547 L 84.934 51.6129 L 83.816 57.7621 L 70.191 55.2813 L 68.3254 64.6063 L 80.5257 79.2494 L 75.7243 83.2506 L 65.7441 71.2773 C 62.9055 75.4551 58.1234 78.125 52.8156 78.125 L 47.1844 78.125 C 41.8752 78.125 37.0921 75.4537 34.2537 71.2742 L 24.2757 83.2506 L 19.4743 79.2494 L 31.6722 64.6063 L 29.8066 55.2813 L 16.184 57.7621 L 15.066 51.6129 L 28.6015 49.1561 C 28.16 46.1813 28.594 43.2594 29.7194 40.6663 L 18.2364 30.4607 L 22.3886 25.7893 L 33.3272 35.5161 C 33.7582 35.1081 34.2134 34.7237 34.6913 34.3653 C 34.4821 33.3608 34.375 32.3179 34.375 31.25 C 34.375 22.6206 41.3706 15.625 50 15.625 Z M 64.5719 43.2094 L 64.3533 42.7331 C 64.3059 42.6369 64.2569 42.5417 64.2063 42.4474 L 64.3525 42.7314 C 64.273 42.5703 64.189 42.4119 64.1007 42.2562 L 64.2063 42.4474 C 64.1192 42.2852 64.0274 42.1258 63.9313 41.9695 L 64.1007 42.2562 C 64.0111 42.0981 63.9169 41.943 63.8185 41.7908 L 63.9313 41.9695 C 63.8472 41.8328 63.7597 41.6984 63.6689 41.5665 L 63.8185 41.7908 C 63.6999 41.6073 63.575 41.4282 63.4441 41.2538 L 63.6689 41.5665 C 63.5677 41.4195 63.4625 41.2756 63.3533 41.1348 L 63.4441 41.2538 C 63.3406 41.1159 63.2334 40.9809 63.1226 40.849 L 63.3533 41.1348 C 63.2472 40.9979 63.1373 40.8641 63.0239 40.7333 L 62.6891 40.3694 L 62.6891 40.3694 C 62.4039 40.0732 62.0993 39.7958 61.7775 39.5392 C 61.724 39.4957 61.6705 39.454 61.6166 39.4129 L 61.6167 39.4138 L 61.3041 39.1849 C 61.2357 39.1371 61.1667 39.0902 61.097 39.0442 L 60.7513 38.8268 C 60.6863 38.7878 60.6208 38.7497 60.5548 38.7123 L 60.7499 38.8263 C 60.5929 38.7322 60.4329 38.6426 60.2701 38.5577 L 60.5548 38.7123 C 60.3706 38.6079 60.1825 38.5096 59.9908 38.4176 L 60.2701 38.5577 C 60.0853 38.4612 59.8968 38.3708 59.705 38.2865 L 59.7036 38.2858 L 59.4443 38.1767 C 59.4277 38.17 59.4111 38.1633 59.3945 38.1568 L 59.1603 38.0675 L 59.1603 38.0675 L 58.8726 37.9676 C 58.8497 37.9601 58.8267 37.9526 58.8038 37.9453 C 58.6626 37.9001 58.522 37.8587 58.3802 37.8206 L 58.8038 37.9453 C 58.6003 37.8801 58.3939 37.8217 58.1847 37.7703 L 57.6142 37.649 C 57.5915 37.6449 57.5688 37.6409 57.5461 37.6369 L 57.6146 37.649 C 57.4203 37.614 57.2239 37.585 57.0256 37.5621 L 57.5461 37.6369 C 57.2006 37.5773 56.8487 37.5366 56.4914 37.5159 L 55.9406 37.5 L 44.0594 37.5 C 43.7266 37.5 43.3942 37.5177 43.0637 37.553 C 43.0644 37.5579 43.0653 37.5589 43.0662 37.5599 L 42.7041 37.5985 L 42.7041 37.5985 L 42.2208 37.6821 L 42.2208 37.6821 L 41.6173 37.8233 C 41.5677 37.8366 41.5184 37.8503 41.4692 37.8644 C 41.3176 37.9078 41.1667 37.9551 41.0177 38.006 L 41.4692 37.8644 C 41.0797 37.9759 40.7023 38.1111 40.3383 38.268 L 40.2982 38.2854 C 39.9383 38.4426 39.5917 38.6211 39.2595 38.819 C 39.2046 38.8517 39.1488 38.8857 39.0934 38.9203 L 39.2595 38.819 C 39.0964 38.9162 38.9367 39.0181 38.7807 39.1244 L 39.0934 38.9203 C 38.8677 39.0613 38.6489 39.2114 38.4374 39.37 L 38.4362 39.371 L 38.3298 39.452 C 38.2937 39.4799 38.2578 39.5081 38.2221 39.5365 L 38.0364 39.6884 L 38.0364 39.6884 L 37.8278 39.8689 C 37.7845 39.9075 37.7416 39.9464 37.6991 39.9857 L 37.6144 40.0651 L 37.6144 40.0651 L 37.4567 40.2181 C 37.4071 40.2674 37.358 40.3173 37.3095 40.3677 C 37.2567 40.4226 37.2048 40.4779 37.1536 40.5337 L 37.3095 40.3677 C 37.1804 40.5019 37.0553 40.6399 36.9345 40.7813 L 37.1536 40.5337 C 37.0168 40.6829 36.885 40.8364 36.7583 40.9938 L 36.9345 40.7813 C 36.8169 40.9189 36.7034 41.0599 36.5941 41.2039 L 36.7583 40.9938 C 36.4867 41.3313 36.2387 41.6872 36.0162 42.0586 C 35.9633 42.1468 35.9124 42.2349 35.863 42.3239 C 35.8119 42.4159 35.762 42.5092 35.7138 42.6033 L 35.863 42.3239 C 35.7853 42.4637 35.7111 42.6056 35.6405 42.7494 L 35.7138 42.6033 C 35.6292 42.7683 35.5494 42.9358 35.4746 43.1058 L 35.6405 42.7494 C 35.5502 42.9332 35.4659 43.1201 35.3877 43.3099 L 35.4746 43.1058 C 35.3924 43.2927 35.3161 43.4825 35.2461 43.6749 L 35.3877 43.3099 C 34.7718 44.8039 34.5355 46.4717 34.7741 48.1703 L 34.8665 48.7136 L 35.4472 51.6125 L 36.0597 54.6875 L 37.9915 64.3386 C 38.0442 64.6022 38.1077 64.8614 38.1814 65.1157 C 38.2209 65.252 38.2632 65.3863 38.3083 65.5191 L 38.1814 65.1157 C 38.2254 65.2674 38.273 65.4173 38.3241 65.5654 L 38.3083 65.5191 C 38.3642 65.6838 38.4244 65.8462 38.4889 66.0063 L 38.3241 65.5654 C 39.5533 69.1254 42.8239 71.6349 46.6292 71.8587 L 47.1844 71.875 L 52.8156 71.875 C 56.8837 71.875 60.4369 69.2611 61.7027 65.4866 C 61.7696 65.2871 61.8299 65.085 61.8837 64.8798 L 62.0085 64.3386 L 62.9993 59.375 L 63.0004 59.3719 L 65.1335 48.7136 C 65.2546 48.1082 65.3156 47.4924 65.3156 46.875 C 65.3156 45.7655 65.1228 44.701 64.769 43.7132 L 64.5719 43.2094 L 64.5719 43.2094 Z M 50 21.875 C 44.8223 21.875 40.625 26.0723 40.625 31.25 L 40.6377 31.6292 C 40.7562 31.6026 40.8754 31.5774 40.9951 31.5534 C 42.0041 31.3516 43.0305 31.25 44.0594 31.25 L 55.9406 31.25 C 57.1161 31.25 58.2613 31.3798 59.3626 31.6259 L 59.375 31.25 L 59.375 31.25 C 59.375 26.0723 55.1777 21.875 50 21.875 Z"
+      },
+      {
+        "name": "Feature",
+        "description": "A new feature",
+        "iconPath": "m 40.625 81.25 h 18.75 v 6.25 h -18.75 z m 0 -9.375 h 18.75 v 6.25 H 40.625 Z M 50 12.5 c -15.496 0 -28.125 12.629 -28.125 28.125 c 0 15.496 12.629 28.125 28.125 28.125 c 15.496 0 28.125 -12.629 28.125 -28.125 c 0 -15.496 -12.629 -28.125 -28.125 -28.125 z m 0 6.25 c 12.1182 0 21.875 9.7568 21.875 21.875 c 0 12.1182 -9.7568 21.875 -21.875 21.875 c -12.1182 0 -21.875 -9.7568 -21.875 -21.875 c 0 -12.1182 9.7568 -21.875 21.875 -21.875 z"
+      },
+      {
+        "name": "Task",
+        "description": "A task",
+        "iconPath": "m 46.875 62.5 h 6.25 v 6.25 h -6.25 z m 0 -31.25 h 6.25 v 25 H 46.875 Z M 50 15.625 C 31.0522 15.625 15.625 31.0522 15.625 50 C 15.625 68.9478 31.0522 84.375 50 84.375 C 68.9478 84.375 84.375 68.9478 84.375 50 C 84.375 31.0522 68.9478 15.625 50 15.625 Z m 0 6.25 c 15.57 0 28.125 12.555 28.125 28.125 c 0 15.57 -12.555 28.125 -28.125 28.125 c -15.57 0 -28.125 -12.555 -28.125 -28.125 c 0 -15.57 12.555 -28.125 28.125 -28.125 z"
+      },
+      {
+        "name": "Misc",
+        "description": "Miscellaneous",
+        "iconPath": "m 46.875 62.5 h 6.25 v 6.25 h -6.25 z m 0 -31.25 h 6.25 v 25 H 46.875 Z M 50 15.625 C 31.0522 15.625 15.625 31.0522 15.625 50 C 15.625 68.9478 31.0522 84.375 50 84.375 C 68.9478 84.375 84.375 68.9478 84.375 50 C 84.375 31.0522 68.9478 15.625 50 15.625 Z m 0 6.25 c 15.57 0 28.125 12.555 28.125 28.125 c 0 15.57 -12.555 28.125 -28.125 28.125 c -15.57 0 -28.125 -12.555 -28.125 -28.125 c 0 -15.57 12.555 -28.125 28.125 -28.125 z"
+      }
+    ],
+    "issueStates": [
+      {
+        "name": "Open",
+        "description": "The issue is open",
+        "isOpen": true
+      },
+      {
+        "name": "Completed",
+        "description": "The issue is completed",
+        "isOpen": false
+      },
+      {
+        "name": "Not planned",
+        "description": "The issue is not planned",
+        "isOpen": false
+      }
+    ],
+    "issuePriorities": [
+      {
+        "name": "High",
+        "description": "High priority",
+        "value": 3
+      },
+      {
+        "name": "Medium",
+        "description": "Medium priority",
+        "value": 2
+      },
+      {
+        "name": "Low",
+        "description": "Low priority",
+        "value": 1
+      }
+    ],
+    "assignmentTypes": [],
+    "relationTypes": [
+      {
+        "name": "Depends on",
+        "inverseName": "Depended on by",
+        "description": "Depends on another issue"
+      },
+      {
+        "name": "Duplicate",
+        "inverseName": "Duplicate",
+        "description": "Is a duplicate of another issue"
+      },
+      {
+        "name": "Part of",
+        "inverseName": "Has part",
+        "description": "Is part of another issue"
+      }
+    ],
+    "templatedFieldSpecifications": [
+      {
+        "name": "Estimated effort",
+        "value": {
+          "nullable": true,
+          "enum": [
+            "Low",
+            "Medium",
+            "High"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "baseComponentTemplate",
+    "name": "Base component template",
+    "description": "The base component template",
+    "stroke": {},
+    "componentVersionTemplate": {
+      "name": "Component version template",
+      "description": "The default component version template"
+    },
+    "abstract": true
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "hostableComponentTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Hostable component template",
+    "description": "The default hostable component template",
+    "extends": [
+      {
+        "ref": "baseComponentTemplate"
+      }
+    ],
+    "abstract": true
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "microserviceTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Microservice",
+    "description": "A microservice",
+    "shapeType": "HEXAGON",
+    "extends": [
+      {
+        "ref": "hostableComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "infrastructureTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Infrastructure",
+    "description": "Infrastructure component",
+    "shapeType": "RECT",
+    "shapeRadius": 5,
+    "extends": [
+      {
+        "ref": "hostableComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "databaseTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Database",
+    "description": "Database component",
+    "shapeType": "CIRCLE",
+    "extends": [
+      {
+        "ref": "hostableComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "frontendTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Frontend",
+    "description": "Frontend component",
+    "shapeType": "RECT",
+    "extends": [
+      {
+        "ref": "hostableComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "sidecarTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Sidecar",
+    "description": "Sidecar component",
+    "shapeType": "RHOMBUS",
+    "extends": [
+      {
+        "ref": "hostableComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "name": "Messaging",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "description": "Messaging component",
+    "shapeType": "RHOMBUS",
+    "shapeRadius": 5,
+    "extends": [
+      {
+        "ref": "hostableComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "libraryTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Library",
+    "description": "Library component",
+    "shapeType": "ELLIPSE",
+    "extends": [
+      {
+        "ref": "baseComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "ComponentTemplate",
+    "ref": "miscTemplate",
+    "default": {
+      "ref": "baseComponentTemplate"
+    },
+    "name": "Misc",
+    "description": "Miscellaneous component",
+    "shapeType": "RECT",
+    "extends": [
+      {
+        "ref": "hostableComponentTemplate"
+      }
+    ]
+  },
+  {
+    "type": "InterfaceSpecificationTemplate",
+    "ref": "baseInterfaceSpecificationTemplate",
+    "name": "Base interface specification template",
+    "description": "The base interface specification template",
+    "stroke": {},
+    "interfaceSpecificationVersionTemplate": {
+      "name": "Interface specification version template",
+      "description": "The default interface specification version template"
+    },
+    "interfacePartTemplate": {
+      "name": "Interface part template",
+      "description": "STOP"
+    },
+    "interfaceTemplate": {
+      "name": "Interface template",
+      "description": "The default interface template"
+    },
+    "interfaceDefinitionTemplate": {
+      "name": "Interface definition template",
+      "description": "The default interface definition template"
+    },
+    "abstract": true
+  },
+  {
+    "type": "InterfaceSpecificationTemplate",
+    "ref": "microserviceInterfaceSpecificationTemplate",
+    "default": {
+      "ref": "baseInterfaceSpecificationTemplate"
+    },
+    "name": "Microservice interface specification template",
+    "description": "The default microservice interface specification template",
+    "canBeVisibleOnComponents": [
+      {
+        "ref": "microserviceTemplate"
+      }
+    ],
+    "extends": [
+      {
+        "ref": "baseInterfaceSpecificationTemplate"
+      }
+    ],
+    "abstract": true
+  },
+  {
+    "type": "InterfaceSpecificationTemplate",
+    "default": {
+      "ref": "baseInterfaceSpecificationTemplate"
+    },
+    "name": "GraphQL",
+    "description": "A GraphQL interface",
+    "shapeType": "HEXAGON",
+    "extends": [
+      {
+        "ref": "microserviceInterfaceSpecificationTemplate"
+      }
+    ]
+  },
+  {
+    "type": "InterfaceSpecificationTemplate",
+    "default": {
+      "ref": "baseInterfaceSpecificationTemplate"
+    },
+    "name": "REST",
+    "description": "A REST interface",
+    "shapeType": "CIRCLE",
+    "extends": [
+      {
+        "ref": "microserviceInterfaceSpecificationTemplate"
+      }
+    ]
+  },
+  {
+    "type": "InterfaceSpecificationTemplate",
+    "default": {
+      "ref": "baseInterfaceSpecificationTemplate"
+    },
+    "name": "gRPC",
+    "description": "A gRPC interface",
+    "shapeType": "RHOMBUS",
+    "extends": [
+      {
+        "ref": "microserviceInterfaceSpecificationTemplate"
+      }
+    ]
+  },
+  {
+    "type": "InterfaceSpecificationTemplate",
+    "default": {
+      "ref": "baseInterfaceSpecificationTemplate"
+    },
+    "name": "Messaging consumer interface",
+    "description": "A messaging consumer interface",
+    "shapeType": "RHOMBUS",
+    "shapeRadius": 5,
+    "extends": [
+      {
+        "ref": "microserviceInterfaceSpecificationTemplate"
+      }
+    ]
+  },
+  {
+    "type": "RelationTemplate",
+    "name": "General relation",
+    "description": "A general relation",
+    "markerType": "ARROW",
+    "relationConditions": [
+      {
+        "from": [
+          {
+            "ref": "baseComponentTemplate"
+          },
+          {
+            "ref": "baseInterfaceSpecificationTemplate"
+          }
+        ],
+        "to": [
+          {
+            "ref": "baseComponentTemplate"
+          },
+          {
+            "ref": "baseInterfaceSpecificationTemplate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "RelationTemplate",
+    "name": "Includes",
+    "description": "Includes another library",
+    "markerType": "FILLED_CIRCLE",
+    "relationConditions": [
+      {
+        "from": [
+          {
+            "ref": "baseComponentTemplate"
+          }
+        ],
+        "to": [
+          {
+            "ref": "libraryTemplate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "RelationTemplate",
+    "name": "Calls",
+    "description": "Calls another component",
+    "markerType": "FILLED_TRIANGLE",
+    "relationConditions": [
+      {
+        "from": [
+          {
+            "ref": "baseComponentTemplate"
+          }
+        ],
+        "to": [
+          {
+            "ref": "microserviceInterfaceSpecificationTemplate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "RelationTemplate",
+    "name": "Hosted on",
+    "description": "Hosted on another component",
+    "markerType": "TRIANGLE",
+    "relationConditions": [
+      {
+        "from": [
+          {
+            "ref": "hostableComponentTemplate"
+          }
+        ],
+        "to": [
+          {
+            "ref": "infrastructureTemplate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "RelationTemplate",
+    "name": "Uses sidecar",
+    "description": "Uses a sidecar",
+    "markerType": "CIRCLE",
+    "relationConditions": [
+      {
+        "from": [
+          {
+            "ref": "microserviceTemplate"
+          },
+          {
+            "ref": "frontendTemplate"
+          }
+        ],
+        "to": [
+          {
+            "ref": "sidecarTemplate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "RelationTemplate",
+    "name": "DB connection",
+    "description": "Uses a database connection",
+    "markerType": "DIAMOND",
+    "relationConditions": [
+      {
+        "from": [
+          {
+            "ref": "microserviceTemplate"
+          },
+          {
+            "ref": "miscTemplate"
+          }
+        ],
+        "to": [
+          {
+            "ref": "databaseTemplate"
+          }
+        ]
+      }
+    ]
+  }
+]

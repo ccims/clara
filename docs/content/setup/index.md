@@ -5,8 +5,8 @@ These instructions will walk you through the initial installation and setup of t
 ---
 
 ## 1. Prerequisites
-### 1.1. getting CLARA
-- clone the [CLARA repository](https://github.com/ccims/clara)
+### 1.1. Getting CLARA
+- Clone the [CLARA repository](https://github.com/ccims/clara).
 
     ```sh
     git clone https://github.com/ccims/clara.git
@@ -49,22 +49,25 @@ CLARA utilizes the [opentelemetry auto-instrumentation](https://opentelemetry.io
     ```
 - Install the OpenTelemetry collector into the target namespace:
     ```sh
-    kubectl apply -f <path-to-clara>/deployment/open-telemetry-collector/configmap.yml
-    kubectl apply -f <path-to-clara>/deployment/open-telemetry-collector/deployment.yml	
+    kubectl -n <target-namespace> apply -f <path-to-clara>/deployment/open-telemetry-collector/configmap.yml
+    kubectl -n <target-namespace> apply -f <path-to-clara>/deployment/open-telemetry-collector/deployment.yml	
     ```
 - Add the instrumentation object into the target namespace:
     ```sh
-    kubectl apply -f <path-to-clara>/deployment/open-telemetry-collector/autoinstrumentation.yml
+    kubectl -n <target-namespace> apply -f <path-to-clara>/deployment/open-telemetry-collector/autoinstrumentation.yml
     ```
-- Instrument all existing deployments (that use below listed frameworks/technology) in the target namespace by configuring the `<your-namespace>.yaml`:
+- In the target namespace, instrument all existing deployments with the respective technology/framework of the application by configuring each `deployment.yaml` individually:
     ```yml
-    metadata:
-      annotations:
-        instrumentation.opentelemetry.io/inject-java: "true"
-        instrumentation.opentelemetry.io/inject-dotnet: "true" 
-        instrumentation.opentelemetry.io/inject-go: "true" 
-        instrumentation.opentelemetry.io/inject-nodejs: "true" 
-        instrumentation.opentelemetry.io/inject-python: "true" 
+    spec:
+      template:
+        metadata:
+          annotations: 
+            # choose one or more of the following for each deployment
+            instrumentation.opentelemetry.io/inject-java: "true"
+            instrumentation.opentelemetry.io/inject-dotnet: "true" 
+            instrumentation.opentelemetry.io/inject-go: "true" 
+            instrumentation.opentelemetry.io/inject-nodejs: "true" 
+            instrumentation.opentelemetry.io/inject-python: "true" 
     ```
 
 ### 2.2. CoreDNS
@@ -80,7 +83,8 @@ Please consult the documentation of your respective provider.
     ```txt
     [INFO] 10.244.0.19:35065 - 3179 "A IN kubernetes.default.svc.cluster.local.svc.cluster.local. udp 72 false 512" NXDOMAIN qr,aa,rd 165 0.0000838s
     ```
-- If you don't see such logs, configure your kube-dns accordingly, based on your service-provider.
+- If you don't see such logs, configure your kube-dns accordingly, based on your service-provider (you can check [this docs page](../aggregation/platforms/kubernetes/dns/index.md), too).
+- Note, that if there is zero traffic in the cluster probably no DNS resolution logs will be there.
 
 ### 2.3. Install anchore/syft
 CLARA uses syft to generate SBOMs from container images.
@@ -108,14 +112,15 @@ macOS:
     ```
 - If you want to use the Gropius exporter, set the Gropius environment variables:
     ```sh
-    export CLARA_GROPIUS_GRAPHQL_CLIENT_ID=<your-id>
-    export CLARA_GROPIUS_GRAPHQL_CLIENT_SECRET=<your-secret>
+    export CLARA_GROPIUS_GRAPHQL_CLIENT_ID=<your-client-id>
+    export CLARA_GROPIUS_GRAPHQL_CLIENT_SECRET=<your-client-secret>
+    export CLARA_GROPIUS_PROJECT_ID=<your-project-id>
     ```
 - Start CLARA by executing the application:
     ```sh
     java -jar clara-app/build/libs/clara-app-*.jar
     ```
-- Run ktunnel: 
+- Run ktunnel in parallel to ensure spans are forwarded to CLARA: 
     ```sh
     ktunnel inject deployment otel-collector-deployment 7878 -n <your-namespace>
     ```
