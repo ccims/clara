@@ -1235,11 +1235,11 @@
         <li class="md-nav__item">
   <a href="#1-gropius-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Gropius Setup:
+      1. Gropius Setup
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Gropius Setup:">
+    <nav class="md-nav" aria-label="1. Gropius Setup">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1392,7 +1392,7 @@
 <p>Follow this guideline step-by-step to recreate the evaluation of CLARA using the T2-Project, locally on a <a href="https://minikube.sigs.k8s.io/docs/">minikube</a> cluster.</p>
 <h2 id="step-by-step-setup-and-execution-instructions">Step-By-Step Setup and Execution Instructions<a class="headerlink" href="#step-by-step-setup-and-execution-instructions" title="Permanent link">&para;</a></h2>
 <p>The setup consists of the Gropius setup, the minikube setup, the T2-Project setup, and the CLARA setup.</p>
-<h2 id="1-gropius-setup">1. Gropius Setup:<a class="headerlink" href="#1-gropius-setup" title="Permanent link">&para;</a></h2>
+<h2 id="1-gropius-setup">1. Gropius Setup<a class="headerlink" href="#1-gropius-setup" title="Permanent link">&para;</a></h2>
 <h3 id="11-getting-gropius">1.1 Getting Gropius<a class="headerlink" href="#11-getting-gropius" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
@@ -1406,8 +1406,8 @@
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Docker Installation</p>
-</div>
 <p>Make sure you have a local container environment (e.g. Docker) installed and configured on your machine.</p>
+</div>
 <ul>
 <li>Locally deploy the Gropius testing environment using docker-compose:
     <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose-testing.yaml<span class="w"> </span>up<span class="w"> </span>-d
@@ -1420,13 +1420,15 @@
 <li>Open Gropius in your browser under http://localhost:4200 and log in as the default admin (admin/admin).</li>
 <li>Click on the tab <code>Admin</code> in the top menu, then select <code>OAuth2</code> on the left menu.</li>
 <li>On the right menu hit the <code>+</code> to create a new OAuth2 client.</li>
-<li>In the opening dialog enter the following:</li>
+<li>In the opening dialog enter the following:<ul>
 <li>Name: <code>CLARA</code></li>
 <li>Redirect URLs: <code>http://localhost:7878</code></li>
 <li>Client credential flow user: type 'admin' and select the <code>Admin</code> account.</li>
 <li>Check <code>requires secret</code>.</li>
 <li>Check <code>is valid</code>.</li>
 <li>Hit <code>Create auth client</code>.</li>
+</ul>
+</li>
 <li>Now, you should see an entry named <code>CLARA</code> in the list.</li>
 <li>On the right, click the <code>ID</code>-icon and copy the client-id and store it where you find it again.</li>
 <li>On the right, click the key-symbol and create a new secret access key. Copy it <strong>immediately</strong> as you won't see it again and store it next to the client-id. </li>
@@ -1435,11 +1437,13 @@
 <ul>
 <li>Create a new Project in Gropius by again opening the Gropius UI under http://localhost:4200 and logging in as the default admin (admin/admin). </li>
 <li>Click on the tab <code>Projects</code> in the top menu.</li>
-<li>On the right menu hit the <code>+</code> to create a Project:</li>
+<li>On the right menu hit the <code>+</code> to create a Project:<ul>
 <li>Enter any name that suites you.</li>
 <li>Enter any description that suites you. </li>
 <li>For repository URL simply enter: <code>https://example.org</code></li>
 <li>Hit <code>create project</code>.</li>
+</ul>
+</li>
 <li>Click on the newly created project in the list and copy the project's UUID from the URL and store it where you find it again.</li>
 </ul>
 <h3 id="14-import-gropius-default-templates">1.4 Import Gropius Default Templates<a class="headerlink" href="#14-import-gropius-default-templates" title="Permanent link">&para;</a></h3>
@@ -1500,9 +1504,11 @@
 </ul>
 <h2 id="4-clara-setup">4. CLARA Setup<a class="headerlink" href="#4-clara-setup" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Setup CLARA on your local machine as described in steps 1 and 2 on the <a href="../../setup/#1-prerequisites">setup page</a>.</li>
+<li>Setup CLARA on your local machine as described in steps 1 and 2 on the <a href="../../setup/#1-prerequisites">setup page</a>.<ul>
 <li>Use <code>clara</code> as the target namespace.</li>
 <li>In step 2.1 you can skip the injection of the annotations into the deployments, as you have already done this.</li>
+</ul>
+</li>
 <li><strong>DO NOT RUN CLARA YET</strong>, as the T2-Project is not yet deployed.</li>
 </ul>
 <h2 id="5-deploy-t2-project">5. Deploy T2-Project<a class="headerlink" href="#5-deploy-t2-project" title="Permanent link">&para;</a></h2>
@@ -1512,8 +1518,10 @@
 <span class="normal"><a href="#__codelineno-12-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1"></a>chmod<span class="w"> </span>+x<span class="w"> </span>./start-microservices.sh
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2"></a>./start-microservices.sh<span class="w"> </span>clara
 </span></code></pre></div></td></tr></table></div></li>
-<li>Describe the pods with <code>kubectl -n clara describe pod &lt;any-pod&gt;</code> and ensure they have <code>OTLP</code> attributes inside the description-yaml.</li>
+<li>Describe the pods with <code>kubectl -n clara describe pod &lt;any-pod&gt;</code> and ensure they have <code>OTLP</code> attributes inside the description-yaml.<ul>
 <li>If not, check the OpenTelemetry auto-instrumentation <a href="https://opentelemetry.io/docs/kubernetes/operator/troubleshooting/automatic/">troubleshooting page</a>.</li>
+</ul>
+</li>
 <li>For further questions regarding the T2-Project, check the official <a href="https://t2-documentation.readthedocs.io/en/latest/microservices/deploy.html">deployment instructions</a>.</li>
 </ul>
 <h2 id="6-execution">6. Execution<a class="headerlink" href="#6-execution" title="Permanent link">&para;</a></h2>
