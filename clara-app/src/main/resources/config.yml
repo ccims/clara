@@ -10,12 +10,12 @@ aggregation:
       aggregators:
         kube-api:
         dns:
-          logs-since-time: 2024-03-27T00:00:00Z
+          logs-since-time: 2024-12-14T00:00:00Z
           use-logs-from-file: false
           path-to-dns-logs: "/home/user/clara/dnslogs"
         open-telemetry:
           listen-port: 7878
-          listen-duration: 10 seconds
+          listen-duration: 60 seconds
         syft-sbom:
           sbom-file-path: sbom/
           use-stored-sbom-files: true
@@ -28,8 +28,6 @@ filter:
   remove-component-versions: false
   remove-component-endpoints: false
   remove-components-by-names:
-    - my-otel-demo-otelcol
-    - my-otel-demo-jaeger-.*
     - otel-collector-service
     - .*in-addr.arpa
 
@@ -39,7 +37,7 @@ export:
       output-type: SVG
       output-file: generated/architecture.svg
     gropius:
-      project-id: 3a9b8ed9-19e4-4346-9cc9-ce5ea092cc66
+      project-id: ${CLARA_GROPIUS_PROJECT_ID}
       graphql-backend-url: http://localhost:8080/graphql
       graphql-backend-authentication:
         authentication-url: http://localhost:3000/auth/oauth/token
