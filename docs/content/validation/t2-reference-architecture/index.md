@@ -8,7 +8,7 @@ Follow this guideline step-by-step to recreate the evaluation of CLARA using the
 ## Step-By-Step Setup and Execution Instructions
 The setup consists of the Gropius setup, the minikube setup, the T2-Project setup, and the CLARA setup.
 
-## 1. Gropius Setup: 
+## 1. Gropius Setup
 ### 1.1 Getting Gropius
 
 - Clone the [Gropius repository](https://github.com/ccims/gropius) recursive with all submodules.
@@ -21,7 +21,7 @@ The setup consists of the Gropius setup, the minikube setup, the T2-Project setu
     git clone --recurse-submodules git@github.com:ccims/gropius.git
     ```
 !!! warning "Docker Installation"
-Make sure you have a local container environment (e.g. Docker) installed and configured on your machine.
+    Make sure you have a local container environment (e.g. Docker) installed and configured on your machine.
 
 - Locally deploy the Gropius testing environment using docker-compose:
     ```sh
@@ -35,12 +35,12 @@ Make sure you have a local container environment (e.g. Docker) installed and con
 - Click on the tab `Admin` in the top menu, then select `OAuth2` on the left menu.
 - On the right menu hit the `+` to create a new OAuth2 client.
 - In the opening dialog enter the following:
-  - Name: `CLARA`
-  - Redirect URLs: `http://localhost:7878`
-  - Client credential flow user: type 'admin' and select the `Admin` account.
-  - Check `requires secret`.
-  - Check `is valid`.
-  - Hit `Create auth client`.
+    * Name: `CLARA`
+    * Redirect URLs: `http://localhost:7878`
+    * Client credential flow user: type 'admin' and select the `Admin` account.
+    * Check `requires secret`.
+    * Check `is valid`.
+    * Hit `Create auth client`.
 - Now, you should see an entry named `CLARA` in the list.
   - On the right, click the `ID`-icon and copy the client-id and store it where you find it again.
   - On the right, click the key-symbol and create a new secret access key. Copy it **immediately** as you won't see it again and store it next to the client-id. 
@@ -49,10 +49,10 @@ Make sure you have a local container environment (e.g. Docker) installed and con
 - Create a new Project in Gropius by again opening the Gropius UI under http://localhost:4200 and logging in as the default admin (admin/admin). 
 - Click on the tab `Projects` in the top menu.
 - On the right menu hit the `+` to create a Project:
-  - Enter any name that suites you.
-  - Enter any description that suites you. 
-  - For repository URL simply enter: `https://example.org`
-  - Hit `create project`.
+    * Enter any name that suites you.
+    * Enter any description that suites you. 
+    * For repository URL simply enter: `https://example.org`
+    * Hit `create project`.
 - Click on the newly created project in the list and copy the project's UUID from the URL and store it where you find it again.
 
 ### 1.4 Import Gropius Default Templates
@@ -114,8 +114,8 @@ Make sure you have a local container environment (e.g. Docker) installed and con
 - You will deploy the microservices below in [5. Deploy T2-Project](#5-deploy-t2-project) **after** the CLARA setup.
 ## 4. CLARA Setup
 - Setup CLARA on your local machine as described in steps 1 and 2 on the [setup page](../../setup/index.md#1-prerequisites).
-  - Use `clara` as the target namespace.
-  - In step 2.1 you can skip the injection of the annotations into the deployments, as you have already done this.
+    * Use `clara` as the target namespace.
+    * In step 2.1 you can skip the injection of the annotations into the deployments, as you have already done this.
 - **DO NOT RUN CLARA YET**, as the T2-Project is not yet deployed.
 
 ## 5. Deploy T2-Project
@@ -125,7 +125,7 @@ Make sure you have a local container environment (e.g. Docker) installed and con
     ./start-microservices.sh clara
     ```
 - Describe the pods with `kubectl -n clara describe pod <any-pod>` and ensure they have `OTLP` attributes inside the description-yaml.
-  - If not, check the OpenTelemetry auto-instrumentation [troubleshooting page](https://opentelemetry.io/docs/kubernetes/operator/troubleshooting/automatic/).
+    * If not, check the OpenTelemetry auto-instrumentation [troubleshooting page](https://opentelemetry.io/docs/kubernetes/operator/troubleshooting/automatic/).
 - For further questions regarding the T2-Project, check the official [deployment instructions](https://t2-documentation.readthedocs.io/en/latest/microservices/deploy.html).
 
 
