@@ -93,33 +93,14 @@ The setup consists of the Gropius setup, the minikube setup, the T2-Project setu
     kubectl create ns clara
     ```
 
-## 3. T2-Project Configuration
-- Clone the [T2-Project's devops subproject](https://github.com/t2-project/devops).
-    ```sh
-  git clone https://github.com/t2-project/devops.git
-    ```
-  or
-    ```sh
-    git clone git@github.com:t2-project/devops.git
-    ```
-- Navigate to the directory `devops/k8s/t2-microservices/base`, where you find the deployment manifests for the T2-Project microservices.
-- Insert the following into each of the `Deployment` part of the respective yaml file (except for the postgres services):
-    ```yaml
-    spec:
-      template:
-        metadata:
-          annotations: 
-            instrumentation.opentelemetry.io/inject-java: "true"
-    ```
-- You will deploy the microservices below in [5. Deploy T2-Project](#5-deploy-t2-project) **after** the CLARA setup.
-## 4. CLARA Setup
+## 3. CLARA Setup
 - Setup CLARA on your local machine as described in steps 1 and 2 on the [setup page](../../setup/index.md#1-prerequisites).
     * Use `clara` as the target namespace.
-    * In step 2.1 you can skip the injection of the annotations into the deployments, as you have already done this.
+    * In step 2.1 you can skip the injection of the annotations into the deployments, as we prepared this for the recreation of the T2-Project recovery.
 - **DO NOT RUN CLARA YET**, as the T2-Project is not yet deployed.
 
-## 5. Deploy T2-Project
-- In the T2-Project's `devops`-repository navigate back to `devops/k8s` and execute the following to install the T2-Project into the cluster:
+## 4. Deploy T2-Project
+- In the CLARA-repository change directory to `t2-deployment` and execute the following to install the T2-Project into the cluster:
     ```sh
     chmod +x ./start-microservices.sh
     ./start-microservices.sh clara
@@ -129,8 +110,8 @@ The setup consists of the Gropius setup, the minikube setup, the T2-Project setu
 - For further questions regarding the T2-Project, check the official [deployment instructions](https://t2-documentation.readthedocs.io/en/latest/microservices/deploy.html).
 
 
-## 6. Execution
-### 6.1 Create Traffic
+## 5. Execution
+### 5.1 Create Traffic
 - Create traffic during the execution by manually clicking around the web shop.
 - To do that, create a port forward to the T2-Project UI from your shell:
     ```sh
@@ -138,12 +119,12 @@ The setup consists of the Gropius setup, the minikube setup, the T2-Project setu
     ```
 - Open the shop under http://localhost:7000/ui/products and click around the shop and order some tea to create traffic.
 
-### 6.2 Execute CLARA
+### 5.2 Execute CLARA
 - Execute CLARA as described in step 3 on the [setup page](../../setup/index.md#3-run-clara). 
 - You can use the default config as provided. No need to change anything.
 - Check the CLARA logs during execution and ensure spans are coming in, when clicking around the web shop. 
 
-### 6.3 Visit the results
+### 5.3 Visit the results
 - CLARA should now execute without any issues.
 - If so, in the end open the Gropius UI under http://localhost:4200 and open your project.
 - You should see the recovered architecture of the T2-Project in the UI now.

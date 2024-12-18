@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- cart.yaml
+- cdcservice.yaml
+- creditinstitute.yaml
+- inventory.yaml
+- orchestrator.yaml
+- order.yaml
+- payment.yaml
+- postgres_inventory.yaml
+- postgres_orchestrator.yaml
+- ui.yaml
+- uibackend.yaml

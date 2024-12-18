@@ -1,0 +1,29 @@
+
+auth:
+  enabled: false
+
+resources: 
+  requests:
+    cpu: 150m
+    memory: 150Mi
+#   limits:
+#     cpu: 500m
+#     memory: 500Mi
+
+# Liveness and readiness probes cause high CPU usage (2x 10%)
+# Therefore we disable it for now
+# See following issue for more information: https://github.com/bitnami/charts/issues/10264
+livenessProbe:
+  enabled: false
+  # initialDelaySeconds: 30
+  # periodSeconds: 20
+  # timeoutSeconds: 10
+  # failureThreshold: 6
+  # successThreshold: 1
+readinessProbe:
+  enabled: false
+  # initialDelaySeconds: 5
+  # periodSeconds: 20
+  # timeoutSeconds: 10
+  # failureThreshold: 6
+  # successThreshold: 1
