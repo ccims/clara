@@ -1293,64 +1293,55 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-t2-project-configuration" class="md-nav__link">
+  <a href="#3-clara-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      3. T2-Project Configuration
+      3. CLARA Setup
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-clara-setup" class="md-nav__link">
+  <a href="#4-deploy-t2-project" class="md-nav__link">
     <span class="md-ellipsis">
-      4. CLARA Setup
+      4. Deploy T2-Project
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-deploy-t2-project" class="md-nav__link">
+  <a href="#5-execution" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Deploy T2-Project
+      5. Execution
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-execution" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Execution
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="6. Execution">
+    <nav class="md-nav" aria-label="5. Execution">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#61-create-traffic" class="md-nav__link">
+  <a href="#51-create-traffic" class="md-nav__link">
     <span class="md-ellipsis">
-      6.1 Create Traffic
+      5.1 Create Traffic
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#62-execute-clara" class="md-nav__link">
+  <a href="#52-execute-clara" class="md-nav__link">
     <span class="md-ellipsis">
-      6.2 Execute CLARA
+      5.2 Execute CLARA
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#63-visit-the-results" class="md-nav__link">
+  <a href="#53-visit-the-results" class="md-nav__link">
     <span class="md-ellipsis">
-      6.3 Visit the results
+      5.3 Visit the results
     </span>
   </a>
   
@@ -1480,43 +1471,21 @@
     <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>ns<span class="w"> </span>clara
 </span></code></pre></div></td></tr></table></div></li>
 </ul>
-<h2 id="3-t2-project-configuration">3. T2-Project Configuration<a class="headerlink" href="#3-t2-project-configuration" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Clone the <a href="https://github.com/t2-project/devops">T2-Project's devops subproject</a>.
-    <code>sh
-  git clone https://github.com/t2-project/devops.git</code>
-  or
-    <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:t2-project/devops.git
-</span></code></pre></div></td></tr></table></div></li>
-<li>Navigate to the directory <code>devops/k8s/t2-microservices/base</code>, where you find the deployment manifests for the T2-Project microservices.</li>
-<li>Insert the following into each of the <code>Deployment</code> part of the respective yaml file (except for the postgres services):
-    <div class="language-yaml highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span>
-<span class="normal"><a href="#__codelineno-11-2">2</a></span>
-<span class="normal"><a href="#__codelineno-11-3">3</a></span>
-<span class="normal"><a href="#__codelineno-11-4">4</a></span>
-<span class="normal"><a href="#__codelineno-11-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="nt">spec</span><span class="p">:</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2"></a><span class="w">  </span><span class="nt">template</span><span class="p">:</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3"></a><span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4"></a><span class="w">      </span><span class="nt">annotations</span><span class="p">:</span><span class="w"> </span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5"></a><span class="w">        </span><span class="nt">instrumentation.opentelemetry.io/inject-java</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
-</span></code></pre></div></td></tr></table></div></li>
-<li>You will deploy the microservices below in <a href="#5-deploy-t2-project">5. Deploy T2-Project</a> <strong>after</strong> the CLARA setup.</li>
-</ul>
-<h2 id="4-clara-setup">4. CLARA Setup<a class="headerlink" href="#4-clara-setup" title="Permanent link">&para;</a></h2>
+<h2 id="3-clara-setup">3. CLARA Setup<a class="headerlink" href="#3-clara-setup" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Setup CLARA on your local machine as described in steps 1 and 2 on the <a href="../../setup/#1-prerequisites">setup page</a>.<ul>
 <li>Use <code>clara</code> as the target namespace.</li>
-<li>In step 2.1 you can skip the injection of the annotations into the deployments, as you have already done this.</li>
+<li>In step 2.1 you can skip the injection of the annotations into the deployments, as we prepared this for the recreation of the T2-Project recovery.</li>
 </ul>
 </li>
 <li><strong>DO NOT RUN CLARA YET</strong>, as the T2-Project is not yet deployed.</li>
 </ul>
-<h2 id="5-deploy-t2-project">5. Deploy T2-Project<a class="headerlink" href="#5-deploy-t2-project" title="Permanent link">&para;</a></h2>
+<h2 id="4-deploy-t2-project">4. Deploy T2-Project<a class="headerlink" href="#4-deploy-t2-project" title="Permanent link">&para;</a></h2>
 <ul>
-<li>In the T2-Project's <code>devops</code>-repository navigate back to <code>devops/k8s</code> and execute the following to install the T2-Project into the cluster:
-    <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span>
-<span class="normal"><a href="#__codelineno-12-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1"></a>chmod<span class="w"> </span>+x<span class="w"> </span>./start-microservices.sh
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2"></a>./start-microservices.sh<span class="w"> </span>clara
+<li>In the CLARA-repository change directory to <code>t2-deployment</code> and execute the following to install the T2-Project into the cluster:
+    <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span>
+<span class="normal"><a href="#__codelineno-10-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1"></a>chmod<span class="w"> </span>+x<span class="w"> </span>./start-microservices.sh
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2"></a>./start-microservices.sh<span class="w"> </span>clara
 </span></code></pre></div></td></tr></table></div></li>
 <li>Describe the pods with <code>kubectl -n clara describe pod &lt;any-pod&gt;</code> and ensure they have <code>OTLP</code> attributes inside the description-yaml.<ul>
 <li>If not, check the OpenTelemetry auto-instrumentation <a href="https://opentelemetry.io/docs/kubernetes/operator/troubleshooting/automatic/">troubleshooting page</a>.</li>
@@ -1524,22 +1493,22 @@
 </li>
 <li>For further questions regarding the T2-Project, check the official <a href="https://t2-documentation.readthedocs.io/en/latest/microservices/deploy.html">deployment instructions</a>.</li>
 </ul>
-<h2 id="6-execution">6. Execution<a class="headerlink" href="#6-execution" title="Permanent link">&para;</a></h2>
-<h3 id="61-create-traffic">6.1 Create Traffic<a class="headerlink" href="#61-create-traffic" title="Permanent link">&para;</a></h3>
+<h2 id="5-execution">5. Execution<a class="headerlink" href="#5-execution" title="Permanent link">&para;</a></h2>
+<h3 id="51-create-traffic">5.1 Create Traffic<a class="headerlink" href="#51-create-traffic" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Create traffic during the execution by manually clicking around the web shop.</li>
 <li>To do that, create a port forward to the T2-Project UI from your shell:
-    <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>clara<span class="w"> </span>port-forward<span class="w"> </span>svc/ui<span class="w"> </span><span class="m">7000</span>:80
+    <div class="language-sh highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>clara<span class="w"> </span>port-forward<span class="w"> </span>svc/ui<span class="w"> </span><span class="m">7000</span>:80
 </span></code></pre></div></td></tr></table></div></li>
 <li>Open the shop under http://localhost:7000/ui/products and click around the shop and order some tea to create traffic.</li>
 </ul>
-<h3 id="62-execute-clara">6.2 Execute CLARA<a class="headerlink" href="#62-execute-clara" title="Permanent link">&para;</a></h3>
+<h3 id="52-execute-clara">5.2 Execute CLARA<a class="headerlink" href="#52-execute-clara" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Execute CLARA as described in step 3 on the <a href="../../setup/#3-run-clara">setup page</a>. </li>
 <li>You can use the default config as provided. No need to change anything.</li>
 <li>Check the CLARA logs during execution and ensure spans are coming in, when clicking around the web shop. </li>
 </ul>
-<h3 id="63-visit-the-results">6.3 Visit the results<a class="headerlink" href="#63-visit-the-results" title="Permanent link">&para;</a></h3>
+<h3 id="53-visit-the-results">5.3 Visit the results<a class="headerlink" href="#53-visit-the-results" title="Permanent link">&para;</a></h3>
 <ul>
 <li>CLARA should now execute without any issues.</li>
 <li>If so, in the end open the Gropius UI under http://localhost:4200 and open your project.</li>
