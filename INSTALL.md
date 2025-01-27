@@ -1,0 +1,1 @@
+This document exists only to fulfil the INSTALL document requirement. Please take a look at the README.md and our artifact's documentation (https://ccims.github.io/clara/) that explains the entire install and result replication process.
